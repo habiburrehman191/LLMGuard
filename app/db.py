@@ -1,10 +1,12 @@
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("logs/llmguard.db")
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "logs" / "llmguard.db"
 
 
 def get_connection():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
 
