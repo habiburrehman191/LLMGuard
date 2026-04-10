@@ -13,10 +13,15 @@ class Settings:
     base_dir: Path
     docs_dir: Path
     data_dir: Path
+    models_dir: Path
     logs_dir: Path
     db_path: Path
     vendor_dir: Path
     retrieval_index_dir: Path
+    ml_dataset_path: Path
+    ml_model_dir: Path
+    ml_model_path: Path
+    ml_training_report_path: Path
     ollama_url: str
     ollama_model: str
     retrieval_min_score: float
@@ -30,6 +35,11 @@ class Settings:
     semantic_model_name: str
     semantic_use_embeddings: bool
     semantic_local_files_only: bool
+    ml_classifier_min_confidence: float
+    suspicious_risk_threshold: float
+    malicious_risk_threshold: float
+    quarantine_risk_threshold: float
+    block_risk_threshold: float
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -49,6 +59,7 @@ def get_settings() -> Settings:
     base_dir = _path_from_env("LLMGUARD_BASE_DIR", BASE_DIR)
     docs_dir = _path_from_env("LLMGUARD_DOCS_DIR", base_dir / "docs")
     data_dir = _path_from_env("LLMGUARD_DATA_DIR", base_dir / "data")
+    models_dir = _path_from_env("LLMGUARD_MODELS_DIR", base_dir / "models")
     logs_dir = _path_from_env("LLMGUARD_LOGS_DIR", base_dir / "logs")
     db_path = _path_from_env("LLMGUARD_DB_PATH", logs_dir / "llmguard.db")
     vendor_dir = _path_from_env("LLMGUARD_VENDOR_DIR", base_dir / ".vendor")
@@ -56,15 +67,36 @@ def get_settings() -> Settings:
         "LLMGUARD_RETRIEVAL_INDEX_DIR",
         data_dir / "semantic_index",
     )
+    ml_model_dir = _path_from_env(
+        "LLMGUARD_ML_MODEL_DIR",
+        models_dir / "hybrid_firewall",
+    )
+    ml_dataset_path = _path_from_env(
+        "LLMGUARD_ML_DATASET_PATH",
+        data_dir / "firewall" / "training_dataset.jsonl",
+    )
+    ml_model_path = _path_from_env(
+        "LLMGUARD_ML_MODEL_PATH",
+        ml_model_dir / "logistic_regression.joblib",
+    )
+    ml_training_report_path = _path_from_env(
+        "LLMGUARD_ML_REPORT_PATH",
+        ml_model_dir / "training_report.json",
+    )
 
     return Settings(
         base_dir=base_dir,
         docs_dir=docs_dir,
         data_dir=data_dir,
+        models_dir=models_dir,
         logs_dir=logs_dir,
         db_path=db_path,
         vendor_dir=vendor_dir,
         retrieval_index_dir=retrieval_index_dir,
+        ml_dataset_path=ml_dataset_path,
+        ml_model_dir=ml_model_dir,
+        ml_model_path=ml_model_path,
+        ml_training_report_path=ml_training_report_path,
         ollama_url=os.getenv("LLMGUARD_OLLAMA_URL", "http://localhost:11434/api/chat"),
         ollama_model=os.getenv("LLMGUARD_OLLAMA_MODEL", "vicuna"),
         retrieval_min_score=float(os.getenv("LLMGUARD_RETRIEVAL_MIN_SCORE", "0.05")),
@@ -80,8 +112,13 @@ def get_settings() -> Settings:
         retrieval_batch_size=int(os.getenv("LLMGUARD_RETRIEVAL_BATCH_SIZE", "16")),
         semantic_threshold=float(os.getenv("LLMGUARD_SEMANTIC_THRESHOLD", "0.45")),
         semantic_model_name=os.getenv("LLMGUARD_SEMANTIC_MODEL", "all-MiniLM-L6-v2"),
-        semantic_use_embeddings=_bool_from_env("LLMGUARD_USE_EMBEDDINGS", False),
+        semantic_use_embeddings=_bool_from_env("LLMGUARD_USE_EMBEDDINGS", True),
         semantic_local_files_only=_bool_from_env("LLMGUARD_LOCAL_FILES_ONLY", True),
+        ml_classifier_min_confidence=float(os.getenv("LLMGUARD_ML_MIN_CONFIDENCE", "0.45")),
+        suspicious_risk_threshold=float(os.getenv("LLMGUARD_SUSPICIOUS_RISK_THRESHOLD", "0.38")),
+        malicious_risk_threshold=float(os.getenv("LLMGUARD_MALICIOUS_RISK_THRESHOLD", "0.72")),
+        quarantine_risk_threshold=float(os.getenv("LLMGUARD_QUARANTINE_RISK_THRESHOLD", "0.82")),
+        block_risk_threshold=float(os.getenv("LLMGUARD_BLOCK_RISK_THRESHOLD", "0.92")),
     )
 
 

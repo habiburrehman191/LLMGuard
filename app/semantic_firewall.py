@@ -37,6 +37,7 @@ class SemanticFirewall:
         self.attack_patterns = attack_patterns or ATTACK_PATTERNS
         self.threshold = settings.semantic_threshold if threshold is None else threshold
         self.model_name = settings.semantic_model_name if model_name is None else model_name
+        self.local_files_only = settings.semantic_local_files_only
         self.allow_embedding_backend = (
             settings.semantic_use_embeddings
             if allow_embedding_backend is None
@@ -64,7 +65,10 @@ class SemanticFirewall:
             try:
                 from sentence_transformers import SentenceTransformer
 
-                self._encoder = SentenceTransformer(self.model_name)
+                self._encoder = SentenceTransformer(
+                    self.model_name,
+                    local_files_only=self.local_files_only,
+                )
                 self._pattern_embeddings = self._encoder.encode(self.attack_patterns)
             except Exception:
                 self._encoder = None
@@ -97,12 +101,22 @@ class SemanticFirewall:
         max_score = float(np.max(similarities)) if similarities.size else 0.0
         matched_index = int(np.argmax(similarities)) if similarities.size else 0
         matched_pattern = self.attack_patterns[matched_index] if similarities.size else None
+        malicious_threshold = min(0.95, active_threshold + 0.20)
+        suspicious_threshold = max(0.25, active_threshold * 0.75)
+
+        if max_score >= malicious_threshold:
+            label = "malicious"
+        elif max_score >= suspicious_threshold:
+            label = "suspicious"
+        else:
+            label = "safe"
 
         return {
-            "is_attack": max_score > active_threshold,
+            "is_attack": label != "safe",
             "score": max_score,
             "matched_pattern": matched_pattern,
             "backend": backend,
+            "label": label,
         }
 
 

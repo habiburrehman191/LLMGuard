@@ -14,6 +14,16 @@ class RetrievedChunk(BaseModel):
     chunk_index: int
     text: str
     score: float
+    rule_score: float = 0.0
+    semantic_score: float = 0.0
+    ml_score: float = 0.0
+    risk_score: float = 0.0
+    rule_label: str = "safe"
+    semantic_label: str = "safe"
+    ml_label: str = "safe"
+    label: str = "safe"
+    action: str = "allow"
+    reasons: list[str] = Field(default_factory=list)
 
 
 class AskResponse(BaseModel):
@@ -23,6 +33,13 @@ class AskResponse(BaseModel):
     retrieved_chunks: list[RetrievedChunk] = Field(default_factory=list)
     action: str
     blocked: bool
+    label: str
     reason: str
+    rule_score: float = 0.0
+    semantic_score: float = 0.0
+    ml_score: float = 0.0
+    rule_label: str = "safe"
+    semantic_label: str = "safe"
+    ml_label: str = "safe"
     risk_score: float
     response: Optional[str] = None

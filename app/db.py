@@ -25,8 +25,15 @@ def init_db() -> None:
             retrieved_sources TEXT,
             retrieved_chunks TEXT,
             action TEXT NOT NULL,
+            label TEXT,
             blocked INTEGER NOT NULL,
             reason TEXT NOT NULL,
+            rule_score REAL,
+            semantic_score REAL,
+            ml_score REAL,
+            rule_label TEXT,
+            semantic_label TEXT,
+            ml_label TEXT,
             risk_score REAL NOT NULL,
             response TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -38,9 +45,19 @@ def init_db() -> None:
         row[1]
         for row in cursor.execute("PRAGMA table_info(logs)").fetchall()
     }
-    for column_name in ("retrieved_sources", "retrieved_chunks"):
+    for column_name, column_type in (
+        ("retrieved_sources", "TEXT"),
+        ("retrieved_chunks", "TEXT"),
+        ("label", "TEXT"),
+        ("rule_score", "REAL"),
+        ("semantic_score", "REAL"),
+        ("ml_score", "REAL"),
+        ("rule_label", "TEXT"),
+        ("semantic_label", "TEXT"),
+        ("ml_label", "TEXT"),
+    ):
         if column_name not in existing_columns:
-            cursor.execute(f"ALTER TABLE logs ADD COLUMN {column_name} TEXT")
+            cursor.execute(f"ALTER TABLE logs ADD COLUMN {column_name} {column_type}")
 
     conn.commit()
     conn.close()
@@ -52,8 +69,15 @@ def insert_log(
     retrieved_sources: list[str] | None,
     retrieved_chunks: list[dict[str, object]] | None,
     action: str,
+    label: str,
     blocked: bool,
     reason: str,
+    rule_score: float,
+    semantic_score: float,
+    ml_score: float,
+    rule_label: str,
+    semantic_label: str,
+    ml_label: str,
     risk_score: float,
     response: str | None,
 ) -> None:
@@ -68,12 +92,19 @@ def insert_log(
             retrieved_sources,
             retrieved_chunks,
             action,
+            label,
             blocked,
             reason,
+            rule_score,
+            semantic_score,
+            ml_score,
+            rule_label,
+            semantic_label,
+            ml_label,
             risk_score,
             response
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             prompt,
@@ -81,8 +112,15 @@ def insert_log(
             json.dumps(retrieved_sources or []),
             json.dumps(retrieved_chunks or []),
             action,
+            label,
             int(blocked),
             reason,
+            rule_score,
+            semantic_score,
+            ml_score,
+            rule_label,
+            semantic_label,
+            ml_label,
             risk_score,
             response,
         ),

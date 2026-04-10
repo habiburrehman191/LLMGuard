@@ -15,6 +15,19 @@ DANGEROUS_PATTERNS = [
     "expose private information",
 ]
 
+SUSPICIOUS_PATTERNS = [
+    "hidden instructions",
+    "system instructions",
+    "internal guidance",
+    "confidential records",
+    "private data",
+    "protected records",
+    "security controls",
+    "prior constraints",
+    "earlier guardrails",
+    "bypass controls",
+]
+
 
 def rule_based_check(text: str):
     lowered = text.lower()
@@ -24,15 +37,27 @@ def rule_based_check(text: str):
             return {
                 "blocked": True,
                 "reason": f"Matched dangerous pattern: '{pattern}'",
-                "risk_score": 0.9,
+                "risk_score": 0.98,
                 "matched_pattern": pattern,
+                "label": "malicious",
+            }
+
+    for pattern in SUSPICIOUS_PATTERNS:
+        if pattern in lowered:
+            return {
+                "blocked": False,
+                "reason": f"Matched suspicious pattern: '{pattern}'",
+                "risk_score": 0.45,
+                "matched_pattern": pattern,
+                "label": "suspicious",
             }
 
     return {
         "blocked": False,
         "reason": "No dangerous rule-based pattern detected",
-        "risk_score": 0.1,
+        "risk_score": 0.05,
         "matched_pattern": None,
+        "label": "safe",
     }
 
 
@@ -43,8 +68,9 @@ def sanitize_text(text: str):
     for sentence in sentences:
         sentence_lower = sentence.lower()
         is_dangerous = any(pattern in sentence_lower for pattern in DANGEROUS_PATTERNS)
+        is_suspicious = any(pattern in sentence_lower for pattern in SUSPICIOUS_PATTERNS)
 
-        if not is_dangerous:
+        if not is_dangerous and not is_suspicious:
             safe_sentences.append(sentence)
 
     if not safe_sentences:
