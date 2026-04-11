@@ -319,6 +319,12 @@ table,
     background: var(--neutral-soft);
 }
 
+.status-chip {
+    min-height: 40px;
+    padding: 0 16px;
+    letter-spacing: 0.01em;
+}
+
 .status-chip.safe {
     color: var(--safe);
     background: var(--safe-soft);
@@ -467,9 +473,21 @@ a:focus {
     gap: 14px;
 }
 
-.helper-copy,
 .info-subtle {
     font-size: 0.92rem;
+}
+
+.primary-source-card,
+.reason-card {
+    padding: 22px;
+}
+
+.primary-source-title {
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
 }
 
 .status-card.wide {
@@ -515,11 +533,14 @@ a:focus {
 
 .warning-banner {
     margin-bottom: 18px;
-    padding: 18px 20px;
-    border-radius: 20px;
+    padding: 16px 18px;
+    border-radius: 18px;
     font-weight: 700;
     border: 1px solid transparent;
     backdrop-filter: blur(12px);
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
 }
 
 .warning-banner.safe {
@@ -734,8 +755,11 @@ tbody td {
 }
 
 .primary-source-path {
-    margin-top: 10px;
+    margin-top: 12px;
     color: var(--muted);
+    line-height: 1.6;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .evidence-details {

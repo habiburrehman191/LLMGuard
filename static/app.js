@@ -36,6 +36,33 @@ function normalizeText(value) {
     return typeof value === "string" ? value.trim() : "";
 }
 
+function humanizeSourceTitle(value) {
+    const text = normalizeText(value);
+    if (!text) {
+        return "No document retrieved";
+    }
+
+    const lastSegment = text.split(/[\\/]/).pop() || text;
+    const withoutExtension = lastSegment.replace(/\.[^.]+$/, "");
+    return withoutExtension
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function dedupeStrings(values) {
+    const seen = new Set();
+    return values.filter((value) => {
+        const key = normalizeText(value);
+        if (!key || seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
 function containsTechnicalError(value) {
     const text = normalizeText(value).toLowerCase();
     return text && TECHNICAL_ERROR_MARKERS.some((marker) => text.includes(marker));
@@ -84,13 +111,26 @@ function hideWarning() {
     warningBanner.textContent = "";
 }
 
-function renderEvidence(documentName, sources) {
-    const allSources = Array.isArray(sources) ? sources.filter(Boolean) : [];
-    const primarySource = allSources[0] || "No primary source yet";
-    const secondarySources = allSources.slice(1);
+function renderEvidence(result) {
+    const chunks = Array.isArray(result.retrieved_chunks) ? result.retrieved_chunks : [];
+    const topChunk = chunks[0] || null;
+    const chunkSources = dedupeStrings(chunks.map((chunk) => normalizeText(chunk.source_path)));
+    const chunkTitles = dedupeStrings(chunks.map((chunk) => normalizeText(chunk.document_name)));
+    const rawSources = dedupeStrings((result.retrieved_sources || []).map((source) => normalizeText(source)));
 
-    resultDocument.textContent = documentName || "No document retrieved";
-    resultPrimarySource.textContent = primarySource;
+    const primaryPath = topChunk?.source_path || chunkSources[0] || rawSources[0] || "No primary source yet";
+    const primaryTitle = humanizeSourceTitle(topChunk?.document_name || topChunk?.source_path || result.retrieved_document);
+
+    const secondarySources = dedupeStrings([
+        ...chunkSources.filter((source) => normalizeText(source) !== normalizeText(primaryPath)),
+        ...rawSources.filter((source) => normalizeText(source) !== normalizeText(primaryPath)),
+        ...chunkTitles
+            .filter((title) => normalizeText(title) && normalizeText(title) !== normalizeText(topChunk?.document_name || ""))
+            .map((title) => `${humanizeSourceTitle(title)}`),
+    ]);
+
+    resultDocument.textContent = primaryTitle;
+    resultPrimarySource.textContent = primaryPath;
     secondarySourceCount.textContent = String(secondarySources.length);
     resultSources.innerHTML = "";
 
@@ -189,7 +229,7 @@ function renderResult(result) {
     resultReason.textContent = reason;
     resultResponse.textContent = sanitizedResponseText(result);
 
-    renderEvidence(result.retrieved_document, result.retrieved_sources || []);
+    renderEvidence(result);
     renderChunks(result.retrieved_chunks || []);
 
     if (backendOffline) {
