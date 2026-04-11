@@ -41,6 +41,8 @@ def _load_faiss_module():
 class IndexedDocument:
     document_name: str
     source_path: str
+    source_set: str
+    is_poisoned: bool
     content: str
 
 
@@ -49,6 +51,8 @@ class DocumentChunk:
     chunk_id: str
     document_name: str
     source_path: str
+    source_set: str
+    is_poisoned: bool
     chunk_index: int
     text: str
 
@@ -150,11 +154,17 @@ class SemanticRetriever:
         except ValueError:
             return path.relative_to(self.docs_dir.parent).as_posix()
 
+    def _source_set_for_path(self, path: Path) -> str:
+        source_path = self._relative_source_path(path)
+        return "poisoned" if "/poisoned/" in f"/{source_path}/" else "clean"
+
     def _docs_snapshot(self) -> list[dict[str, Any]]:
         return [
             {
                 "document_name": path.name,
                 "source_path": self._relative_source_path(path),
+                "source_set": self._source_set_for_path(path),
+                "is_poisoned": self._source_set_for_path(path) == "poisoned",
                 "mtime_ns": path.stat().st_mtime_ns,
                 "size": path.stat().st_size,
             }
@@ -239,6 +249,8 @@ class SemanticRetriever:
                     chunk_id=f"{document.source_path}:{chunk_index}",
                     document_name=document.document_name,
                     source_path=document.source_path,
+                    source_set=document.source_set,
+                    is_poisoned=document.is_poisoned,
                     chunk_index=chunk_index,
                     text=chunk_text,
                 )
@@ -257,6 +269,8 @@ class SemanticRetriever:
                         chunk_id=f"{document.source_path}:{len(chunks)}",
                         document_name=document.document_name,
                         source_path=document.source_path,
+                        source_set=document.source_set,
+                        is_poisoned=document.is_poisoned,
                         chunk_index=len(chunks),
                         text=trailing_text,
                     )
@@ -273,6 +287,8 @@ class SemanticRetriever:
                     IndexedDocument(
                         document_name=file_path.name,
                         source_path=self._relative_source_path(file_path),
+                        source_set=self._source_set_for_path(file_path),
+                        is_poisoned=self._source_set_for_path(file_path) == "poisoned",
                         content=content,
                     )
                 )
@@ -368,10 +384,12 @@ class SemanticRetriever:
             return None
 
         active_top_k = max(1, top_k or self.top_k)
-        distances, indices = self._index.search(query_embedding, active_top_k)
+        search_k = min(len(self._chunks), max(active_top_k * 4, active_top_k))
+        distances, indices = self._index.search(query_embedding, search_k)
 
         matches: list[dict[str, Any]] = []
         seen_chunk_ids: set[str] = set()
+        poisoned_penalty = get_settings().retrieval_poisoned_score_penalty
 
         for score, index_id in zip(distances[0], indices[0]):
             if index_id < 0:
@@ -382,7 +400,8 @@ class SemanticRetriever:
                 continue
 
             similarity = float(score)
-            if similarity < self.min_score:
+            adjusted_score = similarity - poisoned_penalty if chunk.is_poisoned else similarity
+            if adjusted_score < self.min_score:
                 continue
 
             seen_chunk_ids.add(chunk.chunk_id)
@@ -390,15 +409,21 @@ class SemanticRetriever:
                 {
                     "document_name": chunk.document_name,
                     "source_path": chunk.source_path,
+                    "source_set": chunk.source_set,
+                    "is_poisoned": chunk.is_poisoned,
                     "chunk_id": chunk.chunk_id,
                     "chunk_index": chunk.chunk_index,
                     "text": chunk.text,
-                    "score": similarity,
+                    "score": adjusted_score,
+                    "raw_score": similarity,
                 }
             )
 
         if not matches:
             return None
+
+        matches.sort(key=lambda item: item["score"], reverse=True)
+        matches = matches[:active_top_k]
 
         retrieved_sources: list[str] = []
         retrieved_documents: list[str] = []
@@ -408,11 +433,7 @@ class SemanticRetriever:
             if match["document_name"] not in retrieved_documents:
                 retrieved_documents.append(match["document_name"])
 
-        combined_content = "\n\n".join(
-            f"[Source: {match['source_path']} | Chunk {match['chunk_index'] + 1} | Score {match['score']:.3f}]\n"
-            f"{match['text']}"
-            for match in matches
-        )
+        combined_content = "\n\n".join(match["text"] for match in matches)
 
         return {
             "filename": ", ".join(retrieved_documents),

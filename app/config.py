@@ -31,6 +31,7 @@ class Settings:
     retrieval_chunk_sentence_window: int
     retrieval_chunk_sentence_overlap: int
     retrieval_batch_size: int
+    retrieval_poisoned_score_penalty: float
     semantic_threshold: float
     semantic_model_name: str
     semantic_use_embeddings: bool
@@ -110,6 +111,9 @@ def get_settings() -> Settings:
             os.getenv("LLMGUARD_RETRIEVAL_CHUNK_SENTENCE_OVERLAP", "1")
         ),
         retrieval_batch_size=int(os.getenv("LLMGUARD_RETRIEVAL_BATCH_SIZE", "16")),
+        retrieval_poisoned_score_penalty=float(
+            os.getenv("LLMGUARD_RETRIEVAL_POISONED_SCORE_PENALTY", "0.08")
+        ),
         semantic_threshold=float(os.getenv("LLMGUARD_SEMANTIC_THRESHOLD", "0.45")),
         semantic_model_name=os.getenv("LLMGUARD_SEMANTIC_MODEL", "all-MiniLM-L6-v2"),
         semantic_use_embeddings=_bool_from_env("LLMGUARD_USE_EMBEDDINGS", True),

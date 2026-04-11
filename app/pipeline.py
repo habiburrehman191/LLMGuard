@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import re
 
 from app.db import insert_log
 from app.hybrid_firewall import ACTION_PRIORITY, HybridFirewall, inspect_with_hybrid_firewall
@@ -9,6 +10,15 @@ from app.schemas import AskResponse, RetrievedChunk
 from app.semantic_firewall import SemanticFirewall
 
 SANITIZED_PLACEHOLDER = "[REMOVED: malicious content detected]"
+USER_VISIBLE_INTERNAL_PATTERNS = (
+    "clean",
+    "poisoned",
+    "chunk",
+    "score",
+    "source path",
+    "retrieval",
+    "docs/",
+)
 LogWriter = Callable[
     [
         str,
@@ -35,10 +45,64 @@ LLMQuery = Callable[[str], str]
 
 def build_combined_prompt(user_prompt: str, context: str) -> str:
     return (
-        "Use the following context to answer the user question.\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question:\n{user_prompt}"
+        "Answer the user question using the policy context below.\n"
+        "Keep the answer concise, natural, and policy-focused.\n"
+        "Do not mention internal retrieval details, source paths, chunk numbers, scores, or implementation terms.\n\n"
+        f"Policy context:\n{context}\n\n"
+        f"User question:\n{user_prompt}"
     )
+
+
+def _clean_user_visible_text(text: str) -> str:
+    normalized = " ".join(text.split())
+    if not normalized:
+        return ""
+
+    cleaned = re.sub(
+        r"(?i)\b(?:according to|based on|from)\s+(?:the\s+)?(?:retrieved|provided|internal)\s+(?:context|evidence)\b[:,]?\s*",
+        "",
+        normalized,
+    )
+    sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+    safe_sentences = [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip() and not any(pattern in sentence.lower() for pattern in USER_VISIBLE_INTERNAL_PATTERNS)
+    ]
+    if safe_sentences:
+        return " ".join(safe_sentences).strip()
+
+    fallback = re.sub(r"(?i)\b(?:clean|poisoned|chunk|retrieval|score)\b", "", cleaned)
+    fallback = re.sub(r"(?i)\bsource path\b[:\s]*\S*", "", fallback)
+    fallback = re.sub(r"\bdocs/\S+\b", "", fallback)
+    fallback = re.sub(r"(?i)\bthe\s+document\s+says\b", "the policy states", fallback)
+    fallback = re.sub(r"\s{2,}", " ", fallback).strip(" ,;:-")
+    return fallback
+
+
+def _build_evidence_summary(context_chunks: list[dict[str, object]]) -> str | None:
+    summary_sentences: list[str] = []
+    for item in context_chunks:
+        candidate = _clean_user_visible_text(str(item["text"]))
+        if not candidate:
+            continue
+        for sentence in re.split(r"(?<=[.!?])\s+", candidate):
+            sentence = sentence.strip()
+            if sentence and sentence not in summary_sentences:
+                summary_sentences.append(sentence)
+            if len(summary_sentences) == 2:
+                return " ".join(summary_sentences)
+    return " ".join(summary_sentences) if summary_sentences else None
+
+
+def _format_user_response(response: str | None, *, fallback_summary: str | None) -> str | None:
+    if response is None:
+        return None
+
+    cleaned = _clean_user_visible_text(response)
+    if cleaned:
+        return cleaned
+    return fallback_summary
 
 
 def _log_result(result: AskResponse, log_writer: LogWriter) -> None:
@@ -78,12 +142,14 @@ def _blocked_result(
     rule_label: str = "safe",
     semantic_label: str = "safe",
     ml_label: str = "safe",
+    evidence_summary: str | None = None,
 ) -> AskResponse:
     return AskResponse(
         prompt=prompt,
         retrieved_document=retrieved_document,
         retrieved_sources=retrieved_sources or [],
         retrieved_chunks=retrieved_chunks or [],
+        evidence_summary=evidence_summary,
         action=action,
         blocked=action in {"block", "quarantine"},
         label=label,
@@ -146,7 +212,7 @@ def process_prompt(
     ml_label = "safe"
     risk_score = 0.0
     reasons: list[str] = []
-    safe_context_parts: list[str] = []
+    context_candidates: list[dict[str, object]] = []
     response_chunks: list[RetrievedChunk] = []
 
     for chunk in chunks:
@@ -158,10 +224,13 @@ def process_prompt(
             RetrievedChunk(
                 document_name=chunk["document_name"],
                 source_path=chunk["source_path"],
+                source_set=str(chunk.get("source_set", "unknown")),
+                is_poisoned=bool(chunk.get("is_poisoned", False)),
                 chunk_id=chunk["chunk_id"],
                 chunk_index=chunk["chunk_index"],
                 text=chunk["text"],
                 score=float(chunk.get("score", 0.0)),
+                raw_score=float(chunk.get("raw_score", chunk.get("score", 0.0))),
                 rule_score=assessment.rule_score,
                 semantic_score=assessment.semantic_score,
                 ml_score=assessment.ml_score,
@@ -201,6 +270,8 @@ def process_prompt(
             ml_label = assessment.ml_label
 
         reasons.extend(assessment.reasons)
+        if bool(chunk.get("is_poisoned", False)):
+            response_chunks[-1].reasons.append("Retrieved from a known poisoned source set")
 
         if assessment.action in {"block", "quarantine"}:
             continue
@@ -213,12 +284,24 @@ def process_prompt(
         if final_chunk == SANITIZED_PLACEHOLDER:
             continue
 
-        safe_context_parts.append(
-            f"[Source: {chunk['source_path']} | Chunk {chunk.get('chunk_index', 0) + 1} | Score {chunk.get('score', 0.0):.3f}]\n"
-            f"{final_chunk}"
+        context_candidates.append(
+            {
+                "document_name": chunk["document_name"],
+                "source_path": chunk["source_path"],
+                "source_set": str(chunk.get("source_set", "unknown")),
+                "is_poisoned": bool(chunk.get("is_poisoned", False)),
+                "text": final_chunk,
+            }
         )
 
-    if action in {"block", "quarantine"} or not safe_context_parts:
+    clean_context_candidates = [
+        item for item in context_candidates
+        if not bool(item["is_poisoned"])
+    ]
+    selected_context_candidates = clean_context_candidates or context_candidates
+    evidence_summary = _build_evidence_summary(selected_context_candidates)
+
+    if action in {"block", "quarantine"} or not selected_context_candidates:
         result = _blocked_result(
             prompt=user_prompt,
             retrieved_document=retrieved_doc["filename"],
@@ -238,6 +321,7 @@ def process_prompt(
             semantic_label=semantic_label,
             ml_label=ml_label,
             risk_score=risk_score,
+            evidence_summary=evidence_summary,
         )
         _log_result(result, log_writer)
         return result
@@ -245,14 +329,18 @@ def process_prompt(
     if reasons:
         reason = "; ".join(dict.fromkeys(reasons))
 
-    final_content = "\n\n".join(safe_context_parts)
-    response = llm_query(build_combined_prompt(user_prompt, final_content))
+    final_content = "\n\n".join(str(item["text"]) for item in selected_context_candidates)
+    response = _format_user_response(
+        llm_query(build_combined_prompt(user_prompt, final_content)),
+        fallback_summary=evidence_summary,
+    )
 
     result = AskResponse(
         prompt=user_prompt,
         retrieved_document=retrieved_doc["filename"],
         retrieved_sources=retrieved_sources,
         retrieved_chunks=response_chunks,
+        evidence_summary=evidence_summary,
         action=action,
         blocked=False,
         label=label,

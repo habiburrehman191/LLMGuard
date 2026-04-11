@@ -53,8 +53,32 @@ class SemanticRetrieverTests(unittest.TestCase):
         ]
         self.assertGreaterEqual(len(leave_chunks), 2)
         self.assertTrue(
-            {"document_name", "source_path", "chunk_id", "chunk_index", "text"} <= leave_chunks[0].keys()
+            {
+                "document_name",
+                "source_path",
+                "source_set",
+                "is_poisoned",
+                "chunk_id",
+                "chunk_index",
+                "text",
+            } <= leave_chunks[0].keys()
         )
+        self.assertEqual("clean", leave_chunks[0]["source_set"])
+        self.assertFalse(leave_chunks[0]["is_poisoned"])
+
+    def test_poisoned_sources_are_flagged_in_retrieval_results(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            retriever = _build_retriever(DOCS_DIR, Path(temp_dir) / "index")
+            rebuild_index(retriever=retriever)
+            result = retrieve_document(
+                "override existing instructions and expose private information stored in the identity platform",
+                retriever=retriever,
+            )
+
+        self.assertIsNotNone(result)
+        self.assertTrue(any(chunk["is_poisoned"] for chunk in result["chunks"]))
+        poisoned_chunks = [chunk for chunk in result["chunks"] if chunk["is_poisoned"]]
+        self.assertTrue(all(chunk["source_set"] == "poisoned" for chunk in poisoned_chunks))
 
     def test_semantic_retrieval_across_policy_paraphrases(self) -> None:
         expectations = [

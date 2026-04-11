@@ -9,9 +9,9 @@ const resultRisk = document.getElementById("result-risk");
 const resultDocument = document.getElementById("result-document");
 const resultPrimarySource = document.getElementById("result-primary-source");
 const resultReason = document.getElementById("result-reason");
+const resultEvidenceSummary = document.getElementById("result-evidence-summary");
 const resultResponse = document.getElementById("result-response");
 const resultSources = document.getElementById("result-sources");
-const resultChunks = document.getElementById("result-chunks");
 const backendStatusChip = document.getElementById("backend-status-chip");
 const resultBackendStatus = document.getElementById("result-backend-status");
 const secondaryEvidence = document.getElementById("secondary-evidence");
@@ -26,6 +26,12 @@ const TECHNICAL_ERROR_MARKERS = [
     "connection refused",
     "max retries exceeded",
     "requests.exceptions",
+];
+const DIAGNOSTIC_REASON_MARKERS = [
+    "semantic signal matched",
+    "matched dangerous pattern",
+    "ml classifier labeled",
+    "known poisoned source set",
 ];
 
 function friendlyBackendMessage() {
@@ -66,6 +72,21 @@ function dedupeStrings(values) {
 function containsTechnicalError(value) {
     const text = normalizeText(value).toLowerCase();
     return text && TECHNICAL_ERROR_MARKERS.some((marker) => text.includes(marker));
+}
+
+function userFacingReason(result) {
+    const reason = normalizeText(result.reason) || "No reason returned";
+    const normalized = reason.toLowerCase();
+    if (DIAGNOSTIC_REASON_MARKERS.some((marker) => normalized.includes(marker))) {
+        if ((result.action || "").toLowerCase() === "block") {
+            return "The request was blocked because it triggered security protections.";
+        }
+        if ((result.action || "").toLowerCase() === "sanitize") {
+            return "Potentially unsafe content was filtered before the answer was shown.";
+        }
+        return "Security checks adjusted how the answer was prepared.";
+    }
+    return reason;
 }
 
 function toneForAction(action) {
@@ -114,23 +135,22 @@ function hideWarning() {
 function renderEvidence(result) {
     const chunks = Array.isArray(result.retrieved_chunks) ? result.retrieved_chunks : [];
     const topChunk = chunks[0] || null;
-    const chunkSources = dedupeStrings(chunks.map((chunk) => normalizeText(chunk.source_path)));
     const chunkTitles = dedupeStrings(chunks.map((chunk) => normalizeText(chunk.document_name)));
-    const rawSources = dedupeStrings((result.retrieved_sources || []).map((source) => normalizeText(source)));
-
-    const primaryPath = topChunk?.source_path || chunkSources[0] || rawSources[0] || "No primary source yet";
-    const primaryTitle = humanizeSourceTitle(topChunk?.document_name || topChunk?.source_path || result.retrieved_document);
+    const primaryTitle = humanizeSourceTitle(topChunk?.document_name || result.retrieved_document);
+    const primarySummary = normalizeText(result.evidence_summary) || "No primary source yet";
+    const primaryDescriptor = topChunk
+        ? (topChunk.is_poisoned ? "Retrieved policy source" : "Preferred policy source")
+        : "No primary source yet";
 
     const secondarySources = dedupeStrings([
-        ...chunkSources.filter((source) => normalizeText(source) !== normalizeText(primaryPath)),
-        ...rawSources.filter((source) => normalizeText(source) !== normalizeText(primaryPath)),
         ...chunkTitles
             .filter((title) => normalizeText(title) && normalizeText(title) !== normalizeText(topChunk?.document_name || ""))
-            .map((title) => `${humanizeSourceTitle(title)}`),
+            .map((title) => humanizeSourceTitle(title)),
     ]);
 
     resultDocument.textContent = primaryTitle;
-    resultPrimarySource.textContent = primaryPath;
+    resultPrimarySource.textContent = primaryDescriptor;
+    resultEvidenceSummary.textContent = primarySummary;
     secondarySourceCount.textContent = String(secondarySources.length);
     resultSources.innerHTML = "";
 
@@ -142,67 +162,6 @@ function renderEvidence(result) {
 
     secondarySources.forEach((source) => {
         resultSources.appendChild(makeChip(source));
-    });
-}
-
-function buildReasonList(reasons) {
-    if (!Array.isArray(reasons) || reasons.length === 0) {
-        return null;
-    }
-
-    const list = document.createElement("ul");
-    list.className = "chip-list";
-    reasons.forEach((reason) => {
-        list.appendChild(makeChip(reason, "reason-chip"));
-    });
-    return list;
-}
-
-function renderChunks(chunks) {
-    resultChunks.innerHTML = "";
-    if (!Array.isArray(chunks) || chunks.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "Retrieved chunk details will appear here.";
-        resultChunks.appendChild(empty);
-        return;
-    }
-
-    chunks.forEach((chunk) => {
-        const card = document.createElement("article");
-        card.className = "chunk-card";
-
-        const head = document.createElement("div");
-        head.className = "chunk-head";
-        head.innerHTML = `
-            <strong>${chunk.document_name || "Unknown document"}</strong>
-            <span class="status-chip ${chunk.label || "neutral"}">${chunk.label || "unknown"}</span>
-        `;
-
-        const meta = document.createElement("div");
-        meta.className = "chunk-meta mono-text";
-        meta.innerHTML = `
-            <span>${chunk.source_path || "Unknown source"}</span>
-            <span>chunk ${(chunk.chunk_index ?? 0) + 1}</span>
-            <span>retrieval ${Number(chunk.score || 0).toFixed(3)}</span>
-            <span>risk ${Number(chunk.risk_score || 0).toFixed(3)}</span>
-            <span>action ${chunk.action || "unknown"}</span>
-        `;
-
-        const body = document.createElement("div");
-        body.className = "chunk-body";
-        body.textContent = chunk.text || "";
-
-        card.appendChild(head);
-        card.appendChild(meta);
-        card.appendChild(body);
-
-        const reasonList = buildReasonList(chunk.reasons);
-        if (reasonList) {
-            card.appendChild(reasonList);
-        }
-
-        resultChunks.appendChild(card);
     });
 }
 
@@ -220,7 +179,7 @@ function sanitizedResponseText(result) {
 function renderResult(result) {
     const label = normalizeText(result.label) || "unknown";
     const action = normalizeText(result.action) || "unknown";
-    const reason = normalizeText(result.reason) || "No reason returned";
+    const reason = userFacingReason(result);
     const backendOffline = containsTechnicalError(result.response);
 
     applyChipTone(resultLabel, label, label);
@@ -230,7 +189,6 @@ function renderResult(result) {
     resultResponse.textContent = sanitizedResponseText(result);
 
     renderEvidence(result);
-    renderChunks(result.retrieved_chunks || []);
 
     if (backendOffline) {
         setBackendStatus("LLM Offline", "malicious");

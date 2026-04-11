@@ -105,7 +105,7 @@
                             <span class="info-subtle">Main retrieved evidence</span>
                         </div>
                         <div id="result-document" class="value-block primary-source-title">Not available yet</div>
-                        <div id="result-primary-source" class="primary-source-path mono-text">No primary source yet</div>
+                        <div id="result-primary-source" class="primary-source-path">No primary source yet</div>
                     </article>
 
                     <article class="info-card reason-card">
@@ -113,10 +113,18 @@
                         <p id="result-reason" class="body-copy">Submit a query to inspect the hybrid firewall decision.</p>
                     </article>
 
+                    <article class="info-card evidence-summary-card">
+                        <div class="info-card-head">
+                            <h3>Evidence Summary</h3>
+                            <span class="info-subtle">Short policy-facing summary</span>
+                        </div>
+                        <p id="result-evidence-summary" class="body-copy">A concise evidence summary will appear here.</p>
+                    </article>
+
                     <article class="info-card expandable-evidence-card">
                         <details id="secondary-evidence" class="evidence-details">
                             <summary>
-                                <span>Additional Evidence</span>
+                                <span>View Evidence</span>
                                 <span id="secondary-source-count" class="numeric-chip">0</span>
                             </summary>
                             <ul id="result-sources" class="source-list">
@@ -135,17 +143,6 @@
                 </div>
             </section>
         </main>
-
-        <section class="glass-card panel chunks-panel">
-            <div class="section-heading">
-                <span class="section-kicker">Evidence</span>
-                <h2>Retrieved Chunks</h2>
-                <p>Top-ranked policy chunks with per-chunk labels, scores, and actions.</p>
-            </div>
-            <div id="result-chunks" class="chunks-list">
-                <div class="empty-state">Retrieved chunk details will appear here.</div>
-            </div>
-        </section>
     </div>
 
     <script src="{{ url_for('static', path='app.js') }}?v={{ asset_version }}" defer></script>

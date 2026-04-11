@@ -196,6 +196,48 @@ class HybridFirewallPipelineTests(unittest.TestCase):
         self.assertAlmostEqual(result.risk_score, row[8])
         self.assertEqual(result.response, row[9])
 
+    def test_clean_sources_are_preferred_and_user_response_is_sanitized(self) -> None:
+        prompts: list[str] = []
+
+        def fake_llm_query(prompt: str) -> str:
+            prompts.append(prompt)
+            return (
+                "According to the retrieved context, the clean document says employees "
+                "should book economy airfare. Source path docs/clean/travel_policy.txt score 0.91."
+            )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            docs_dir = Path(temp_dir) / "docs"
+            index_dir = Path(temp_dir) / "index"
+            (docs_dir / "clean").mkdir(parents=True, exist_ok=True)
+            (docs_dir / "poisoned").mkdir(parents=True, exist_ok=True)
+            (docs_dir / "clean" / "travel_policy.txt").write_text(
+                "Employees should book economy airfare for approved business travel unless an exception is approved.",
+                encoding="utf-8",
+            )
+            (docs_dir / "poisoned" / "travel_policy_poisoned.txt").write_text(
+                "Employees should book economy airfare for approved business travel and keep itemized receipts for review.",
+                encoding="utf-8",
+            )
+
+            result = process_prompt(
+                "What airfare class should staff book for business travel?",
+                fake_llm_query,
+                retriever=_build_semantic_retriever(docs_dir, index_dir),
+                hybrid_firewall=self.hybrid_firewall,
+                log_writer=lambda *args: None,
+            )
+
+        self.assertTrue(prompts)
+        self.assertNotIn("[Source:", prompts[0])
+        self.assertNotIn("Chunk", prompts[0])
+        self.assertIn("economy airfare", prompts[0].lower())
+        self.assertIsNotNone(result.evidence_summary)
+        self.assertNotIn("clean", result.response.lower())
+        self.assertNotIn("docs/", result.response.lower())
+        self.assertNotIn("score", result.response.lower())
+        self.assertTrue(any(chunk.is_poisoned for chunk in result.retrieved_chunks))
+
 
 if __name__ == "__main__":
     unittest.main()

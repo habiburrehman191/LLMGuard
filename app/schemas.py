@@ -10,10 +10,13 @@ class AskRequest(BaseModel):
 class RetrievedChunk(BaseModel):
     document_name: str
     source_path: str
+    source_set: str = "unknown"
+    is_poisoned: bool = False
     chunk_id: str
     chunk_index: int
     text: str
     score: float
+    raw_score: float = 0.0
     rule_score: float = 0.0
     semantic_score: float = 0.0
     ml_score: float = 0.0
@@ -31,6 +34,7 @@ class AskResponse(BaseModel):
     retrieved_document: Optional[str] = None
     retrieved_sources: list[str] = Field(default_factory=list)
     retrieved_chunks: list[RetrievedChunk] = Field(default_factory=list)
+    evidence_summary: Optional[str] = None
     action: str
     blocked: bool
     label: str

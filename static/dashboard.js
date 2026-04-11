@@ -5,6 +5,7 @@ const actionBreakdown = document.getElementById("action-breakdown");
 const riskChart = document.getElementById("risk-chart");
 const diagnosticsList = document.getElementById("diagnostics-list");
 const recentLogsBody = document.getElementById("recent-logs-body");
+const adminEvidenceList = document.getElementById("admin-evidence-list");
 const latestEventGrid = document.getElementById("latest-event-grid");
 const latestEventSummary = document.getElementById("latest-event-summary");
 const latestLabelChip = document.getElementById("latest-label-chip");
@@ -157,6 +158,36 @@ function renderRecentLogs(logs) {
     });
 }
 
+function renderEvidenceInspection(log) {
+    adminEvidenceList.innerHTML = "";
+    const chunks = Array.isArray(log?.retrieved_chunks) ? log.retrieved_chunks : [];
+
+    if (chunks.length === 0) {
+        adminEvidenceList.innerHTML = '<div class="empty-state">Retrieved evidence will appear here.</div>';
+        return;
+    }
+
+    chunks.forEach((chunk) => {
+        const sourceSet = chunk.source_set || (chunk.is_poisoned ? "poisoned" : "clean");
+        const card = document.createElement("article");
+        card.className = "chunk-card";
+        card.innerHTML = `
+            <div class="chunk-head">
+                <strong>${chunk.document_name || "Unknown document"}</strong>
+                <span class="status-chip ${chunk.label || "neutral"}">${chunk.label || "unknown"}</span>
+            </div>
+            <div class="chunk-meta mono-text">
+                <span>${chunk.source_path || "Unknown source"}</span>
+                <span>${sourceSet}</span>
+                <span>${chunk.is_poisoned ? "known poisoned set" : "clean set"}</span>
+                <span>score ${Number(chunk.score || 0).toFixed(3)}</span>
+            </div>
+            <div class="chunk-body">${chunk.text || ""}</div>
+        `;
+        adminEvidenceList.appendChild(card);
+    });
+}
+
 function renderDiagnostics(logs) {
     diagnosticsList.innerHTML = "";
     const sessionStart = parseTimestamp(sessionStartedAt);
@@ -220,6 +251,7 @@ async function refreshDashboard() {
     renderActionBreakdown(data.action_counts || {});
     renderRiskHistory(data.risk_history || []);
     renderLatestEvent(recentLogs[0]);
+    renderEvidenceInspection(recentLogs[0]);
     renderRecentLogs(recentLogs);
     renderDiagnostics(recentLogs);
 }
