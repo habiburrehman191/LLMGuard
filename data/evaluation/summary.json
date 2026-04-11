@@ -1,0 +1,308 @@
+{
+  "dataset_path": "C:\\Users\\Habib UR Rehman\\LLMGuard\\data\\firewall\\evaluation_dataset.jsonl",
+  "dataset_size": 36,
+  "modes": {
+    "rule-only": {
+      "mode": "rule-only",
+      "dataset_size": 36,
+      "accuracy": 0.5277777777777778,
+      "precision_macro": 0.43452380952380953,
+      "recall_macro": 0.5277777777777778,
+      "f1_macro": 0.4333333333333333,
+      "false_positive_rate": 0.0,
+      "avg_latency_ms": 0.0025583334111919007,
+      "p50_latency_ms": 0.002499999027349986,
+      "p95_latency_ms": 0.003225001819373574,
+      "max_latency_ms": 0.0032999996619764715,
+      "label_support": {
+        "safe": 12,
+        "suspicious": 12,
+        "malicious": 12
+      },
+      "classification_report": {
+        "safe": {
+          "precision": 0.42857142857142855,
+          "recall": 1.0,
+          "f1-score": 0.6,
+          "support": 12.0
+        },
+        "suspicious": {
+          "precision": 0.875,
+          "recall": 0.5833333333333334,
+          "f1-score": 0.7,
+          "support": 12.0
+        },
+        "malicious": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 12.0
+        },
+        "accuracy": 0.5277777777777778,
+        "macro avg": {
+          "precision": 0.43452380952380953,
+          "recall": 0.5277777777777778,
+          "f1-score": 0.4333333333333333,
+          "support": 36.0
+        },
+        "weighted avg": {
+          "precision": 0.43452380952380953,
+          "recall": 0.5277777777777778,
+          "f1-score": 0.4333333333333333,
+          "support": 36.0
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "safe",
+          "suspicious",
+          "malicious"
+        ],
+        "rows": [
+          [
+            12,
+            0,
+            0
+          ],
+          [
+            5,
+            7,
+            0
+          ],
+          [
+            11,
+            1,
+            0
+          ]
+        ]
+      }
+    },
+    "semantic-only": {
+      "mode": "semantic-only",
+      "dataset_size": 36,
+      "accuracy": 0.6111111111111112,
+      "precision_macro": 0.7397435897435898,
+      "recall_macro": 0.6111111111111112,
+      "f1_macro": 0.5875,
+      "false_positive_rate": 0.16666666666666666,
+      "avg_latency_ms": 12.431505555367847,
+      "p50_latency_ms": 12.300949998461874,
+      "p95_latency_ms": 14.605849997678888,
+      "max_latency_ms": 18.1869000007282,
+      "label_support": {
+        "safe": 12,
+        "suspicious": 12,
+        "malicious": 12
+      },
+      "classification_report": {
+        "safe": {
+          "precision": 0.7692307692307693,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.8,
+          "support": 12.0
+        },
+        "suspicious": {
+          "precision": 0.45,
+          "recall": 0.75,
+          "f1-score": 0.5625,
+          "support": 12.0
+        },
+        "malicious": {
+          "precision": 1.0,
+          "recall": 0.25,
+          "f1-score": 0.4,
+          "support": 12.0
+        },
+        "accuracy": 0.6111111111111112,
+        "macro avg": {
+          "precision": 0.7397435897435898,
+          "recall": 0.6111111111111112,
+          "f1-score": 0.5875,
+          "support": 36.0
+        },
+        "weighted avg": {
+          "precision": 0.7397435897435898,
+          "recall": 0.6111111111111112,
+          "f1-score": 0.5875,
+          "support": 36.0
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "safe",
+          "suspicious",
+          "malicious"
+        ],
+        "rows": [
+          [
+            10,
+            2,
+            0
+          ],
+          [
+            3,
+            9,
+            0
+          ],
+          [
+            0,
+            9,
+            3
+          ]
+        ]
+      }
+    },
+    "ml-only": {
+      "mode": "ml-only",
+      "dataset_size": 36,
+      "accuracy": 0.9722222222222222,
+      "precision_macro": 0.9743589743589745,
+      "recall_macro": 0.9722222222222222,
+      "f1_macro": 0.9721739130434782,
+      "false_positive_rate": 0.0,
+      "avg_latency_ms": 12.29461666642035,
+      "p50_latency_ms": 12.322799999310519,
+      "p95_latency_ms": 14.410224998755439,
+      "max_latency_ms": 15.527299998211674,
+      "label_support": {
+        "safe": 12,
+        "suspicious": 12,
+        "malicious": 12
+      },
+      "classification_report": {
+        "safe": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 12.0
+        },
+        "suspicious": {
+          "precision": 0.9230769230769231,
+          "recall": 1.0,
+          "f1-score": 0.96,
+          "support": 12.0
+        },
+        "malicious": {
+          "precision": 1.0,
+          "recall": 0.9166666666666666,
+          "f1-score": 0.9565217391304348,
+          "support": 12.0
+        },
+        "accuracy": 0.9722222222222222,
+        "macro avg": {
+          "precision": 0.9743589743589745,
+          "recall": 0.9722222222222222,
+          "f1-score": 0.9721739130434782,
+          "support": 36.0
+        },
+        "weighted avg": {
+          "precision": 0.9743589743589745,
+          "recall": 0.9722222222222222,
+          "f1-score": 0.9721739130434782,
+          "support": 36.0
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "safe",
+          "suspicious",
+          "malicious"
+        ],
+        "rows": [
+          [
+            12,
+            0,
+            0
+          ],
+          [
+            0,
+            12,
+            0
+          ],
+          [
+            0,
+            1,
+            11
+          ]
+        ]
+      }
+    },
+    "hybrid": {
+      "mode": "hybrid",
+      "dataset_size": 36,
+      "accuracy": 0.6944444444444444,
+      "precision_macro": 0.8405797101449276,
+      "recall_macro": 0.6944444444444445,
+      "f1_macro": 0.6649350649350648,
+      "false_positive_rate": 0.16666666666666666,
+      "avg_latency_ms": 24.55474722248457,
+      "p50_latency_ms": 24.056649999693036,
+      "p95_latency_ms": 28.328450001026795,
+      "max_latency_ms": 32.243199999356875,
+      "label_support": {
+        "safe": 12,
+        "suspicious": 12,
+        "malicious": 12
+      },
+      "classification_report": {
+        "safe": {
+          "precision": 1.0,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.9090909090909091,
+          "support": 12.0
+        },
+        "suspicious": {
+          "precision": 0.5217391304347826,
+          "recall": 1.0,
+          "f1-score": 0.6857142857142857,
+          "support": 12.0
+        },
+        "malicious": {
+          "precision": 1.0,
+          "recall": 0.25,
+          "f1-score": 0.4,
+          "support": 12.0
+        },
+        "accuracy": 0.6944444444444444,
+        "macro avg": {
+          "precision": 0.8405797101449276,
+          "recall": 0.6944444444444445,
+          "f1-score": 0.6649350649350648,
+          "support": 36.0
+        },
+        "weighted avg": {
+          "precision": 0.8405797101449275,
+          "recall": 0.6944444444444444,
+          "f1-score": 0.6649350649350648,
+          "support": 36.0
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "safe",
+          "suspicious",
+          "malicious"
+        ],
+        "rows": [
+          [
+            10,
+            2,
+            0
+          ],
+          [
+            0,
+            12,
+            0
+          ],
+          [
+            0,
+            9,
+            3
+          ]
+        ]
+      }
+    }
+  },
+  "best_mode": "ml-only",
+  "best_mode_reason": "Highest macro F1, with accuracy used as a tiebreaker and lower latency preferred when classification quality is otherwise equal."
+}

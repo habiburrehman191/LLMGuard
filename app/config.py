@@ -13,12 +13,14 @@ class Settings:
     base_dir: Path
     docs_dir: Path
     data_dir: Path
+    evaluation_dir: Path
     models_dir: Path
     logs_dir: Path
     db_path: Path
     vendor_dir: Path
     retrieval_index_dir: Path
     ml_dataset_path: Path
+    evaluation_dataset_path: Path
     ml_model_dir: Path
     ml_model_path: Path
     ml_training_report_path: Path
@@ -60,6 +62,7 @@ def get_settings() -> Settings:
     base_dir = _path_from_env("LLMGUARD_BASE_DIR", BASE_DIR)
     docs_dir = _path_from_env("LLMGUARD_DOCS_DIR", base_dir / "docs")
     data_dir = _path_from_env("LLMGUARD_DATA_DIR", base_dir / "data")
+    evaluation_dir = _path_from_env("LLMGUARD_EVALUATION_DIR", data_dir / "evaluation")
     models_dir = _path_from_env("LLMGUARD_MODELS_DIR", base_dir / "models")
     logs_dir = _path_from_env("LLMGUARD_LOGS_DIR", base_dir / "logs")
     db_path = _path_from_env("LLMGUARD_DB_PATH", logs_dir / "llmguard.db")
@@ -76,6 +79,10 @@ def get_settings() -> Settings:
         "LLMGUARD_ML_DATASET_PATH",
         data_dir / "firewall" / "training_dataset.jsonl",
     )
+    evaluation_dataset_path = _path_from_env(
+        "LLMGUARD_EVALUATION_DATASET_PATH",
+        data_dir / "firewall" / "evaluation_dataset.jsonl",
+    )
     ml_model_path = _path_from_env(
         "LLMGUARD_ML_MODEL_PATH",
         ml_model_dir / "logistic_regression.joblib",
@@ -89,12 +96,14 @@ def get_settings() -> Settings:
         base_dir=base_dir,
         docs_dir=docs_dir,
         data_dir=data_dir,
+        evaluation_dir=evaluation_dir,
         models_dir=models_dir,
         logs_dir=logs_dir,
         db_path=db_path,
         vendor_dir=vendor_dir,
         retrieval_index_dir=retrieval_index_dir,
         ml_dataset_path=ml_dataset_path,
+        evaluation_dataset_path=evaluation_dataset_path,
         ml_model_dir=ml_model_dir,
         ml_model_path=ml_model_path,
         ml_training_report_path=ml_training_report_path,
