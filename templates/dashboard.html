@@ -18,64 +18,54 @@
     </div>
 
     <div class="app-shell">
-        <header class="hero hero-dashboard">
+        <header class="hero hero-dashboard compact-hero">
             <section class="hero-copy glass-card">
-                <span class="eyebrow">LLMGuard Security Operations</span>
-                <h1>LLMGuard Dashboard for premium visibility across every retrieved policy, risk decision, and enforcement action.</h1>
-                <p class="lede">
-                    This dashboard reads directly from application logs and surfaces live hybrid firewall telemetry for admin review.
-                </p>
+                <span class="eyebrow">Admin Security View</span>
+                <h1>LLMGuard Dashboard</h1>
+                <p class="lede">Risk, retrieval, and enforcement overview.</p>
             </section>
 
             <aside class="hero-panel glass-card">
                 <div class="panel-label">Current State</div>
                 <div class="status-hero-block">
-                    <span class="status-chip {{ latest_event['label'] if latest_event else 'neutral' }}">
-                        {% if latest_event %}
-                        {{ latest_event["label"] }}
-                        {% else %}
-                        no traffic
-                        {% endif %}
+                    <span id="latest-label-chip" class="status-chip {{ latest_event['label'] if latest_event else 'neutral' }}">
+                        {% if latest_event %}{{ latest_event["label"] }}{% else %}no traffic{% endif %}
                     </span>
-                    <span class="status-chip neutral">
-                        {% if latest_event %}
-                        {{ latest_event["action"] }}
-                        {% else %}
-                        waiting
-                        {% endif %}
+                    <span id="latest-action-chip" class="status-chip neutral">
+                        {% if latest_event %}{{ latest_event["action"] }}{% else %}waiting{% endif %}
                     </span>
                 </div>
-                <p class="body-copy">
+                <p id="latest-event-summary" class="body-copy">
                     {% if latest_event %}
                     Latest event at {{ latest_event["created_at"] }} with risk {{ "%.3f"|format(latest_event["risk_score"]) }}.
                     {% else %}
                     No log entries are available yet.
                     {% endif %}
                 </p>
-                <a class="secondary-link hero-link" href="/app">Return to User Console</a>
+                <a class="secondary-link hero-link" href="/app">Return to Console</a>
             </aside>
         </header>
 
         <section class="metric-ribbon">
             <article class="glass-card metric-tile">
                 <span class="metric-label">Total Queries</span>
-                <strong>{{ metrics["total_queries"] }}</strong>
+                <strong id="metric-total">{{ metrics["total_queries"] }}</strong>
             </article>
             <article class="glass-card metric-tile">
                 <span class="metric-label">Safe</span>
-                <strong>{{ metrics["label_counts"].get("safe", 0) }}</strong>
+                <strong id="metric-safe">{{ metrics["label_counts"].get("safe", 0) }}</strong>
             </article>
             <article class="glass-card metric-tile">
                 <span class="metric-label">Suspicious</span>
-                <strong>{{ metrics["label_counts"].get("suspicious", 0) }}</strong>
+                <strong id="metric-suspicious">{{ metrics["label_counts"].get("suspicious", 0) }}</strong>
             </article>
             <article class="glass-card metric-tile">
                 <span class="metric-label">Malicious</span>
-                <strong>{{ metrics["label_counts"].get("malicious", 0) }}</strong>
+                <strong id="metric-malicious">{{ metrics["label_counts"].get("malicious", 0) }}</strong>
             </article>
             <article class="glass-card metric-tile">
                 <span class="metric-label">Blocked / Quarantined</span>
-                <strong>{{ metrics["action_counts"].get("block", 0) + metrics["action_counts"].get("quarantine", 0) }}</strong>
+                <strong id="metric-blocked">{{ metrics["action_counts"].get("block", 0) + metrics["action_counts"].get("quarantine", 0) }}</strong>
             </article>
         </section>
 
@@ -84,9 +74,9 @@
                 <div class="section-heading">
                     <span class="section-kicker">Actions</span>
                     <h2>Action Breakdown</h2>
-                    <p>Distribution of enforcement actions across all logged activity.</p>
+                    <p>Current enforcement totals from the live log table.</p>
                 </div>
-                <div class="stats-list">
+                <div id="action-breakdown" class="stats-list">
                     {% for action, count in metrics["action_counts"].items() %}
                     <div class="stats-row glass-inset">
                         <span class="body-copy">{{ action }}</span>
@@ -102,9 +92,9 @@
                 <div class="section-heading">
                     <span class="section-kicker">Risk Distribution</span>
                     <h2>Recent Risk History</h2>
-                    <p>Chronological risk levels for the most recent events in the log stream.</p>
+                    <p>Latest log rows rendered from the dashboard data endpoint in timestamp order.</p>
                 </div>
-                <div class="risk-chart">
+                <div id="risk-chart" class="risk-chart">
                     {% if risk_points %}
                         {% for point in risk_points %}
                         <div class="risk-bar-wrap glass-inset">
@@ -122,10 +112,10 @@
                 <div class="section-heading">
                     <span class="section-kicker">Latest Event</span>
                     <h2>Most Recent Prompt</h2>
-                    <p>Latest routed query, associated sources, and enforcement outcome.</p>
+                    <p>Latest routed query with sources and decision metadata.</p>
                 </div>
-                {% if latest_event %}
-                <dl class="event-grid">
+                <dl id="latest-event-grid" class="event-grid">
+                    {% if latest_event %}
                     <div class="glass-inset">
                         <dt>Timestamp</dt>
                         <dd>{{ latest_event["created_at"] }}</dd>
@@ -158,36 +148,26 @@
                         <dt>Reason</dt>
                         <dd>{{ latest_event["reason"] }}</dd>
                     </div>
+                    {% else %}
+                    <div class="empty-state compact">No events recorded yet.</div>
+                    {% endif %}
                 </dl>
-                {% else %}
-                <div class="empty-state compact">No events recorded yet.</div>
-                {% endif %}
             </section>
 
             <section class="glass-card panel diagnostics-panel">
                 <div class="section-heading">
                     <span class="section-kicker">Diagnostics</span>
-                    <h2>Backend Error Signals</h2>
-                    <p>Technical backend details remain available here for admin review when they appear in logs.</p>
+                    <h2>Backend Signals</h2>
+                    <p>Summaries are shown first. Full technical details stay collapsed until expanded.</p>
                 </div>
-                <div class="diagnostics-list">
-                    {% set ns = namespace(found=false) %}
-                    {% for log in recent_logs %}
-                        {% if log["response"] and "LLM backend error" in log["response"] %}
-                            {% set ns.found = true %}
-                            <article class="diagnostic-card glass-inset">
-                                <div class="diagnostic-head">
-                                    <span class="status-chip malicious">backend issue</span>
-                                    <span class="mono-text">{{ log["created_at"] }}</span>
-                                </div>
-                                <p class="body-copy">{{ log["prompt"] }}</p>
-                                <div class="diagnostic-detail mono-text">{{ log["response"] }}</div>
-                            </article>
-                        {% endif %}
-                    {% endfor %}
-                    {% if not ns.found %}
+                <div class="diagnostics-toolbar">
+                    <label class="toggle-row" for="current-session-only">
+                        <input id="current-session-only" type="checkbox" checked>
+                        <span>Current session only</span>
+                    </label>
+                </div>
+                <div id="diagnostics-list" class="diagnostics-list">
                     <div class="empty-state compact">No backend diagnostics are currently recorded.</div>
-                    {% endif %}
                 </div>
             </section>
         </main>
@@ -211,7 +191,7 @@
                             <th>Risk</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="recent-logs-body">
                         {% for log in recent_logs %}
                         <tr>
                             <td class="mono-text">{{ log["created_at"] }}</td>
@@ -234,5 +214,12 @@
             </div>
         </section>
     </div>
+
+    <script>
+        window.llmguardDashboard = {
+            sessionStartedAt: "{{ session_started_at }}",
+        };
+    </script>
+    <script src="{{ url_for('static', path='dashboard.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>

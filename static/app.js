@@ -7,10 +7,15 @@ const resultLabel = document.getElementById("result-label");
 const resultAction = document.getElementById("result-action");
 const resultRisk = document.getElementById("result-risk");
 const resultDocument = document.getElementById("result-document");
+const resultPrimarySource = document.getElementById("result-primary-source");
 const resultReason = document.getElementById("result-reason");
 const resultResponse = document.getElementById("result-response");
 const resultSources = document.getElementById("result-sources");
 const resultChunks = document.getElementById("result-chunks");
+const backendStatusChip = document.getElementById("backend-status-chip");
+const resultBackendStatus = document.getElementById("result-backend-status");
+const secondaryEvidence = document.getElementById("secondary-evidence");
+const secondarySourceCount = document.getElementById("secondary-source-count");
 
 const TECHNICAL_ERROR_MARKERS = [
     "llm backend error",
@@ -33,18 +38,15 @@ function normalizeText(value) {
 
 function containsTechnicalError(value) {
     const text = normalizeText(value).toLowerCase();
-    if (!text) {
-        return false;
-    }
-    return TECHNICAL_ERROR_MARKERS.some((marker) => text.includes(marker));
+    return text && TECHNICAL_ERROR_MARKERS.some((marker) => text.includes(marker));
 }
 
-function actionTone(action) {
+function toneForAction(action) {
     switch ((action || "").toLowerCase()) {
         case "allow":
             return "safe";
-        case "log":
         case "sanitize":
+        case "log":
             return "suspicious";
         case "block":
         case "quarantine":
@@ -54,15 +56,20 @@ function actionTone(action) {
     }
 }
 
-function applyChipTone(element, value, tone) {
-    element.textContent = value || "unknown";
+function applyChipTone(element, text, tone) {
+    element.textContent = text || "unknown";
     element.className = `status-chip ${tone}`;
 }
 
-function makeChip(text, className = "") {
+function setBackendStatus(text, tone) {
+    applyChipTone(backendStatusChip, text, tone);
+    applyChipTone(resultBackendStatus, text, tone);
+}
+
+function makeChip(text, className = "source-chip") {
     const chip = document.createElement("li");
     chip.textContent = text;
-    chip.className = className || "source-chip";
+    chip.className = className;
     return chip;
 }
 
@@ -77,15 +84,24 @@ function hideWarning() {
     warningBanner.textContent = "";
 }
 
-function renderSources(sources) {
+function renderEvidence(documentName, sources) {
+    const allSources = Array.isArray(sources) ? sources.filter(Boolean) : [];
+    const primarySource = allSources[0] || "No primary source yet";
+    const secondarySources = allSources.slice(1);
+
+    resultDocument.textContent = documentName || "No document retrieved";
+    resultPrimarySource.textContent = primarySource;
+    secondarySourceCount.textContent = String(secondarySources.length);
     resultSources.innerHTML = "";
-    if (!sources || sources.length === 0) {
-        resultSources.appendChild(makeChip("No retrieved sources", "source-chip empty-chip"));
+
+    if (secondarySources.length === 0) {
+        secondaryEvidence.open = false;
+        resultSources.appendChild(makeChip("No additional evidence", "source-chip empty-chip"));
         return;
     }
 
-    sources.forEach((source) => {
-        resultSources.appendChild(makeChip(source, "source-chip"));
+    secondarySources.forEach((source) => {
+        resultSources.appendChild(makeChip(source));
     });
 }
 
@@ -97,14 +113,14 @@ function buildReasonList(reasons) {
     const list = document.createElement("ul");
     list.className = "chip-list";
     reasons.forEach((reason) => {
-        list.appendChild(makeChip(reason, ""));
+        list.appendChild(makeChip(reason, "reason-chip"));
     });
     return list;
 }
 
 function renderChunks(chunks) {
     resultChunks.innerHTML = "";
-    if (!chunks || chunks.length === 0) {
+    if (!Array.isArray(chunks) || chunks.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty-state";
         empty.textContent = "Retrieved chunk details will appear here.";
@@ -150,7 +166,7 @@ function renderChunks(chunks) {
     });
 }
 
-function renderResponseText(result) {
+function sanitizedResponseText(result) {
     const responseText = normalizeText(result.response);
     if (!responseText) {
         return "No final LLM response was produced.";
@@ -165,36 +181,42 @@ function renderResult(result) {
     const label = normalizeText(result.label) || "unknown";
     const action = normalizeText(result.action) || "unknown";
     const reason = normalizeText(result.reason) || "No reason returned";
-    const safeResponse = renderResponseText(result);
+    const backendOffline = containsTechnicalError(result.response);
 
     applyChipTone(resultLabel, label, label);
-    applyChipTone(resultAction, action, actionTone(action));
+    applyChipTone(resultAction, action, toneForAction(action));
     resultRisk.textContent = Number(result.risk_score || 0).toFixed(3);
-    resultDocument.textContent = result.retrieved_document || "No document retrieved";
     resultReason.textContent = reason;
-    resultResponse.textContent = safeResponse;
+    resultResponse.textContent = sanitizedResponseText(result);
 
-    renderSources(result.retrieved_sources || []);
+    renderEvidence(result.retrieved_document, result.retrieved_sources || []);
     renderChunks(result.retrieved_chunks || []);
 
-    if (containsTechnicalError(result.response)) {
+    if (backendOffline) {
+        setBackendStatus("LLM Offline", "malicious");
         showWarning("suspicious", friendlyBackendMessage());
         return;
     }
 
+    setBackendStatus("LLM Ready", "safe");
     if (label === "safe") {
         hideWarning();
-        return;
+    } else {
+        showWarning(label, `${label.toUpperCase()} result: action=${action.toUpperCase()} | ${reason}`);
     }
-
-    showWarning(label, `${label.toUpperCase()} result: action=${action.toUpperCase()} | ${reason}`);
 }
 
-function extractFriendlyErrorMessage(data, fallbackText) {
+function friendlyErrorMessage(data, fallbackText) {
     if (containsTechnicalError(data?.detail) || containsTechnicalError(fallbackText)) {
         return friendlyBackendMessage();
     }
     return "Request could not be completed. Please try again shortly.";
+}
+
+function renderOfflineState() {
+    setBackendStatus("LLM Offline", "malicious");
+    showWarning("suspicious", friendlyBackendMessage());
+    resultResponse.textContent = "Please try again shortly.";
 }
 
 async function submitQuery(event) {
@@ -226,13 +248,12 @@ async function submitQuery(event) {
         }
 
         if (!response.ok) {
-            throw new Error(extractFriendlyErrorMessage(data, fallbackText));
+            throw new Error(friendlyErrorMessage(data, fallbackText));
         }
 
         renderResult(data);
     } catch (_error) {
-        showWarning("malicious", friendlyBackendMessage());
-        resultResponse.textContent = "Please try again shortly.";
+        renderOfflineState();
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = "Run Secure Query";

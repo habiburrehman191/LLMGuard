@@ -703,6 +703,103 @@ tbody td {
     min-height: 0;
 }
 
+.compact-hero .hero-copy h1 {
+    margin-bottom: 8px;
+    font-size: clamp(2.1rem, 3.8vw, 3.15rem);
+    line-height: 1.04;
+    max-width: 12ch;
+}
+
+.compact-hero .lede {
+    max-width: 28ch;
+    font-size: 1rem;
+}
+
+.compact-stack .stack-item {
+    padding: 16px;
+}
+
+.compact-status-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.compact-status-grid .status-card {
+    padding: 14px 16px;
+}
+
+.compact-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.primary-source-path {
+    margin-top: 10px;
+    color: var(--muted);
+}
+
+.evidence-details {
+    display: grid;
+    gap: 14px;
+}
+
+.evidence-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.evidence-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.reason-chip {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.diagnostics-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+}
+
+.toggle-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--ink-soft);
+}
+
+.toggle-row input {
+    accent-color: var(--accent);
+}
+
+.diagnostic-summary {
+    margin: 0;
+    color: var(--ink-soft);
+    line-height: 1.6;
+}
+
+.diagnostic-details {
+    margin-top: 12px;
+}
+
+.diagnostic-details summary {
+    cursor: pointer;
+    color: var(--ink);
+    font-weight: 700;
+}
+
 @keyframes drift {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(0, 20px, 0) scale(1.04); }
@@ -750,6 +847,10 @@ tbody td {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .compact-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .status-card.wide {
         grid-column: span 2;
     }
@@ -778,6 +879,11 @@ tbody td {
 
     .status-grid,
     .event-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .compact-status-grid,
+    .compact-info-grid {
         grid-template-columns: 1fr;
     }
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -13,7 +14,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "2"
+ASSET_VERSION = "3"
 
 
 def _risk_band(risk_score: float) -> str:
@@ -32,7 +33,7 @@ def user_console(request: Request) -> HTMLResponse:
         request=request,
         name="app.html",
         context={
-            "page_title": "LLMGuard Console V2",
+            "page_title": "LLMGuard Console",
             "asset_version": ASSET_VERSION,
         },
     )
@@ -47,13 +48,14 @@ def admin_dashboard(request: Request) -> HTMLResponse:
         request=request,
         name="dashboard.html",
         context={
-            "page_title": "LLMGuard Security Dashboard",
+            "page_title": "LLMGuard Dashboard",
             "asset_version": ASSET_VERSION,
             "metrics": metrics,
             "recent_logs": recent_logs,
             "risk_points": metrics["risk_history"],
             "latest_event": recent_logs[0] if recent_logs else None,
             "risk_band": _risk_band(float(recent_logs[0]["risk_score"])) if recent_logs else "low",
+            "session_started_at": datetime.now().isoformat(timespec="seconds"),
         },
     )
 
