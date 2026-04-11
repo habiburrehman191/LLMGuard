@@ -74,8 +74,10 @@ class FrontendRouteTests(unittest.TestCase):
     def test_user_console_page_renders(self) -> None:
         response = self.client.get("/app")
         self.assertEqual(200, response.status_code)
-        self.assertIn("LLMGuard Console", response.text)
+        self.assertIn("LLMGuard Console V2", response.text)
         self.assertIn("Ask LLMGuard", response.text)
+        self.assertIn("/static/styles.css?v=2", response.text)
+        self.assertIn("/static/app.js?v=2", response.text)
 
     def test_dashboard_page_renders_live_log_data(self) -> None:
         response = self.client.get("/admin/dashboard")

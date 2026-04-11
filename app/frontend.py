@@ -13,6 +13,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+ASSET_VERSION = "2"
 
 
 def _risk_band(risk_score: float) -> str:
@@ -30,7 +31,10 @@ def user_console(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="app.html",
-        context={"page_title": "LLMGuard Console"},
+        context={
+            "page_title": "LLMGuard Console V2",
+            "asset_version": ASSET_VERSION,
+        },
     )
 
 
@@ -44,6 +48,7 @@ def admin_dashboard(request: Request) -> HTMLResponse:
         name="dashboard.html",
         context={
             "page_title": "LLMGuard Security Dashboard",
+            "asset_version": ASSET_VERSION,
             "metrics": metrics,
             "recent_logs": recent_logs,
             "risk_points": metrics["risk_history"],

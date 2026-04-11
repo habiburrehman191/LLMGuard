@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from app.config import get_settings
 from app.db import init_db
 from app.frontend import router as frontend_router
 from app.pipeline import process_prompt

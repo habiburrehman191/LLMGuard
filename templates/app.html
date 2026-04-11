@@ -7,100 +7,136 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}?v={{ asset_version }}">
 </head>
 <body class="console-page">
+    <div class="ambient-layer">
+        <span class="orb orb-one"></span>
+        <span class="orb orb-two"></span>
+        <span class="orb orb-three"></span>
+        <span class="grid-haze"></span>
+    </div>
+
     <div class="app-shell">
-        <header class="hero">
-            <div class="hero-copy">
-                <span class="eyebrow">Enterprise Query Protection</span>
-                <h1>LLMGuard Console</h1>
-                <p>Submit a business query, inspect retrieved evidence, and see the hybrid firewall decision before the final answer is returned.</p>
-            </div>
-            <div class="hero-panel">
-                <div class="status-pill">
-                    <span class="status-dot"></span>
-                    Hybrid firewall active
+        <header class="hero hero-console">
+            <section class="hero-copy glass-card">
+                <span class="eyebrow">LLMGuard Query Console</span>
+                <h1>LLMGuard Console V2 for secure enterprise answers with live retrieval intelligence.</h1>
+                <p class="lede">
+                    Ask policy questions, inspect retrieved evidence, and review the hybrid firewall decision before the final LLM answer is shown.
+                </p>
+
+                <div class="hero-chip-row">
+                    <span class="surface-chip">Semantic retrieval</span>
+                    <span class="surface-chip">Hybrid firewall</span>
+                    <span class="surface-chip">Ollama / Vicuna</span>
                 </div>
-                <dl class="hero-stats">
-                    <div>
-                        <dt>Retrieval</dt>
-                        <dd>Sentence-transformers + FAISS</dd>
+            </section>
+
+            <aside class="hero-panel glass-card">
+                <div class="panel-label">Protection Stack</div>
+                <div class="stack-list">
+                    <div class="stack-item">
+                        <span class="stack-title">Retriever</span>
+                        <span class="stack-value">Sentence-transformers + FAISS</span>
                     </div>
-                    <div>
-                        <dt>Scoring</dt>
-                        <dd>Rule + Semantic + ML</dd>
+                    <div class="stack-item">
+                        <span class="stack-title">Scoring</span>
+                        <span class="stack-value">Rule, semantic, and ML risk signals</span>
                     </div>
-                </dl>
-            </div>
+                    <div class="stack-item">
+                        <span class="stack-title">Decisions</span>
+                        <span class="stack-value">Allow, sanitize, block, quarantine, log</span>
+                    </div>
+                </div>
+                <a class="secondary-link hero-link" href="/admin/dashboard">Open Security Dashboard</a>
+            </aside>
         </header>
 
-        <main class="layout-grid">
-            <section class="card query-card">
+        <main class="console-grid">
+            <section class="glass-card panel query-panel">
                 <div class="section-heading">
+                    <span class="section-kicker">Submit Query</span>
                     <h2>Ask LLMGuard</h2>
-                    <p>Questions are processed through retrieval, hybrid scoring, and the connected Ollama/Vicuna backend.</p>
+                    <p>Questions are evaluated against retrieved policy chunks before the answer is generated.</p>
                 </div>
+
                 <form id="query-form" class="query-form">
-                    <label for="prompt" class="field-label">Query</label>
-                    <textarea id="prompt" name="prompt" rows="7" placeholder="Example: What does the travel expense policy say about airfare class and submission timelines?" required></textarea>
+                    <label for="prompt" class="field-label">Prompt</label>
+                    <textarea
+                        id="prompt"
+                        name="prompt"
+                        rows="8"
+                        placeholder="Example: What does the travel expense policy say about airfare class and reimbursement timing?"
+                        required
+                    ></textarea>
                     <div class="form-actions">
-                        <button type="submit" id="submit-button">Submit Query</button>
-                        <a class="secondary-link" href="/admin/dashboard">Open Security Dashboard</a>
+                        <button type="submit" id="submit-button" class="primary-button">Run Secure Query</button>
+                        <span class="helper-copy">The user page hides backend diagnostics and only shows polished guidance.</span>
                     </div>
                 </form>
             </section>
 
-            <section class="card result-card">
+            <section class="glass-card panel decision-panel">
                 <div class="section-heading">
-                    <h2>Decision Output</h2>
-                    <p>The result panel updates with live retrieval, risk, and response details after each query.</p>
+                    <span class="section-kicker">Decision Summary</span>
+                    <h2>Firewall Result</h2>
+                    <p>Top-level label, action, risk score, source retrieval, and the final response.</p>
                 </div>
 
                 <div id="warning-banner" class="warning-banner hidden"></div>
 
-                <div class="metric-grid">
-                    <div class="metric-panel">
+                <div class="status-grid">
+                    <div class="status-card">
                         <span class="metric-label">Label</span>
-                        <strong id="result-label">Waiting</strong>
+                        <span id="result-label" class="status-chip neutral">Waiting</span>
                     </div>
-                    <div class="metric-panel">
+                    <div class="status-card">
                         <span class="metric-label">Action</span>
-                        <strong id="result-action">Waiting</strong>
+                        <span id="result-action" class="status-chip neutral">Waiting</span>
                     </div>
-                    <div class="metric-panel">
+                    <div class="status-card">
                         <span class="metric-label">Risk Score</span>
-                        <strong id="result-risk">0.000</strong>
+                        <span id="result-risk" class="numeric-chip">0.000</span>
                     </div>
-                    <div class="metric-panel">
+                    <div class="status-card wide">
                         <span class="metric-label">Retrieved Document</span>
-                        <strong id="result-document">Not available yet</strong>
+                        <div id="result-document" class="value-block mono-text">Not available yet</div>
                     </div>
                 </div>
 
-                <div class="detail-stack">
-                    <div class="detail-block">
+                <div class="info-grid">
+                    <article class="info-card">
                         <h3>Reason</h3>
-                        <p id="result-reason">Submit a query to inspect the hybrid firewall decision.</p>
-                    </div>
-                    <div class="detail-block">
-                        <h3>Retrieved Sources</h3>
-                        <ul id="result-sources" class="chip-list">
-                            <li class="empty-chip">No retrieval yet</li>
+                        <p id="result-reason" class="body-copy">Submit a query to inspect the hybrid firewall decision.</p>
+                    </article>
+
+                    <article class="info-card">
+                        <div class="info-card-head">
+                            <h3>Retrieved Sources</h3>
+                            <span class="info-subtle">Long paths are wrapped safely</span>
+                        </div>
+                        <ul id="result-sources" class="source-list">
+                            <li class="source-chip empty-chip">No retrieval yet</li>
                         </ul>
-                    </div>
-                    <div class="detail-block">
-                        <h3>Final LLM Response</h3>
+                    </article>
+
+                    <article class="info-card response-card">
+                        <div class="info-card-head">
+                            <h3>Final LLM Response</h3>
+                            <span class="info-subtle">User-safe presentation</span>
+                        </div>
                         <div id="result-response" class="response-box">No response yet.</div>
-                    </div>
+                    </article>
                 </div>
             </section>
         </main>
 
-        <section class="card chunks-card">
+        <section class="glass-card panel chunks-panel">
             <div class="section-heading">
+                <span class="section-kicker">Evidence</span>
                 <h2>Retrieved Chunks</h2>
-                <p>Top-ranked chunks with per-chunk labels, actions, and scores.</p>
+                <p>Top-ranked policy chunks with per-chunk scores, labels, and firewall actions.</p>
             </div>
             <div id="result-chunks" class="chunks-list">
                 <div class="empty-state">Retrieved chunk details will appear here.</div>
@@ -108,6 +144,6 @@
         </section>
     </div>
 
-    <script src="{{ url_for('static', path='app.js') }}" defer></script>
+    <script src="{{ url_for('static', path='app.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>
