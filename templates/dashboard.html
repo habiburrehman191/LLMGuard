@@ -42,6 +42,12 @@
                     No log entries are available yet.
                     {% endif %}
                 </p>
+                <div class="dashboard-meta-row">
+                    <span class="meta-label">Last updated</span>
+                    <span id="dashboard-last-updated" class="surface-chip">
+                        {% if latest_event %}{{ latest_event["created_at"] }}{% else %}Waiting for live data{% endif %}
+                    </span>
+                </div>
                 <a class="secondary-link hero-link" href="/app">Return to Console</a>
             </aside>
         </header>
@@ -92,7 +98,7 @@
                 <div class="section-heading">
                     <span class="section-kicker">Risk Distribution</span>
                     <h2>Recent Risk History</h2>
-                    <p>Latest log rows rendered from the dashboard data endpoint in timestamp order.</p>
+                    <p>Live risk telemetry from the dashboard data endpoint, refreshed automatically.</p>
                 </div>
                 <div id="risk-chart" class="risk-chart">
                     {% if risk_points %}
@@ -229,6 +235,7 @@
     <script>
         window.llmguardDashboard = {
             sessionStartedAt: "{{ session_started_at }}",
+            refreshIntervalMs: 4000,
         };
     </script>
     <script src="{{ url_for('static', path='dashboard.js') }}?v={{ asset_version }}" defer></script>

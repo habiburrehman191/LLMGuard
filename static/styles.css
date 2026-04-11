@@ -274,10 +274,23 @@ table,
 .hero-chip-row,
 .source-list,
 .chip-list,
-.status-hero-block {
+.status-hero-block,
+.dashboard-meta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.dashboard-meta-row {
+    align-items: center;
+    margin: 14px 0 18px;
+}
+
+.meta-label {
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(222, 228, 255, 0.68);
 }
 
 .surface-chip,
@@ -657,6 +670,7 @@ a:focus {
     justify-content: end;
     align-items: center;
     gap: 10px;
+    min-height: 224px;
 }
 
 .risk-bar {
@@ -675,6 +689,13 @@ a:focus {
 .risk-bar.malicious {
     background: linear-gradient(180deg, #ff9ead, #ff7489);
     box-shadow: 0 0 18px rgba(255, 116, 137, 0.30);
+}
+
+.risk-timestamp {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
 }
 
 .diagnostic-detail {

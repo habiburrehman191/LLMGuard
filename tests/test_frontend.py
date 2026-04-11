@@ -77,8 +77,8 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("LLMGuard Console", response.text)
         self.assertIn("Secure answers with live retrieval.", response.text)
         self.assertIn("Ask LLMGuard", response.text)
-        self.assertIn("/static/styles.css?v=3", response.text)
-        self.assertIn("/static/app.js?v=3", response.text)
+        self.assertIn("/static/styles.css?v=4", response.text)
+        self.assertIn("/static/app.js?v=4", response.text)
 
     def test_dashboard_page_renders_live_log_data(self) -> None:
         response = self.client.get("/admin/dashboard")
@@ -87,11 +87,13 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("Risk, retrieval, and enforcement overview.", response.text)
         self.assertIn("What is the reimbursement deadline?", response.text)
         self.assertIn("docs/clean/reimbursement_policy.txt", response.text)
-        self.assertIn("/static/dashboard.js?v=3", response.text)
+        self.assertIn("/static/dashboard.js?v=4", response.text)
+        self.assertIn("Last updated", response.text)
 
     def test_dashboard_data_endpoint_returns_metrics(self) -> None:
         response = self.client.get("/admin/dashboard/data")
         self.assertEqual(200, response.status_code)
+        self.assertEqual("no-store, no-cache, must-revalidate, max-age=0", response.headers["cache-control"])
         payload = response.json()
         self.assertEqual(1, payload["total_queries"])
         self.assertEqual(1, payload["label_counts"]["safe"])

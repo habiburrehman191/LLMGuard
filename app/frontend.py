@@ -14,7 +14,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "3"
+ASSET_VERSION = "4"
 
 
 def _risk_band(risk_score: float) -> str:
@@ -62,7 +62,14 @@ def admin_dashboard(request: Request) -> HTMLResponse:
 
 @router.get("/admin/dashboard/data", response_class=JSONResponse)
 def dashboard_data() -> JSONResponse:
-    return JSONResponse(fetch_dashboard_metrics(limit=50))
+    return JSONResponse(
+        fetch_dashboard_metrics(limit=50),
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 @router.get("/admin/logs/recent", response_class=JSONResponse)
