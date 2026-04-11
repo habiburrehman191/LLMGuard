@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections import Counter
+from typing import Any
 
 from app.config import get_settings
 
@@ -128,3 +130,91 @@ def insert_log(
 
     conn.commit()
     conn.close()
+
+
+def _decode_json_column(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return default
+
+
+def fetch_recent_logs(limit: int = 25) -> list[dict[str, Any]]:
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    rows = cursor.execute(
+        """
+        SELECT
+            id,
+            prompt,
+            retrieved_document,
+            retrieved_sources,
+            retrieved_chunks,
+            action,
+            label,
+            blocked,
+            reason,
+            rule_score,
+            semantic_score,
+            ml_score,
+            rule_label,
+            semantic_label,
+            ml_label,
+            risk_score,
+            response,
+            created_at
+        FROM logs
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    conn.close()
+
+    records: list[dict[str, Any]] = []
+    for row in rows:
+        record = dict(row)
+        record["blocked"] = bool(record["blocked"])
+        record["retrieved_sources"] = _decode_json_column(record["retrieved_sources"], [])
+        record["retrieved_chunks"] = _decode_json_column(record["retrieved_chunks"], [])
+        records.append(record)
+
+    return records
+
+
+def fetch_dashboard_metrics(limit: int = 50) -> dict[str, Any]:
+    recent_logs = fetch_recent_logs(limit=limit)
+    conn = get_connection()
+    cursor = conn.cursor()
+    total_queries = cursor.execute("SELECT COUNT(*) FROM logs").fetchone()[0]
+    label_rows = cursor.execute(
+        "SELECT COALESCE(label, 'unknown') AS bucket, COUNT(*) FROM logs GROUP BY COALESCE(label, 'unknown')"
+    ).fetchall()
+    action_rows = cursor.execute(
+        "SELECT COALESCE(action, 'unknown') AS bucket, COUNT(*) FROM logs GROUP BY COALESCE(action, 'unknown')"
+    ).fetchall()
+    conn.close()
+
+    label_counts = Counter({row[0]: row[1] for row in label_rows})
+    action_counts = Counter({row[0]: row[1] for row in action_rows})
+    risk_history = [
+        {
+            "id": record["id"],
+            "timestamp": record["created_at"],
+            "risk_score": float(record.get("risk_score") or 0.0),
+            "label": record.get("label") or "unknown",
+            "action": record.get("action") or "unknown",
+        }
+        for record in reversed(recent_logs)
+    ]
+
+    return {
+        "total_queries": total_queries,
+        "label_counts": dict(label_counts),
+        "action_counts": dict(action_counts),
+        "recent_logs": recent_logs,
+        "risk_history": risk_history,
+    }

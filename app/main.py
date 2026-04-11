@@ -1,13 +1,20 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from pathlib import Path
 
-from app.config import get_settings
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
 from app.db import init_db
+from app.frontend import router as frontend_router
 from app.pipeline import process_prompt
 from app.schemas import AskRequest, AskResponse
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 app = FastAPI()
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+app.include_router(frontend_router)
 
 
 def query_vicuna(prompt: str) -> str:

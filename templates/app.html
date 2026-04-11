@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body class="console-page">
+    <div class="app-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <span class="eyebrow">Enterprise Query Protection</span>
+                <h1>LLMGuard Console</h1>
+                <p>Submit a business query, inspect retrieved evidence, and see the hybrid firewall decision before the final answer is returned.</p>
+            </div>
+            <div class="hero-panel">
+                <div class="status-pill">
+                    <span class="status-dot"></span>
+                    Hybrid firewall active
+                </div>
+                <dl class="hero-stats">
+                    <div>
+                        <dt>Retrieval</dt>
+                        <dd>Sentence-transformers + FAISS</dd>
+                    </div>
+                    <div>
+                        <dt>Scoring</dt>
+                        <dd>Rule + Semantic + ML</dd>
+                    </div>
+                </dl>
+            </div>
+        </header>
+
+        <main class="layout-grid">
+            <section class="card query-card">
+                <div class="section-heading">
+                    <h2>Ask LLMGuard</h2>
+                    <p>Questions are processed through retrieval, hybrid scoring, and the connected Ollama/Vicuna backend.</p>
+                </div>
+                <form id="query-form" class="query-form">
+                    <label for="prompt" class="field-label">Query</label>
+                    <textarea id="prompt" name="prompt" rows="7" placeholder="Example: What does the travel expense policy say about airfare class and submission timelines?" required></textarea>
+                    <div class="form-actions">
+                        <button type="submit" id="submit-button">Submit Query</button>
+                        <a class="secondary-link" href="/admin/dashboard">Open Security Dashboard</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card result-card">
+                <div class="section-heading">
+                    <h2>Decision Output</h2>
+                    <p>The result panel updates with live retrieval, risk, and response details after each query.</p>
+                </div>
+
+                <div id="warning-banner" class="warning-banner hidden"></div>
+
+                <div class="metric-grid">
+                    <div class="metric-panel">
+                        <span class="metric-label">Label</span>
+                        <strong id="result-label">Waiting</strong>
+                    </div>
+                    <div class="metric-panel">
+                        <span class="metric-label">Action</span>
+                        <strong id="result-action">Waiting</strong>
+                    </div>
+                    <div class="metric-panel">
+                        <span class="metric-label">Risk Score</span>
+                        <strong id="result-risk">0.000</strong>
+                    </div>
+                    <div class="metric-panel">
+                        <span class="metric-label">Retrieved Document</span>
+                        <strong id="result-document">Not available yet</strong>
+                    </div>
+                </div>
+
+                <div class="detail-stack">
+                    <div class="detail-block">
+                        <h3>Reason</h3>
+                        <p id="result-reason">Submit a query to inspect the hybrid firewall decision.</p>
+                    </div>
+                    <div class="detail-block">
+                        <h3>Retrieved Sources</h3>
+                        <ul id="result-sources" class="chip-list">
+                            <li class="empty-chip">No retrieval yet</li>
+                        </ul>
+                    </div>
+                    <div class="detail-block">
+                        <h3>Final LLM Response</h3>
+                        <div id="result-response" class="response-box">No response yet.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <section class="card chunks-card">
+            <div class="section-heading">
+                <h2>Retrieved Chunks</h2>
+                <p>Top-ranked chunks with per-chunk labels, actions, and scores.</p>
+            </div>
+            <div id="result-chunks" class="chunks-list">
+                <div class="empty-state">Retrieved chunk details will appear here.</div>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', path='app.js') }}" defer></script>
+</body>
+</html>

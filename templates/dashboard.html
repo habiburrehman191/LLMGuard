@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body class="dashboard-page">
+    <div class="app-shell">
+        <header class="hero dashboard-hero">
+            <div class="hero-copy">
+                <span class="eyebrow">Security Operations View</span>
+                <h1>LLMGuard Dashboard</h1>
+                <p>Live telemetry from the hybrid retrieval and firewall pipeline, sourced directly from application logs.</p>
+            </div>
+            <div class="hero-panel">
+                <div class="status-pill {{ risk_band }}">
+                    <span class="status-dot"></span>
+                    {% if latest_event %}
+                    Latest event: {{ latest_event["label"]|upper }} / {{ latest_event["action"]|upper }}
+                    {% else %}
+                    Waiting for the first query
+                    {% endif %}
+                </div>
+                <a class="secondary-link" href="/app">Open User Console</a>
+            </div>
+        </header>
+
+        <section class="dashboard-metrics">
+            <article class="card metric-card">
+                <span class="metric-label">Total Queries</span>
+                <strong>{{ metrics["total_queries"] }}</strong>
+            </article>
+            <article class="card metric-card">
+                <span class="metric-label">Safe</span>
+                <strong>{{ metrics["label_counts"].get("safe", 0) }}</strong>
+            </article>
+            <article class="card metric-card">
+                <span class="metric-label">Suspicious</span>
+                <strong>{{ metrics["label_counts"].get("suspicious", 0) }}</strong>
+            </article>
+            <article class="card metric-card">
+                <span class="metric-label">Malicious</span>
+                <strong>{{ metrics["label_counts"].get("malicious", 0) }}</strong>
+            </article>
+            <article class="card metric-card">
+                <span class="metric-label">Blocked</span>
+                <strong>{{ metrics["action_counts"].get("block", 0) + metrics["action_counts"].get("quarantine", 0) }}</strong>
+            </article>
+        </section>
+
+        <main class="dashboard-grid">
+            <section class="card">
+                <div class="section-heading">
+                    <h2>Action Breakdown</h2>
+                    <p>Distribution across current recorded actions.</p>
+                </div>
+                <div class="stats-list">
+                    {% for action, count in metrics["action_counts"].items() %}
+                    <div class="stats-row">
+                        <span>{{ action }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% else %}
+                    <div class="empty-state compact">No action telemetry yet.</div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="section-heading">
+                    <h2>Risk History</h2>
+                    <p>Recent risk scores plotted in chronological order.</p>
+                </div>
+                <div class="risk-chart">
+                    {% if risk_points %}
+                        {% for point in risk_points %}
+                        <div class="risk-bar-wrap">
+                            <div class="risk-bar {{ point['label'] }}" style="height: {{ ((point['risk_score'] * 100) | round(0, 'ceil')) | int }}%;"></div>
+                            <span>{{ "%.2f"|format(point["risk_score"]) }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state compact">No risk history available yet.</div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="card latest-card">
+                <div class="section-heading">
+                    <h2>Latest Event</h2>
+                    <p>Most recent prompt routed through the system.</p>
+                </div>
+                {% if latest_event %}
+                <dl class="event-grid">
+                    <div><dt>Timestamp</dt><dd>{{ latest_event["created_at"] }}</dd></div>
+                    <div><dt>Prompt</dt><dd>{{ latest_event["prompt"] }}</dd></div>
+                    <div><dt>Retrieved Document</dt><dd>{{ latest_event["retrieved_document"] or "N/A" }}</dd></div>
+                    <div><dt>Sources</dt><dd>{{ latest_event["retrieved_sources"]|join(", ") if latest_event["retrieved_sources"] else "N/A" }}</dd></div>
+                    <div><dt>Label</dt><dd>{{ latest_event["label"] }}</dd></div>
+                    <div><dt>Action</dt><dd>{{ latest_event["action"] }}</dd></div>
+                    <div><dt>Risk Score</dt><dd>{{ "%.3f"|format(latest_event["risk_score"]) }}</dd></div>
+                    <div><dt>Reason</dt><dd>{{ latest_event["reason"] }}</dd></div>
+                </dl>
+                {% else %}
+                <div class="empty-state compact">No events recorded yet.</div>
+                {% endif %}
+            </section>
+        </main>
+
+        <section class="card table-card">
+            <div class="section-heading">
+                <h2>Recent Logs</h2>
+                <p>Recent prompts with timestamps, retrieved sources, scores, and enforcement actions.</p>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Prompt</th>
+                            <th>Document</th>
+                            <th>Sources</th>
+                            <th>Label</th>
+                            <th>Action</th>
+                            <th>Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in recent_logs %}
+                        <tr>
+                            <td>{{ log["created_at"] }}</td>
+                            <td>{{ log["prompt"] }}</td>
+                            <td>{{ log["retrieved_document"] or "N/A" }}</td>
+                            <td>{{ log["retrieved_sources"]|join(", ") if log["retrieved_sources"] else "N/A" }}</td>
+                            <td><span class="tag {{ log['label'] }}">{{ log["label"] }}</span></td>
+                            <td><span class="tag neutral">{{ log["action"] }}</span></td>
+                            <td>{{ "%.3f"|format(log["risk_score"]) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state compact">No logs available yet.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
