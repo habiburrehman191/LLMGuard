@@ -86,6 +86,21 @@ def _false_positive_rate(y_true: list[str], y_pred: list[str]) -> float:
     return float(false_positives / safe_total)
 
 
+def _label_metric(report: dict[str, object], label: str, metric_name: str) -> float:
+    label_section = report.get(label, {})
+    if not isinstance(label_section, dict):
+        return 0.0
+    return float(label_section.get(metric_name, 0.0))
+
+
+def _classification_sort_key(summary: dict[str, object]) -> tuple[float, float, float]:
+    return (
+        float(summary["f1_macro"]),
+        float(summary["accuracy"]),
+        -float(summary["avg_latency_ms"]),
+    )
+
+
 def build_mode_runners() -> dict[str, Callable[[str], dict[str, object]]]:
     semantic_firewall = SemanticFirewall()
     ml_classifier = MLFirewallClassifier()
@@ -199,6 +214,12 @@ def evaluate_mode(
             for label in LABEL_ORDER
         },
         "classification_report": report,
+        "safe_recall": _label_metric(report, "safe", "recall"),
+        "suspicious_recall": _label_metric(report, "suspicious", "recall"),
+        "malicious_recall": _label_metric(report, "malicious", "recall"),
+        "safe_precision": _label_metric(report, "safe", "precision"),
+        "suspicious_precision": _label_metric(report, "suspicious", "precision"),
+        "malicious_precision": _label_metric(report, "malicious", "precision"),
         "confusion_matrix": {
             "labels": LABEL_ORDER,
             "rows": matrix.tolist(),
@@ -239,6 +260,9 @@ def _write_comparison_csv(path: Path, summaries: list[dict[str, object]]) -> Non
                 "precision_macro",
                 "recall_macro",
                 "f1_macro",
+                "safe_recall",
+                "suspicious_recall",
+                "malicious_recall",
                 "false_positive_rate",
                 "avg_latency_ms",
                 "p50_latency_ms",
@@ -256,21 +280,40 @@ def _write_comparison_csv(path: Path, summaries: list[dict[str, object]]) -> Non
 def _render_markdown_table(summaries: list[dict[str, object]]) -> str:
     ordered = sorted(
         summaries,
-        key=lambda item: (item["f1_macro"], item["accuracy"]),
+        key=_classification_sort_key,
         reverse=True,
     )
     lines = [
-        "| Mode | Accuracy | Precision | Recall | F1 | FPR | Avg Latency (ms) | P95 Latency (ms) |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Mode | Accuracy | Precision | Recall | F1 | Suspicious Recall | Malicious Recall | FPR | Avg Latency (ms) |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for summary in ordered:
         lines.append(
             "| {mode} | {accuracy:.4f} | {precision_macro:.4f} | {recall_macro:.4f} | "
-            "{f1_macro:.4f} | {false_positive_rate:.4f} | {avg_latency_ms:.2f} | {p95_latency_ms:.2f} |".format(
+            "{f1_macro:.4f} | {suspicious_recall:.4f} | {malicious_recall:.4f} | "
+            "{false_positive_rate:.4f} | {avg_latency_ms:.2f} |".format(
                 **summary
             )
         )
     return "\n".join(lines) + "\n"
+
+
+def _recommend_runtime_mode(summaries: list[dict[str, object]]) -> tuple[str, str]:
+    hybrid_summary = next((summary for summary in summaries if summary["mode"] == "hybrid"), None)
+    if hybrid_summary is not None:
+        return (
+            "hybrid",
+            "Recommended default runtime mode because it preserves defense-in-depth by combining "
+            "rules, semantic detection, and ML scoring with enforcement actions such as sanitize, "
+            "quarantine, and block.",
+        )
+
+    best_classification = max(summaries, key=_classification_sort_key)
+    return (
+        str(best_classification["mode"]),
+        "Recommended runtime mode falls back to the strongest classification mode because hybrid "
+        "evaluation is not available in this run.",
+    )
 
 
 def run_evaluation(
@@ -292,20 +335,25 @@ def run_evaluation(
         summaries.append(summary)
         all_prediction_rows.extend(rows)
 
-    best_mode = max(
-        summaries,
-        key=lambda item: (item["f1_macro"], item["accuracy"], -item["avg_latency_ms"]),
-    )
+    best_classification_mode = max(summaries, key=_classification_sort_key)
+    recommended_runtime_mode, recommended_runtime_reason = _recommend_runtime_mode(summaries)
+    class_distribution = {
+        label: int(sum(record.label == label for record in records))
+        for label in LABEL_ORDER
+    }
 
     summary_payload = {
         "dataset_path": str(active_dataset_path),
         "dataset_size": len(records),
+        "class_distribution": class_distribution,
         "modes": {summary["mode"]: summary for summary in summaries},
-        "best_mode": best_mode["mode"],
-        "best_mode_reason": (
+        "best_classification_mode": best_classification_mode["mode"],
+        "best_classification_reason": (
             "Highest macro F1, with accuracy used as a tiebreaker and lower latency preferred "
             "when classification quality is otherwise equal."
         ),
+        "recommended_runtime_mode": recommended_runtime_mode,
+        "recommended_runtime_reason": recommended_runtime_reason,
     }
 
     active_output_dir.mkdir(parents=True, exist_ok=True)
@@ -340,7 +388,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run":
         results = run_evaluation(dataset_path=args.dataset, output_dir=args.output_dir)
         print(_render_markdown_table(list(results["modes"].values())))
-        print(json.dumps({"best_mode": results["best_mode"]}, indent=2))
+        print(
+            json.dumps(
+                {
+                    "best_classification_mode": results["best_classification_mode"],
+                    "recommended_runtime_mode": results["recommended_runtime_mode"],
+                },
+                indent=2,
+            )
+        )
         return 0
 
     parser.error(f"Unsupported command `{args.command}`.")

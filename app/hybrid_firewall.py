@@ -43,6 +43,13 @@ class HybridFirewall:
         self.ml_classifier = ml_classifier
         self.settings = get_settings()
 
+    def _calibrate_component_score(self, raw_score: float, label: str) -> float:
+        if label == "safe":
+            return raw_score * self.settings.hybrid_safe_score_multiplier
+        if label == "suspicious":
+            return max(self.settings.hybrid_suspicious_score_floor, raw_score)
+        return max(self.settings.hybrid_malicious_score_floor, raw_score)
+
     def _final_risk_score(
         self,
         *,
@@ -53,7 +60,11 @@ class HybridFirewall:
         semantic_label: str,
         ml_label: str,
     ) -> float:
-        weighted_score = (0.25 * rule_score) + (0.30 * semantic_score) + (0.45 * ml_score)
+        weighted_score = (
+            (self.settings.hybrid_rule_weight * self._calibrate_component_score(rule_score, rule_label))
+            + (self.settings.hybrid_semantic_weight * self._calibrate_component_score(semantic_score, semantic_label))
+            + (self.settings.hybrid_ml_weight * self._calibrate_component_score(ml_score, ml_label))
+        )
         malicious_votes = sum(
             label == "malicious"
             for label in (rule_label, semantic_label, ml_label)
@@ -62,13 +73,25 @@ class HybridFirewall:
             label in {"suspicious", "malicious"}
             for label in (rule_label, semantic_label, ml_label)
         )
+        semantic_supports_attack = (
+            semantic_label in {"suspicious", "malicious"}
+            or semantic_score >= self.settings.hybrid_semantic_support_threshold
+        )
 
         if rule_label == "malicious":
             weighted_score = max(weighted_score, self.settings.block_risk_threshold)
         elif malicious_votes >= 2:
             weighted_score = max(weighted_score, self.settings.quarantine_risk_threshold)
+        elif ml_label == "malicious" and semantic_supports_attack:
+            weighted_score = max(weighted_score, self.settings.hybrid_malicious_score_floor)
         elif suspicious_votes >= 2:
-            weighted_score = max(weighted_score, self.settings.suspicious_risk_threshold + 0.12)
+            weighted_score = max(
+                weighted_score,
+                max(
+                    self.settings.hybrid_suspicious_score_floor,
+                    self.settings.suspicious_risk_threshold + 0.06,
+                ),
+            )
 
         return min(1.0, weighted_score)
 
@@ -88,14 +111,20 @@ class HybridFirewall:
             label in {"suspicious", "malicious"}
             for label in (rule_label, semantic_label, ml_label)
         )
+        semantic_supports_attack = semantic_label in {"suspicious", "malicious"}
 
         if (
             rule_label == "malicious" or
             malicious_votes >= 2 or
+            (ml_label == "malicious" and semantic_supports_attack) or
             risk_score >= self.settings.malicious_risk_threshold
         ):
             return "malicious"
-        if suspicious_votes >= 1 or risk_score >= self.settings.suspicious_risk_threshold:
+        if (
+            rule_label == "suspicious" or
+            suspicious_votes >= 2 or
+            risk_score >= self.settings.suspicious_risk_threshold
+        ):
             return "suspicious"
         return "safe"
 
@@ -105,10 +134,16 @@ class HybridFirewall:
         rule_label: str,
         label: str,
         risk_score: float,
+        semantic_label: str,
+        ml_label: str,
     ) -> str:
         if rule_label == "malicious" or risk_score >= self.settings.block_risk_threshold:
             return "block"
-        if label == "malicious" and risk_score >= self.settings.quarantine_risk_threshold:
+        if label == "malicious" and (
+            risk_score >= self.settings.quarantine_risk_threshold or
+            ml_label == "malicious" or
+            semantic_label == "malicious"
+        ):
             return "quarantine"
         if label in {"suspicious", "malicious"}:
             return "sanitize"
@@ -139,6 +174,8 @@ class HybridFirewall:
             rule_label=str(rule_result["label"]),
             label=label,
             risk_score=risk_score,
+            semantic_label=str(semantic_result["label"]),
+            ml_label=str(ml_result["label"]),
         )
 
         reasons: list[str] = []

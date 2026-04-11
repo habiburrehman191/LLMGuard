@@ -39,6 +39,13 @@ class Settings:
     semantic_use_embeddings: bool
     semantic_local_files_only: bool
     ml_classifier_min_confidence: float
+    hybrid_rule_weight: float
+    hybrid_semantic_weight: float
+    hybrid_ml_weight: float
+    hybrid_safe_score_multiplier: float
+    hybrid_suspicious_score_floor: float
+    hybrid_malicious_score_floor: float
+    hybrid_semantic_support_threshold: float
     suspicious_risk_threshold: float
     malicious_risk_threshold: float
     quarantine_risk_threshold: float
@@ -128,6 +135,21 @@ def get_settings() -> Settings:
         semantic_use_embeddings=_bool_from_env("LLMGUARD_USE_EMBEDDINGS", True),
         semantic_local_files_only=_bool_from_env("LLMGUARD_LOCAL_FILES_ONLY", True),
         ml_classifier_min_confidence=float(os.getenv("LLMGUARD_ML_MIN_CONFIDENCE", "0.45")),
+        hybrid_rule_weight=float(os.getenv("LLMGUARD_HYBRID_RULE_WEIGHT", "0.20")),
+        hybrid_semantic_weight=float(os.getenv("LLMGUARD_HYBRID_SEMANTIC_WEIGHT", "0.20")),
+        hybrid_ml_weight=float(os.getenv("LLMGUARD_HYBRID_ML_WEIGHT", "0.60")),
+        hybrid_safe_score_multiplier=float(
+            os.getenv("LLMGUARD_HYBRID_SAFE_SCORE_MULTIPLIER", "0.45")
+        ),
+        hybrid_suspicious_score_floor=float(
+            os.getenv("LLMGUARD_HYBRID_SUSPICIOUS_SCORE_FLOOR", "0.48")
+        ),
+        hybrid_malicious_score_floor=float(
+            os.getenv("LLMGUARD_HYBRID_MALICIOUS_SCORE_FLOOR", "0.76")
+        ),
+        hybrid_semantic_support_threshold=float(
+            os.getenv("LLMGUARD_HYBRID_SEMANTIC_SUPPORT_THRESHOLD", "0.40")
+        ),
         suspicious_risk_threshold=float(os.getenv("LLMGUARD_SUSPICIOUS_RISK_THRESHOLD", "0.38")),
         malicious_risk_threshold=float(os.getenv("LLMGUARD_MALICIOUS_RISK_THRESHOLD", "0.72")),
         quarantine_risk_threshold=float(os.getenv("LLMGUARD_QUARANTINE_RISK_THRESHOLD", "0.82")),

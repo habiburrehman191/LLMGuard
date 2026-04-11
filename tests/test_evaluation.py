@@ -89,7 +89,8 @@ class EvaluationModuleTests(unittest.TestCase):
             )
 
             self.assertEqual(summary["dataset_size"], 3)
-            self.assertEqual(summary["best_mode"], "hybrid")
+            self.assertEqual(summary["best_classification_mode"], "hybrid")
+            self.assertEqual(summary["recommended_runtime_mode"], "hybrid")
 
             summary_path = output_dir / "summary.json"
             comparison_path = output_dir / "comparison.csv"
@@ -102,12 +103,15 @@ class EvaluationModuleTests(unittest.TestCase):
             self.assertTrue(markdown_path.exists())
 
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
-            self.assertEqual(payload["best_mode"], "hybrid")
+            self.assertEqual(payload["best_classification_mode"], "hybrid")
+            self.assertEqual(payload["recommended_runtime_mode"], "hybrid")
+            self.assertEqual(payload["class_distribution"]["safe"], 1)
 
             with comparison_path.open("r", encoding="utf-8", newline="") as handle:
                 rows = list(csv.DictReader(handle))
             self.assertEqual(len(rows), 2)
             self.assertEqual(rows[0]["mode"], "rule-only")
+            self.assertIn("malicious_recall", rows[0])
 
             with predictions_path.open("r", encoding="utf-8", newline="") as handle:
                 prediction_rows = list(csv.DictReader(handle))
