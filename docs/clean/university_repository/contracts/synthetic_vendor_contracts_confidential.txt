@@ -1,0 +1,14 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic vendor contracts for the authorized LLMGuard role-based demo.
+
+Fake vendor: North Valley Systems Demo
+Fake contract: Portal support services
+Fake contract value: 2,500,000 demo credits
+Fake renewal note: Internal review pending
+
+Fake vendor: Campus Transit Demo
+Fake contract: Student route scheduling support
+Fake contract value: 1,200,000 demo credits
+
+Access rule: vendor contracts are contract_confidential and may be accessed only by finance_admin and super_admin roles.

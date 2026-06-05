@@ -1,0 +1,9 @@
+UOH-inspired public hostel and transport information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+Hostel and transport availability is limited in the synthetic demo and may depend on seat capacity, route coverage, program schedule, and submitted application information.
+
+Students can ask public questions about hostel application steps, transport registration, route-change windows, quiet hours, visitor rules, and help desk contacts.
+
+The assistant must not reveal private room assignments, conduct notes, route-specific security notes, or restricted student records.

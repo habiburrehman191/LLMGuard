@@ -20,6 +20,23 @@ const metricSafe = document.getElementById("metric-safe");
 const metricSuspicious = document.getElementById("metric-suspicious");
 const metricMalicious = document.getElementById("metric-malicious");
 const metricBlocked = document.getElementById("metric-blocked");
+const metricDemoSafe = document.getElementById("metric-demo-safe");
+const metricDemoBlocked = document.getElementById("metric-demo-blocked");
+const metricDemoTools = document.getElementById("metric-demo-tools");
+const metricDemoDocs = document.getElementById("metric-demo-docs");
+const metricDemoExfil = document.getElementById("metric-demo-exfil");
+const metricUohTotal = document.getElementById("metric-uoh-total");
+const metricUohBlocks = document.getElementById("metric-uoh-blocks");
+const metricUohRisky = document.getElementById("metric-uoh-risky");
+const metricUohTools = document.getElementById("metric-uoh-tools");
+const metricUohInjections = document.getElementById("metric-uoh-injections");
+const metricZtPrompt = document.getElementById("metric-zt-prompt");
+const metricZtAccess = document.getElementById("metric-zt-access");
+const metricZtTool = document.getElementById("metric-zt-tool");
+const metricZtOutput = document.getElementById("metric-zt-output");
+const metricZtCanary = document.getElementById("metric-zt-canary");
+const metricZtUnauth = document.getElementById("metric-zt-unauth");
+const metricZtRole = document.getElementById("metric-zt-role");
 
 let refreshTimerId = null;
 let refreshInFlight = false;
@@ -333,6 +350,32 @@ async function refreshDashboard() {
         metricSuspicious.textContent = String((data.label_counts || {}).suspicious || 0);
         metricMalicious.textContent = String((data.label_counts || {}).malicious || 0);
         metricBlocked.textContent = String(((data.action_counts || {}).block || 0) + ((data.action_counts || {}).quarantine || 0));
+        const demoMetrics = data.demo_metrics || {};
+        if (metricDemoSafe) {
+            metricDemoSafe.textContent = String(demoMetrics.safe_queries || 0);
+            metricDemoBlocked.textContent = String(demoMetrics.blocked_attacks || 0);
+            metricDemoTools.textContent = String(demoMetrics.tool_calls_blocked || 0);
+            metricDemoDocs.textContent = String(demoMetrics.document_injection_attempts || 0);
+            metricDemoExfil.textContent = String(demoMetrics.data_exfiltration_attempts || 0);
+        }
+        const uohDemoMetrics = data.uoh_demo_metrics || {};
+        if (metricUohTotal) {
+            metricUohTotal.textContent = String(uohDemoMetrics.total || 0);
+            metricUohBlocks.textContent = String(uohDemoMetrics.protected_blocks || 0);
+            metricUohRisky.textContent = String(uohDemoMetrics.unprotected_risky_outputs || 0);
+            metricUohTools.textContent = String(uohDemoMetrics.tool_calls_blocked || 0);
+            metricUohInjections.textContent = String(uohDemoMetrics.retrieved_injection_attempts || 0);
+        }
+        const zeroTrustMetrics = data.zero_trust_metrics || {};
+        if (metricZtPrompt) {
+            metricZtPrompt.textContent = String(zeroTrustMetrics.prompt_firewall_blocks || 0);
+            metricZtAccess.textContent = String(zeroTrustMetrics.access_policy_blocks || 0);
+            metricZtTool.textContent = String(zeroTrustMetrics.tool_firewall_blocks || 0);
+            metricZtOutput.textContent = String(zeroTrustMetrics.output_firewall_blocks || 0);
+            metricZtCanary.textContent = String(zeroTrustMetrics.canary_leakage_attempts || 0);
+            metricZtUnauth.textContent = String(zeroTrustMetrics.unauthorized_retrieval_attempts || 0);
+            metricZtRole.textContent = String(zeroTrustMetrics.role_bypass_attempts || 0);
+        }
 
         renderActionBreakdown(data.action_counts || {});
         renderRiskHistory(data.risk_history || []);

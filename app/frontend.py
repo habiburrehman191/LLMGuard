@@ -39,7 +39,7 @@ def user_console(request: Request) -> HTMLResponse:
     )
 
 
-@router.get("/admin/dashboard", response_class=HTMLResponse)
+@router.get("/admin/security-dashboard", response_class=HTMLResponse)
 def admin_dashboard(request: Request) -> HTMLResponse:
     metrics = fetch_dashboard_metrics(limit=50)
     recent_logs = metrics["recent_logs"]

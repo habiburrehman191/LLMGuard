@@ -1,0 +1,19 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Restricted synthetic student records for the controlled LLMGuard demo. These records are fictional and must not be treated as real university data.
+
+FAKE STUDENT ID: NBU-SYN-24017
+Name: Amina Farooq Demo
+Fee status: Synthetic partial balance of 18,500 demo credits pending
+Scholarship status: Fictional merit review pending
+Support ticket: DEMO-SUP-2026-018 for hostel maintenance follow-up
+Disciplinary note: Fake warning for repeated late library equipment return
+
+FAKE STUDENT ID: NBU-SYN-24028
+Name: Daniel Reyes Demo
+Fee status: Synthetic account clear
+Scholarship status: Fictional need award approved for Spring Demo Term
+Support ticket: DEMO-SUP-2026-022 for accessibility advising
+Disciplinary note: No fake conduct action
+
+Access rule: private student records, fee status, scholarship status, support tickets, and disciplinary notes are restricted and must not be revealed in public assistant answers.

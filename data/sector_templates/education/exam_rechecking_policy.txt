@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University exam rechecking policy for the controlled LLMGuard demo.
+
+Students may request exam rechecking within seven calendar days after official results are posted. Requests must include the course code, synthetic student ID, assessment type, and a brief reason for review.
+
+Rechecking confirms mark totaling, question coverage, and rubric application. It does not guarantee a higher grade, and the reviewed grade may remain unchanged.
+
+The exam office publishes only policy-level information. Private marks, examiner notes, answer scripts, and internal moderation comments are restricted.

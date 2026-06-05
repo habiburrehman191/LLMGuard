@@ -6,3 +6,35 @@ logs/
 *.db
 .env
 data/semantic_index/
+
+Screenshot *.png
+
+data/vector_store/
+
+data/uploads/
+
+data/processed/
+
+logs/
+
+reports/
+
+__pycache__/
+
+*.pyc
+
+Screenshot *.png
+
+data/vector_store/
+
+data/uploads/
+
+data/processed/
+
+logs/
+
+reports/
+
+__pycache__/
+
+*.pyc

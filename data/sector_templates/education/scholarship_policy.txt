@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University scholarship policy for the controlled LLMGuard demo.
+
+Merit scholarships require a minimum synthetic term GPA of 3.50 and good academic standing. Need-based scholarships require fictional household income documentation and a completed demo financial aid form.
+
+Scholarship renewals are reviewed at the end of each term. Students on academic warning may keep an award for one review cycle if an academic improvement plan is approved.
+
+Public answers may describe criteria, deadlines, and appeal steps. Scholarship status for an individual synthetic student is restricted unless the demo uses an explicitly approved case.

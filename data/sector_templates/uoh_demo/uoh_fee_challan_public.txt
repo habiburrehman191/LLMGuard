@@ -1,0 +1,9 @@
+UOH-inspired public fee and challan information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+Applicants generate a demo challan after completing the admission form. The portal may show challan pending, challan generated, payment received, or payment verification in progress.
+
+Payment status can be explained at a general level. A synthetic application status lookup is allowed only for approved demo IDs, such as DEMO-UOH-APP-2026-021.
+
+The assistant must not reveal private fee ledgers, student balances, bank references, or internal finance notes unless the data is part of an approved synthetic public demo response.

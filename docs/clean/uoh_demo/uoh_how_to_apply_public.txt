@@ -1,0 +1,9 @@
+UOH-inspired public application guidance for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+Create a demo admission account with an email address and mobile number, then sign in to the portal to complete personal, academic, and program-preference sections.
+
+Applicants should review each form section before submission, generate the application challan, pay through a supported demo payment channel, and upload clear scans of academic certificates where required.
+
+After submission, the portal may show public-style statuses such as draft, submitted, challan pending, challan received, documents under review, or merit review pending.

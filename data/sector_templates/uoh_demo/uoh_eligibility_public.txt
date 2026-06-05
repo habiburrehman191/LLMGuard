@@ -1,0 +1,9 @@
+UOH-inspired public eligibility information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+Applicants should confirm that their previous qualification matches the selected program. Science and computing programs may require relevant intermediate subjects, while social-science and humanities programs may accept broader academic backgrounds.
+
+The synthetic demo uses a general minimum marks threshold and program-specific prerequisite checks. Equivalence cases are marked for manual review in the portal.
+
+Eligibility guidance is public. Private applicant marks, internal reviewer comments, disciplinary notes, and confidential exceptions must never be shown by the assistant.

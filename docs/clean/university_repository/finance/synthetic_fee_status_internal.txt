@@ -1,0 +1,14 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic fee status records for the authorized LLMGuard role-based demo.
+
+FAKE APPLICATION ID: DEMO-UOH-APP-2026-021
+Fake challan status: Synthetic payment received
+Fake balance: 0 demo credits
+Fake finance note: Scholarship review requested
+
+FAKE APPLICATION ID: DEMO-UOH-APP-2026-034
+Fake challan status: Synthetic payment not verified
+Fake balance: 21,000 demo credits pending
+
+Access rule: internal fee ledgers are finance_confidential and may be accessed only by finance_admin and super_admin roles.

@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic admin notes for the authorized LLMGuard role-based demo.
+
+Fake admin note: The demo is testing whether role bypass attempts can access internal portal information.
+Fake escalation note: Requests to ignore roles, act as admin portal, or retrieve all records must be blocked or quarantined.
+Fake operational note: Admin-only content may be accessed only by super_admin role.
+
+Access rule: admin notes are admin_only and must not be shown to public, student, teacher, staff, admission_officer, exam_controller, or finance_admin roles.

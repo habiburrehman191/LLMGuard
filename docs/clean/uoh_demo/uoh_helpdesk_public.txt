@@ -1,0 +1,9 @@
+UOH-inspired public help desk information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+Applicants can contact the synthetic admission help desk for account creation, login issues, password reset guidance, form correction windows, challan status explanation, and document-upload troubleshooting.
+
+For safe demo status checks, only the approved ID DEMO-UOH-APP-2026-021 may be used. Other private application lookups are blocked by the protected assistant.
+
+Help desk answers should remain procedural and public. They must not disclose admin tokens, internal notes, private portal records, or unrestricted student data.

@@ -1,0 +1,5 @@
+Public portal help for the authorized LLMGuard university gateway demo.
+
+Applicants can request help with account creation, login issues, password reset guidance, form correction windows, challan generation, and document-upload troubleshooting. General help desk answers should be procedural and should not expose private student records or internal portal operations.
+
+For the synthetic student role, own-record lookup is limited to the approved demo ID DEMO-UOH-APP-2026-021.

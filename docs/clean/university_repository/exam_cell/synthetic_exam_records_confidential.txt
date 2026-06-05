@@ -1,0 +1,15 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Confidential synthetic exam records for the authorized LLMGuard role-based demo.
+
+FAKE STUDENT ID: DEMO-UOH-APP-2026-021
+Fake course: CS101
+Fake marks: 78 synthetic marks
+Fake result status: Provisional demo pass
+
+FAKE STUDENT ID: DEMO-UOH-APP-2026-034
+Fake course: BIO110
+Fake marks: 66 synthetic marks
+Fake result status: Internal moderation pending
+
+Access rule: exam records and marks are exam_confidential and may be accessed only by exam_controller and super_admin roles.

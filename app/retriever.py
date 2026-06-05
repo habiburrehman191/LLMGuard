@@ -13,7 +13,13 @@ from typing import Any
 
 import numpy as np
 
+from app.access_control import (
+    category_for_repository_path,
+    classification_for_repository_path,
+    roles_for_classification,
+)
 from app.config import get_settings
+from app.output_firewall import detect_canary_markers
 
 SENTENCE_SPLIT_PATTERN = re.compile(r"(?<=[.!?])\s+")
 PARAGRAPH_SPLIT_PATTERN = re.compile(r"\n\s*\n")
@@ -44,6 +50,13 @@ class IndexedDocument:
     source_set: str
     is_poisoned: bool
     content: str
+    document_id: str = ""
+    title: str = ""
+    category: str = "general"
+    classification: str = "public"
+    allowed_roles: tuple[str, ...] = ()
+    is_synthetic: bool = False
+    canary_markers: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -55,6 +68,14 @@ class DocumentChunk:
     is_poisoned: bool
     chunk_index: int
     text: str
+    document_id: str = ""
+    title: str = ""
+    category: str = "general"
+    classification: str = "public"
+    allowed_roles: tuple[str, ...] = ()
+    is_synthetic: bool = False
+    chunk_text: str = ""
+    canary_markers: tuple[str, ...] = ()
 
 
 class SentenceTransformerEncoder:
@@ -158,6 +179,21 @@ class SemanticRetriever:
         source_path = self._relative_source_path(path)
         return "poisoned" if "/poisoned/" in f"/{source_path}/" else "clean"
 
+    def _metadata_for_document(self, path: Path, content: str) -> dict[str, Any]:
+        source_path = self._relative_source_path(path)
+        classification = classification_for_repository_path(source_path, path.name)
+        title = path.stem.replace("_", " ").replace("-", " ").title()
+        return {
+            "document_id": source_path.replace("/", "::").replace("\\", "::"),
+            "title": title,
+            "category": category_for_repository_path(source_path),
+            "classification": classification,
+            "allowed_roles": tuple(roles_for_classification(classification)),
+            "is_synthetic": path.name.lower().startswith("synthetic_")
+            or content.startswith("SYNTHETIC DEMO DATA"),
+            "canary_markers": tuple(detect_canary_markers(content)),
+        }
+
     def _docs_snapshot(self) -> list[dict[str, Any]]:
         return [
             {
@@ -173,7 +209,7 @@ class SemanticRetriever:
 
     def _build_manifest(self) -> dict[str, Any]:
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "model_name": self.model_name,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
@@ -253,6 +289,14 @@ class SemanticRetriever:
                     is_poisoned=document.is_poisoned,
                     chunk_index=chunk_index,
                     text=chunk_text,
+                    document_id=document.document_id,
+                    title=document.title,
+                    category=document.category,
+                    classification=document.classification,
+                    allowed_roles=document.allowed_roles,
+                    is_synthetic=document.is_synthetic,
+                    chunk_text=chunk_text,
+                    canary_markers=tuple(detect_canary_markers(chunk_text)),
                 )
             )
 
@@ -273,6 +317,14 @@ class SemanticRetriever:
                         is_poisoned=document.is_poisoned,
                         chunk_index=len(chunks),
                         text=trailing_text,
+                        document_id=document.document_id,
+                        title=document.title,
+                        category=document.category,
+                        classification=document.classification,
+                        allowed_roles=document.allowed_roles,
+                        is_synthetic=document.is_synthetic,
+                        chunk_text=trailing_text,
+                        canary_markers=tuple(detect_canary_markers(trailing_text)),
                     )
                 )
 
@@ -283,6 +335,7 @@ class SemanticRetriever:
         for file_path in self._iter_document_paths():
             content = file_path.read_text(encoding="utf-8").strip()
             if content:
+                metadata = self._metadata_for_document(file_path, content)
                 documents.append(
                     IndexedDocument(
                         document_name=file_path.name,
@@ -290,6 +343,7 @@ class SemanticRetriever:
                         source_set=self._source_set_for_path(file_path),
                         is_poisoned=self._source_set_for_path(file_path) == "poisoned",
                         content=content,
+                        **metadata,
                     )
                 )
         return documents
@@ -407,6 +461,13 @@ class SemanticRetriever:
             seen_chunk_ids.add(chunk.chunk_id)
             matches.append(
                 {
+                    "document_id": chunk.document_id,
+                    "title": chunk.title,
+                    "category": chunk.category,
+                    "classification": chunk.classification,
+                    "allowed_roles": list(chunk.allowed_roles),
+                    "is_synthetic": chunk.is_synthetic,
+                    "canary_markers": list(chunk.canary_markers),
                     "document_name": chunk.document_name,
                     "source_path": chunk.source_path,
                     "source_set": chunk.source_set,
@@ -414,6 +475,7 @@ class SemanticRetriever:
                     "chunk_id": chunk.chunk_id,
                     "chunk_index": chunk.chunk_index,
                     "text": chunk.text,
+                    "chunk_text": chunk.chunk_text or chunk.text,
                     "score": adjusted_score,
                     "raw_score": similarity,
                 }

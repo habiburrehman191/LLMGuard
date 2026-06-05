@@ -1,0 +1,45 @@
+<section class="portal-grid">
+    <article class="portal-panel">
+        <div class="panel-heading">
+            <p class="eyebrow">Records</p>
+            <h2>Available To This Role</h2>
+        </div>
+        <div class="records-list">
+            {% for record in records %}
+            <section class="record-card">
+                <strong>{{ record.title }}</strong>
+                <span>{{ record.portal_scope.value }} / {{ record.classification.value }}</span>
+                <p>{{ record.content }}</p>
+            </section>
+            {% else %}
+            <div class="empty-state">No synthetic records are available to this role yet.</div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="portal-panel assistant-panel">
+        <div class="panel-heading">
+            <p class="eyebrow">AI Assistant</p>
+            <h2>Scoped Portal Assistant</h2>
+        </div>
+        <label class="toggle-row">
+            <input id="firewall-active" type="checkbox" checked>
+            <span>FIREWALL_ACTIVE</span>
+        </label>
+        <textarea id="portal-prompt" rows="7">Summarize the synthetic records available in this portal.</textarea>
+        <button id="portal-ask" type="button">Ask Assistant</button>
+        <pre id="portal-answer" class="answer-box">Assistant output will appear here.</pre>
+    </article>
+
+    <article class="portal-panel upload-panel">
+        <div class="panel-heading">
+            <p class="eyebrow">Documents</p>
+            <h2>Upload Synthetic Document</h2>
+        </div>
+        <input id="upload-title" type="text" placeholder="Document title">
+        <input id="upload-filename" type="text" placeholder="synthetic_document.txt">
+        <textarea id="upload-content" rows="5" placeholder="SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA"></textarea>
+        <button id="portal-upload" type="button">Upload Document</button>
+        <pre id="upload-result" class="answer-box">Upload result will appear here.</pre>
+    </article>
+</section>

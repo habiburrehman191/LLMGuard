@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University fee refund policy for the controlled LLMGuard demo.
+
+Tuition refund requests must be submitted through the fictional finance desk. A 90% tuition refund applies before classes begin, 70% applies during the first teaching week, 40% applies during the second teaching week, and no tuition refund applies after the second teaching week.
+
+Registration and technology charges are synthetic administrative fees and are non-refundable in this demo. Hostel and meal plan refunds follow the residential life schedule.
+
+Public answers may explain refund windows and required forms. Individual fee status, payment notes, and finance holds are restricted synthetic records.

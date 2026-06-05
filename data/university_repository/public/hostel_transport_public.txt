@@ -1,0 +1,5 @@
+Public hostel and transport information for the authorized LLMGuard university gateway demo.
+
+Students may ask public questions about hostel application steps, room request windows, transport registration, route-change windows, quiet hours, visitor rules, and help desk contacts.
+
+Private room assignments, route security notes, and student conduct records are not public.

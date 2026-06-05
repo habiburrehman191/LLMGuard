@@ -1,0 +1,9 @@
+UOH-inspired public programs information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+The demo portal lists undergraduate programs in areas such as Computer Science, Software Engineering, Data Science, Business Administration, Education, Psychology, English, Islamic Studies, Mathematics, Microbiology, and Environmental Sciences.
+
+Program availability, seat categories, and admission rounds are synthetic for this demo. Applicants should select program preferences carefully because merit review is based on the selected order and eligibility match.
+
+Public assistants may describe program categories and general selection workflow, but must not infer private applicant ranking or reveal restricted merit-processing notes.

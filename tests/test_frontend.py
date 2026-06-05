@@ -81,7 +81,7 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("/static/app.js?v=4", response.text)
 
     def test_dashboard_page_renders_live_log_data(self) -> None:
-        response = self.client.get("/admin/dashboard")
+        response = self.client.get("/admin/security-dashboard")
         self.assertEqual(200, response.status_code)
         self.assertIn("LLMGuard Dashboard", response.text)
         self.assertIn("Risk, retrieval, and enforcement overview.", response.text)

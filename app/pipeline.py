@@ -3,11 +3,15 @@ from __future__ import annotations
 from collections.abc import Callable
 import re
 
-from app.db import insert_log
+from app.access_control import access_decision, normalize_role
+from app.db import insert_access_event, insert_log
+from app.dlp import detect_dlp
 from app.hybrid_firewall import ACTION_PRIORITY, HybridFirewall, inspect_with_hybrid_firewall
+from app.output_firewall import inspect_output
 from app.retriever import SemanticRetriever, retrieve_document
 from app.schemas import AskResponse, RetrievedChunk
 from app.semantic_firewall import SemanticFirewall
+from app.tool_firewall import tool_firewall_decision
 
 SANITIZED_PLACEHOLDER = "[REMOVED: malicious content detected]"
 USER_VISIBLE_INTERNAL_PATTERNS = (
@@ -123,6 +127,11 @@ def _log_result(result: AskResponse, log_writer: LogWriter) -> None:
         result.ml_label,
         result.risk_score,
         result.response,
+        result.threat_source,
+        str(result.tool_call.get("name")) if result.tool_call else None,
+        bool(result.tool_call.get("allowed")) if result.tool_call else None,
+        str(result.output_firewall.get("action")) if result.output_firewall else None,
+        list(result.output_firewall.get("canary_markers", [])) if result.output_firewall else [],
     )
 
 
@@ -131,6 +140,9 @@ def _blocked_result(
     reason: str,
     risk_score: float,
     *,
+    user_role: str = "public_user",
+    user_id: str | None = None,
+    session_id: str | None = None,
     retrieved_document: str | None = None,
     retrieved_sources: list[str] | None = None,
     retrieved_chunks: list[RetrievedChunk] | None = None,
@@ -143,13 +155,30 @@ def _blocked_result(
     semantic_label: str = "safe",
     ml_label: str = "safe",
     evidence_summary: str | None = None,
+    threat_source: str = "retrieved_content",
+    qwen_called: bool = False,
+    tool_call: dict[str, object] | None = None,
+    access_control: dict[str, object] | None = None,
+    dlp: dict[str, object] | None = None,
+    output_firewall: dict[str, object] | None = None,
+    unauthorized_retrievals: list[dict[str, object]] | None = None,
 ) -> AskResponse:
     return AskResponse(
         prompt=prompt,
+        user_role=user_role,
+        user_id=user_id,
+        session_id=session_id,
         retrieved_document=retrieved_document,
         retrieved_sources=retrieved_sources or [],
         retrieved_chunks=retrieved_chunks or [],
         evidence_summary=evidence_summary,
+        threat_source=threat_source,
+        qwen_called=qwen_called,
+        tool_call=tool_call,
+        access_control=access_control,
+        dlp=dlp,
+        output_firewall=output_firewall,
+        unauthorized_retrievals=unauthorized_retrievals or [],
         action=action,
         blocked=action in {"block", "quarantine"},
         label=label,
@@ -169,19 +198,134 @@ def process_prompt(
     user_prompt: str,
     llm_query: LLMQuery,
     *,
+    user_role: str = "public_user",
+    user_id: str | None = None,
+    session_id: str | None = None,
     retriever: SemanticRetriever | None = None,
     semantic_firewall: SemanticFirewall | None = None,
     hybrid_firewall: HybridFirewall | None = None,
     log_writer: LogWriter = insert_log,
 ) -> AskResponse:
-    retrieved_doc = retrieve_document(user_prompt, retriever=retriever)
+    active_hybrid_firewall = hybrid_firewall or HybridFirewall(
+        semantic_firewall=semantic_firewall,
+    )
+    active_role = normalize_role(user_role)
+    tool_decision = tool_firewall_decision(
+        user_prompt,
+        user_role=active_role,
+        user_id=user_id,
+    )
+    tool_call = tool_decision.as_dict()
+    dlp_assessment = detect_dlp(user_prompt, active_role)
+    dlp_payload = dlp_assessment.as_dict()
+
+    if not tool_decision.allowed:
+        result = _blocked_result(
+            prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
+            reason=tool_decision.reason,
+            risk_score=tool_decision.risk_score,
+            action=tool_decision.action,
+            label=tool_decision.label,
+            rule_score=tool_decision.risk_score,
+            rule_label=tool_decision.label,
+            threat_source="tool_call",
+            tool_call=tool_call,
+            access_control={
+                "allowed": False,
+                "user_role": active_role,
+                "reason": tool_decision.reason,
+            },
+            dlp=dlp_payload,
+        )
+        _log_result(result, log_writer)
+        return result
+
+    if dlp_assessment.action in {"block", "quarantine"}:
+        result = _blocked_result(
+            prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
+            reason="; ".join(dict.fromkeys(dlp_assessment.reasons)),
+            risk_score=dlp_assessment.risk_score,
+            action=dlp_assessment.action,
+            label=dlp_assessment.label,
+            rule_score=dlp_assessment.risk_score,
+            rule_label=dlp_assessment.label,
+            threat_source="access_control",
+            tool_call=tool_call,
+            access_control={
+                "allowed": False,
+                "user_role": active_role,
+                "requested_classifications": dlp_assessment.requested_classifications,
+                "reason": "Prompt requests data outside the selected role permissions.",
+            },
+            dlp=dlp_payload,
+        )
+        _log_result(result, log_writer)
+        return result
+
+    prompt_assessment = inspect_with_hybrid_firewall(
+        user_prompt,
+        firewall=active_hybrid_firewall,
+    )
+    if prompt_assessment.action in {"block", "quarantine"}:
+        result = _blocked_result(
+            prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
+            reason="; ".join(dict.fromkeys(prompt_assessment.reasons)),
+            risk_score=prompt_assessment.risk_score,
+            action=prompt_assessment.action,
+            label=prompt_assessment.label,
+            rule_score=prompt_assessment.rule_score,
+            semantic_score=prompt_assessment.semantic_score,
+            ml_score=prompt_assessment.ml_score,
+            rule_label=prompt_assessment.rule_label,
+            semantic_label=prompt_assessment.semantic_label,
+            ml_label=prompt_assessment.ml_label,
+            threat_source="prompt",
+            tool_call=tool_call,
+            access_control={
+                "allowed": True,
+                "user_role": active_role,
+                "reason": "Prompt blocked by firewall before document access.",
+            },
+            dlp=dlp_payload,
+        )
+        _log_result(result, log_writer)
+        return result
+
+    retrieval_prompt = (
+        prompt_assessment.sanitized_text
+        if prompt_assessment.action == "sanitize"
+        else user_prompt
+    )
+    if retrieval_prompt == SANITIZED_PLACEHOLDER:
+        retrieval_prompt = user_prompt
+    retrieved_doc = retrieve_document(retrieval_prompt, retriever=retriever)
     if not retrieved_doc:
         result = _blocked_result(
             prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
             reason="No relevant document retrieved",
             risk_score=1.0,
             action="block",
             label="malicious",
+            threat_source="retrieval",
+            tool_call=tool_call,
+            access_control={
+                "allowed": False,
+                "user_role": active_role,
+                "reason": "No relevant controlled repository document was retrieved.",
+            },
+            dlp=dlp_payload,
         )
         _log_result(result, log_writer)
         return result
@@ -197,31 +341,65 @@ def process_prompt(
         }
     ]
     retrieved_sources = retrieved_doc.get("source_paths") or []
-    active_hybrid_firewall = hybrid_firewall or HybridFirewall(
-        semantic_firewall=semantic_firewall,
+    action = "log" if dlp_assessment.action == "log" else "allow"
+    label = "suspicious" if dlp_assessment.label == "suspicious" else "safe"
+    reason = (
+        "; ".join(dict.fromkeys(dlp_assessment.reasons))
+        if dlp_assessment.action == "log"
+        else "No dangerous content detected"
     )
-
-    action = "allow"
-    label = "safe"
-    reason = "No dangerous content detected"
     rule_score = 0.0
     semantic_score = 0.0
     ml_score = 0.0
     rule_label = "safe"
     semantic_label = "safe"
     ml_label = "safe"
-    risk_score = 0.0
+    risk_score = dlp_assessment.risk_score if dlp_assessment.action == "log" else 0.0
     reasons: list[str] = []
     context_candidates: list[dict[str, object]] = []
     response_chunks: list[RetrievedChunk] = []
+    unauthorized_retrievals: list[dict[str, object]] = []
 
     for chunk in chunks:
+        classification = str(chunk.get("classification", "public"))
+        access = access_decision(active_role, classification)
+        if not access.allowed:
+            denied = {
+                "document_id": str(chunk.get("document_id", chunk.get("chunk_id", ""))),
+                "title": str(chunk.get("title", chunk.get("document_name", ""))),
+                "classification": classification,
+                "source_path": str(chunk.get("source_path", "")),
+                "chunk_id": str(chunk.get("chunk_id", "")),
+                "reason": access.reason,
+            }
+            unauthorized_retrievals.append(denied)
+            insert_access_event(
+                prompt=user_prompt,
+                user_role=active_role,
+                user_id=user_id,
+                session_id=session_id,
+                document_id=denied["document_id"],
+                title=denied["title"],
+                classification=classification,
+                source_path=denied["source_path"],
+                allowed=False,
+                reason=access.reason,
+            )
+            continue
+
         assessment = inspect_with_hybrid_firewall(
             chunk["text"],
             firewall=active_hybrid_firewall,
         )
         response_chunks.append(
             RetrievedChunk(
+                document_id=str(chunk.get("document_id", "")),
+                title=str(chunk.get("title", chunk["document_name"])),
+                category=str(chunk.get("category", "general")),
+                classification=classification,
+                allowed_roles=list(chunk.get("allowed_roles", [])),
+                is_synthetic=bool(chunk.get("is_synthetic", False)),
+                canary_markers=list(chunk.get("canary_markers", [])),
                 document_name=chunk["document_name"],
                 source_path=chunk["source_path"],
                 source_set=str(chunk.get("source_set", "unknown")),
@@ -229,6 +407,7 @@ def process_prompt(
                 chunk_id=chunk["chunk_id"],
                 chunk_index=chunk["chunk_index"],
                 text=chunk["text"],
+                chunk_text=str(chunk.get("chunk_text", chunk["text"])),
                 score=float(chunk.get("score", 0.0)),
                 raw_score=float(chunk.get("raw_score", chunk.get("score", 0.0))),
                 rule_score=assessment.rule_score,
@@ -301,9 +480,39 @@ def process_prompt(
     selected_context_candidates = clean_context_candidates or context_candidates
     evidence_summary = _build_evidence_summary(selected_context_candidates)
 
+    if not response_chunks and unauthorized_retrievals:
+        result = _blocked_result(
+            prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
+            retrieved_document=retrieved_doc["filename"],
+            retrieved_sources=retrieved_sources,
+            reason="Retrieved documents were outside the selected role permissions.",
+            action="block",
+            label="malicious",
+            rule_score=0.94,
+            rule_label="malicious",
+            risk_score=0.94,
+            threat_source="access_control",
+            tool_call=tool_call,
+            access_control={
+                "allowed": False,
+                "user_role": active_role,
+                "reason": "All relevant retrieved chunks were unauthorized for this role.",
+            },
+            dlp=dlp_payload,
+            unauthorized_retrievals=unauthorized_retrievals,
+        )
+        _log_result(result, log_writer)
+        return result
+
     if action in {"block", "quarantine"} or not selected_context_candidates:
         result = _blocked_result(
             prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
             retrieved_document=retrieved_doc["filename"],
             retrieved_sources=retrieved_sources,
             retrieved_chunks=response_chunks,
@@ -322,6 +531,15 @@ def process_prompt(
             ml_label=ml_label,
             risk_score=risk_score,
             evidence_summary=evidence_summary,
+            threat_source="retrieved_content",
+            tool_call=tool_call,
+            access_control={
+                "allowed": len(unauthorized_retrievals) == 0,
+                "user_role": active_role,
+                "reason": "Retrieved content firewall blocked or removed all authorized content.",
+            },
+            dlp=dlp_payload,
+            unauthorized_retrievals=unauthorized_retrievals,
         )
         _log_result(result, log_writer)
         return result
@@ -334,13 +552,73 @@ def process_prompt(
         llm_query(build_combined_prompt(user_prompt, final_content)),
         fallback_summary=evidence_summary,
     )
+    output_decision = inspect_output(
+        response,
+        user_role=active_role,
+        allowed_classifications=list(
+            dict.fromkeys(str(chunk.classification) for chunk in response_chunks)
+        ),
+    )
+    output_payload = output_decision.as_dict()
+    if output_decision.blocked:
+        result = _blocked_result(
+            prompt=user_prompt,
+            user_role=active_role,
+            user_id=user_id,
+            session_id=session_id,
+            retrieved_document=retrieved_doc["filename"],
+            retrieved_sources=retrieved_sources,
+            retrieved_chunks=response_chunks,
+            reason="; ".join(dict.fromkeys(output_decision.reasons)),
+            action=output_decision.action,
+            label=output_decision.label,
+            rule_score=rule_score,
+            semantic_score=semantic_score,
+            ml_score=ml_score,
+            rule_label=rule_label,
+            semantic_label=semantic_label,
+            ml_label=ml_label,
+            risk_score=max(risk_score, output_decision.risk_score),
+            evidence_summary=evidence_summary,
+            threat_source="output_firewall",
+            qwen_called=True,
+            tool_call=tool_call,
+            access_control={
+                "allowed": len(unauthorized_retrievals) == 0,
+                "user_role": active_role,
+                "reason": "Output firewall blocked the generated answer before release.",
+            },
+            dlp=dlp_payload,
+            output_firewall=output_payload,
+            unauthorized_retrievals=unauthorized_retrievals,
+        )
+        _log_result(result, log_writer)
+        return result
 
     result = AskResponse(
         prompt=user_prompt,
+        user_role=active_role,
+        user_id=user_id,
+        session_id=session_id,
         retrieved_document=retrieved_doc["filename"],
         retrieved_sources=retrieved_sources,
         retrieved_chunks=response_chunks,
         evidence_summary=evidence_summary,
+        threat_source="retrieved_content" if reasons else "none",
+        qwen_called=True,
+        tool_call=tool_call,
+        access_control={
+            "allowed": len(unauthorized_retrievals) == 0,
+            "user_role": active_role,
+            "reason": (
+                "All retrieved chunks were authorized for this role."
+                if not unauthorized_retrievals
+                else "Unauthorized chunks were filtered before content firewall and Qwen context."
+            ),
+        },
+        dlp=dlp_payload,
+        output_firewall=output_payload,
+        unauthorized_retrievals=unauthorized_retrievals,
         action=action,
         blocked=False,
         label=label,

@@ -50,6 +50,9 @@ class Settings:
     malicious_risk_threshold: float
     quarantine_risk_threshold: float
     block_risk_threshold: float
+    firewall_active: bool
+    redteam_mode: bool
+    app_env: str
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -115,7 +118,7 @@ def get_settings() -> Settings:
         ml_model_path=ml_model_path,
         ml_training_report_path=ml_training_report_path,
         ollama_url=os.getenv("LLMGUARD_OLLAMA_URL", "http://localhost:11434/api/chat"),
-        ollama_model=os.getenv("LLMGUARD_OLLAMA_MODEL", "vicuna"),
+        ollama_model=os.getenv("LLMGUARD_OLLAMA_MODEL", "qwen3:1.7b"),
         retrieval_min_score=float(os.getenv("LLMGUARD_RETRIEVAL_MIN_SCORE", "0.05")),
         retrieval_top_k=int(os.getenv("LLMGUARD_RETRIEVAL_TOP_K", "4")),
         retrieval_chunk_size=int(os.getenv("LLMGUARD_RETRIEVAL_CHUNK_SIZE", "320")),
@@ -154,6 +157,9 @@ def get_settings() -> Settings:
         malicious_risk_threshold=float(os.getenv("LLMGUARD_MALICIOUS_RISK_THRESHOLD", "0.72")),
         quarantine_risk_threshold=float(os.getenv("LLMGUARD_QUARANTINE_RISK_THRESHOLD", "0.82")),
         block_risk_threshold=float(os.getenv("LLMGUARD_BLOCK_RISK_THRESHOLD", "0.92")),
+        firewall_active=_bool_from_env("FIREWALL_ACTIVE", True),
+        redteam_mode=_bool_from_env("REDTEAM_MODE", False),
+        app_env=os.getenv("APP_ENV", "local").strip().lower(),
     )
 
 

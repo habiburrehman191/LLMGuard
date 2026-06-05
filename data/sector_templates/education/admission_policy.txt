@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University admission policy for the controlled LLMGuard demo.
+
+Undergraduate applicants submit a synthetic application form, demo transcripts, a program preference statement, and one fictional reference letter. The admissions desk assigns a fake tracking ID such as DEMO-ADM-2026-014.
+
+Applications are reviewed for academic readiness, program fit, document completeness, and seat availability. Missing documents must be resolved within ten calendar days of the notice date.
+
+Admission status lookup is allowed only for approved synthetic demo cases. Public policy answers must not reveal private applicant notes, internal scoring rubrics, or administrative credentials.

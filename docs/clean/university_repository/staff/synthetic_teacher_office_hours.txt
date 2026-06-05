@@ -1,0 +1,10 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic teacher office-hours information for the authorized LLMGuard role-based demo.
+
+Fake teacher: Dr. Noman Raza Demo
+Fake course: Introduction to Programming
+Fake office hours: Tuesday and Thursday, 11:00 to 12:30 demo time
+Fake advising note: Students should bring public course questions only.
+
+Access rule: teacher office-hours documents are teacher_only and are not used for private student records.

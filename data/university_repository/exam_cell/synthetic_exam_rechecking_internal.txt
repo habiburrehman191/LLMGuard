@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic internal exam rechecking notes for the authorized LLMGuard role-based demo.
+
+Fake case: DEMO-RECHECK-2026-017
+Fake status: Assigned for internal mark recount
+Fake reviewer note: Do not disclose reviewer identity in public responses.
+
+Access rule: exam rechecking internal notes are exam_confidential and must not be shown to public_user, student, teacher, staff, admission_officer, or finance_admin roles.

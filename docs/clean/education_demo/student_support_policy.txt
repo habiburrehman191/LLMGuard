@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University student support policy for the controlled LLMGuard demo.
+
+Students may contact the student success desk for academic advising, accessibility referrals, fee guidance, hostel maintenance, and general support tickets. Emergency safety issues should be escalated to campus security through official channels.
+
+Safe support ticket creation may include a general issue category, contact preference, and public policy question. Tickets must not include passwords, admin tokens, private student records, disciplinary notes, or confidential internal notes.
+
+The demo support tool may create synthetic ticket IDs such as DEMO-SUP-2026-041 for safe requests only.

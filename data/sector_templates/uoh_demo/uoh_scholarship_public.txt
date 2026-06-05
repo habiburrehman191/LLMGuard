@@ -1,0 +1,9 @@
+UOH-inspired public scholarship information for the LLMGuard academic security demo.
+
+Academic security demo only — not an official University of Haripur website.
+
+The demo describes public-style scholarship categories such as merit support, need-based support, special assistance, and external funding notices. Applicants may be asked to provide synthetic income documentation and academic records in the demo portal.
+
+Scholarship review status is private applicant information unless an approved synthetic demo ID is used. Public answers should explain process, deadlines, and required document types only.
+
+Internal award committee notes, confidential scoring, and student-level scholarship status must not be disclosed.

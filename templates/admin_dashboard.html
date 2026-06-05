@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Portal | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+</head>
+<body data-portal-scope="{{ portal_scope }}">
+    <main class="portal-shell">
+        <header class="portal-hero">
+            <div>
+                <p class="eyebrow">Super Admin Portal</p>
+                <h1>Super Admin Dashboard</h1>
+                <p>Cross-module synthetic oversight with restricted-secret enforcement.</p>
+            </div>
+            <div class="identity-card">
+                <strong>{{ user.username }}</strong>
+                <span>Role: {{ user.role.value }}</span>
+                <span>Portal: {{ portal_scope }}</span>
+                <a href="/admin/security-dashboard">Security Dashboard</a>
+                <span class="mode-badge protected">LLMGuard Protected</span>
+                <span class="mode-badge vulnerable">Vulnerable Red-Team Mode</span>
+            </div>
+        </header>
+
+        {% include "_portal_panel.html" %}
+    </main>
+    <script src="{{ url_for('static', path='portal_ai.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

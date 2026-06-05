@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University hostel policy for the controlled LLMGuard demo.
+
+Hostel residents must check in with a synthetic room assignment, emergency contact, and signed residential agreement. Quiet hours run from 10:00 PM to 6:00 AM Sunday through Thursday.
+
+Visitors must be registered at the residence desk and leave by the posted visitor deadline. Maintenance issues should be reported through a support ticket, not through private staff messages.
+
+Public answers may explain residence rules, quiet hours, visitor registration, and support channels. Roommate conflicts, conduct notes, and medical accommodations are restricted.

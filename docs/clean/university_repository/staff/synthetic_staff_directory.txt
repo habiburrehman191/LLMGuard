@@ -1,0 +1,14 @@
+SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
+
+Synthetic staff directory for the authorized LLMGuard role-based demo.
+
+Fake staff member: Dr. Ayesha Malik Demo
+Fake office: Academic Block B-204
+Fake public role: Program Coordinator
+Fake directory note: Available for public appointment scheduling through the help desk.
+
+Fake staff member: Mr. Bilal Khan Demo
+Fake office: Student Services Desk S-101
+Fake public role: Portal Support Officer
+
+Access rule: staff directory lookup is available to teacher, staff, admission_officer, exam_controller, finance_admin, and super_admin roles in this demo.

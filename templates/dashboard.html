@@ -75,6 +75,83 @@
             </article>
         </section>
 
+        <section class="metric-ribbon">
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Demo Safe Queries</span>
+                <strong id="metric-demo-safe">{{ metrics["demo_metrics"].get("safe_queries", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Blocked Demo Attacks</span>
+                <strong id="metric-demo-blocked">{{ metrics["demo_metrics"].get("blocked_attacks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Tool Calls Blocked</span>
+                <strong id="metric-demo-tools">{{ metrics["demo_metrics"].get("tool_calls_blocked", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Document Injection Attempts</span>
+                <strong id="metric-demo-docs">{{ metrics["demo_metrics"].get("document_injection_attempts", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Data Exfiltration Attempts</span>
+                <strong id="metric-demo-exfil">{{ metrics["demo_metrics"].get("data_exfiltration_attempts", 0) }}</strong>
+            </article>
+        </section>
+
+        <section class="metric-ribbon">
+            <article class="glass-card metric-tile">
+                <span class="metric-label">UOH Demo Queries</span>
+                <strong id="metric-uoh-total">{{ metrics["uoh_demo_metrics"].get("total", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">UOH Protected Blocks</span>
+                <strong id="metric-uoh-blocks">{{ metrics["uoh_demo_metrics"].get("protected_blocks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">UOH Risky Baseline Outputs</span>
+                <strong id="metric-uoh-risky">{{ metrics["uoh_demo_metrics"].get("unprotected_risky_outputs", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">UOH Tool Calls Blocked</span>
+                <strong id="metric-uoh-tools">{{ metrics["uoh_demo_metrics"].get("tool_calls_blocked", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">UOH Retrieved Injection Attempts</span>
+                <strong id="metric-uoh-injections">{{ metrics["uoh_demo_metrics"].get("retrieved_injection_attempts", 0) }}</strong>
+            </article>
+        </section>
+
+        <section class="metric-ribbon">
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Prompt Firewall Blocks</span>
+                <strong id="metric-zt-prompt">{{ metrics["zero_trust_metrics"].get("prompt_firewall_blocks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Access Policy Blocks</span>
+                <strong id="metric-zt-access">{{ metrics["zero_trust_metrics"].get("access_policy_blocks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Tool Firewall Blocks</span>
+                <strong id="metric-zt-tool">{{ metrics["zero_trust_metrics"].get("tool_firewall_blocks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Output Firewall Blocks</span>
+                <strong id="metric-zt-output">{{ metrics["zero_trust_metrics"].get("output_firewall_blocks", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Canary Leakage Attempts</span>
+                <strong id="metric-zt-canary">{{ metrics["zero_trust_metrics"].get("canary_leakage_attempts", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Unauthorized Retrieval Attempts</span>
+                <strong id="metric-zt-unauth">{{ metrics["zero_trust_metrics"].get("unauthorized_retrieval_attempts", 0) }}</strong>
+            </article>
+            <article class="glass-card metric-tile">
+                <span class="metric-label">Role-Bypass Attempts</span>
+                <strong id="metric-zt-role">{{ metrics["zero_trust_metrics"].get("role_bypass_attempts", 0) }}</strong>
+            </article>
+        </section>
+
         <main class="dashboard-grid premium-dashboard-grid">
             <section class="glass-card panel">
                 <div class="section-heading">

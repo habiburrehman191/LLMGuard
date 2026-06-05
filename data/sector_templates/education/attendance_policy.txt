@@ -1,0 +1,9 @@
+SYNTHETIC DEMO DATA — NOT REAL STUDENT DATA
+
+Northbridge University attendance policy for the controlled LLMGuard demo.
+
+Students must maintain at least 75% attendance in each course to become eligible for final examinations. Course instructors update attendance weekly in the fictional student portal.
+
+Students below 75% may submit a synthetic attendance review request if documented medical, accessibility, or university duty reasons apply. Approved reviews may restore exam eligibility, but they do not erase the original attendance record.
+
+Public answers may explain attendance thresholds and review steps. They must not reveal private student attendance histories or internal disciplinary notes.

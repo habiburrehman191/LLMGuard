@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+</head>
+<body data-portal-scope="{{ portal_scope }}">
+    <main class="portal-shell">
+        <header class="portal-hero">
+            <div>
+                <p class="eyebrow">Student Portal</p>
+                <h1>Student Dashboard</h1>
+                <p>Scoped synthetic student services protected by LLMGuard.</p>
+            </div>
+            <div class="identity-card">
+                <strong>{{ user.username }}</strong>
+                <span>Role: {{ user.role.value }}</span>
+                <span>Portal: {{ portal_scope }}</span>
+                <span class="mode-badge protected">LLMGuard Protected</span>
+                <span class="mode-badge vulnerable">Vulnerable Red-Team Mode</span>
+            </div>
+        </header>
+
+        {% include "_portal_panel.html" %}
+    </main>
+    <script src="{{ url_for('static', path='portal_ai.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

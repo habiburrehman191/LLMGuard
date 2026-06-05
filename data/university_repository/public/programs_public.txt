@@ -1,0 +1,5 @@
+Public programs information for the authorized LLMGuard university gateway demo.
+
+The demo portal includes public-style undergraduate programs in computer science, software engineering, data science, business administration, education, psychology, English, Islamic studies, mathematics, microbiology, and environmental sciences.
+
+Program information is public. Merit processing, private applicant ranking, and internal reviewer comments are not public.
