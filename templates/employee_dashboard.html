@@ -4,27 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Portal | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
 </head>
-<body data-portal-scope="{{ portal_scope }}">
-    <main class="portal-shell">
-        <header class="portal-hero">
+<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
+    {% include "components/product_nav.html" %}
+    <main class="portal-page">
+      <div class="portal-shell">
+        {% include "components/portal_sidebar.html" %}
+        <div class="portal-main">
+        <header class="portal-header">
             <div>
-                <p class="eyebrow">Employee Portal</p>
-                <h1>Employee Dashboard</h1>
-                <p>Scoped synthetic employee services protected by LLMGuard.</p>
+                <span class="am-section-label">[01] EMPLOYEE MODULE</span>
+                <h1 class="am-gradient-title">Employee Portal AI Workspace</h1>
+                <p>Access synthetic employee services while student, finance, and administrator boundaries remain isolated.</p>
             </div>
-            <div class="identity-card">
-                <strong>{{ user.username }}</strong>
-                <span>Role: {{ user.role.value }}</span>
-                <span>Portal: {{ portal_scope }}</span>
-                <span class="mode-badge protected">LLMGuard Protected</span>
-                <span class="mode-badge vulnerable">Vulnerable Red-Team Mode</span>
-            </div>
+            <section class="identity-panel">
+                <span class="identity-avatar">E1</span>
+                <div><strong>{{ user.username }}</strong><small>{{ user.synthetic_ref }}</small></div>
+                {% include "components/security_badges.html" %}
+            </section>
         </header>
 
-        {% include "_portal_panel.html" %}
+        <section id="overview" class="boundary-grid">
+            <article class="boundary-card allowed"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg><span class="am-section-label">ALLOWED DATA</span><h2>Employee boundary</h2><ul>{% for item in allowed_data %}<li>{{ item }}</li>{% endfor %}</ul></article>
+            <article class="boundary-card blocked"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg><span class="am-section-label">DENIED BY DEFAULT</span><h2>Outside your scope</h2><ul>{% for item in blocked_data %}<li>{{ item }}</li>{% endfor %}</ul></article>
+            <article class="boundary-card explanation"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#rag"></use></svg><span class="am-section-label">ACCESS CONTROL</span><h2>How isolation works</h2><p>Employee identity, ownership, document scope, classification, and tool permissions are checked before model execution.</p></article>
+        </section>
+
+        <div class="portal-workspace-grid">
+            {% include "components/ai_assistant.html" %}
+            <aside class="workspace-sidebar">
+                <section id="records" class="workspace-card am-glass-card">
+                    <div class="section-heading"><div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#database"></use></svg><span class="am-section-label">EMPLOYEE RECORDS</span><h2>Available to you</h2></div><span class="count-badge">{{ records|length }}</span></div>
+                    <div class="record-list">
+                        {% for record in records %}<article><strong>{{ record.title }}</strong><span>{{ record.classification.value }}</span><p>{{ record.content }}</p></article>
+                        {% else %}<p class="empty-message">No employee records are seeded yet.</p>{% endfor %}
+                    </div>
+                </section>
+                <section id="uploads" class="workspace-card upload-card am-glass-card">
+                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span class="am-section-label">CONTROLLED INGESTION</span><h2>Upload employee document</h2>
+                    <div class="drop-zone" data-drop-zone><label class="field-label" for="upload-file">Choose or drop a TXT, PDF, or DOCX</label><input id="upload-file" type="file" accept=".txt,.pdf,.docx"></div>
+                    <label class="field-label" for="upload-title">Document title</label><input id="upload-title" type="text" placeholder="Synthetic employee document">
+                    <button id="portal-upload" class="secondary-button" type="button">Upload and process</button><div class="upload-progress" data-upload-progress><span class="upload-spinner"></span><span>Scanning and chunking synthetic document...</span></div><p class="form-message" id="upload-result"></p>
+                </section>
+            </aside>
+        </div>
+
+        <section id="activity" class="workspace-card interaction-section am-glass-card">
+            <div class="section-heading"><div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span class="am-section-label">RECENT ACTIVITY</span><h2>Employee AI interactions</h2></div></div>
+            <div class="interaction-list">
+                {% for item in recent_interactions %}<article><span class="status-badge action-{{ item.action.value }}">{{ item.action.value }}</span><div><strong>{{ item.prompt }}</strong><small>{{ item.created_at.strftime("%Y-%m-%d %H:%M") }} · Qwen called: {{ "yes" if item.qwen_called else "no" }}</small></div><b>{{ "%.0f"|format(item.risk_score * 100) }}%</b></article>
+                {% else %}<p class="empty-message">No interactions recorded for this employee yet.</p>{% endfor %}
+            </div>
+        </section>
+        </div>
+      </div>
     </main>
-    <script src="{{ url_for('static', path='portal_ai.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='portal.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>

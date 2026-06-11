@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 from pathlib import Path
 
 from fastapi import HTTPException, status
@@ -8,6 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.models import (
     AIInteraction,
     DataClassification,
@@ -26,7 +29,7 @@ from app.rbac import can_access_classification, can_access_portal, enforce_porta
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-ASSET_VERSION = "4"
+ASSET_VERSION = "15"
 FIREWALL_ACTIVE = True
 
 
@@ -39,7 +42,8 @@ class PortalAskRequest(BaseModel):
 class PortalDocumentUploadRequest(BaseModel):
     title: str
     filename: str
-    content: str
+    content: str = ""
+    content_base64: str | None = None
     classification: DataClassification | None = None
 
 
@@ -76,13 +80,38 @@ def accessible_records(db: Session, user: User, scope: PortalScope | None = None
     return records
 
 
-def render_context(user: User, portal_scope: PortalScope, records: list[PortalRecord]) -> dict[str, object]:
+def render_context(
+    user: User,
+    portal_scope: PortalScope,
+    records: list[PortalRecord],
+    *,
+    recent_interactions: list[AIInteraction] | None = None,
+) -> dict[str, object]:
+    settings = get_settings()
+    boundaries = {
+        PortalScope.student: {
+            "allowed": ["Own synthetic student records", "Student portal documents", "Public university policies"],
+            "blocked": ["Employee records", "Admin data", "Finance and contracts", "restricted_secret"],
+        },
+        PortalScope.employee: {
+            "allowed": ["Own synthetic employee records", "Staff documents", "Public university policies"],
+            "blocked": ["Student records", "Admin data", "Finance and contracts", "restricted_secret"],
+        },
+        PortalScope.admin: {
+            "allowed": ["Synthetic student records", "Synthetic employee records", "Admin, finance, exam, and contract data"],
+            "blocked": ["restricted_secret is never sent to Qwen"],
+        },
+    }[portal_scope]
     return {
         "asset_version": ASSET_VERSION,
-        "firewall_active": FIREWALL_ACTIVE,
+        "firewall_active": settings.firewall_active,
+        "redteam_enabled": settings.redteam_mode or settings.app_env == "local_redteam",
         "user": user,
         "portal_scope": portal_scope.value,
         "records": records,
+        "recent_interactions": recent_interactions or [],
+        "allowed_data": boundaries["allowed"],
+        "blocked_data": boundaries["blocked"],
     }
 
 
@@ -180,10 +209,18 @@ def create_document_record(
             detail=explain_denial(user, portal_scope, classification),
         )
 
+    if request.content_base64:
+        try:
+            upload_content = base64.b64decode(request.content_base64, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise HTTPException(status_code=400, detail="Invalid base64 upload payload.") from exc
+    else:
+        upload_content = request.content.encode("utf-8")
+
     document = ingest_uploaded_file(
         InMemoryUpload(
             filename=request.filename,
-            content=request.content.encode("utf-8"),
+            content=upload_content,
         ),
         user,
         portal_scope,

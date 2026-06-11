@@ -1,0 +1,17 @@
+<aside class="portal-sidebar am-glass-card" aria-label="Portal navigation">
+    <div>
+        <span class="am-section-label">[NAV] PORTAL</span>
+        <nav>
+            <a class="active" href="#overview">Overview</a>
+            <a href="#assistant">AI Assistant</a>
+            <a href="#records">Authorized Records</a>
+            <a href="#uploads">Document Upload</a>
+            <a href="#activity">Recent Activity</a>
+        </nav>
+    </div>
+    <div class="boundary-lock">
+        <svg class="am-inline-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg>
+        <strong>Scope locked</strong>
+        <small>{{ user.role.value }} identity is constrained to {{ portal_scope }} resources and authorized public data.</small>
+    </div>
+</aside>

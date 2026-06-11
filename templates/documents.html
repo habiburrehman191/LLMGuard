@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Manager | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+</head>
+<body class="product-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
+    {% include "components/product_nav.html" %}
+    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
+        <header class="page-header"><div><span class="am-section-label">[03] DOCUMENT SECURITY</span><h1 class="am-gradient-title">Controlled Document Manager</h1><p>Manage synthetic university documents, classifications, portal scopes, chunks, and the FAISS index.</p></div>{% include "components/security_badges.html" %}</header>
+        <section class="document-layout">
+            <article class="workspace-card upload-manager">
+                <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span class="am-section-label">INGEST DOCUMENT</span><h2>Upload TXT, PDF, or DOCX</h2>
+                <div class="file-type-row"><span>TXT</span><span>PDF</span><span>DOCX</span></div>
+                <div class="drop-zone" data-drop-zone><label class="field-label" for="manager-file">Choose or drop a controlled file</label><input id="manager-file" type="file" accept=".txt,.pdf,.docx"></div>
+                <label class="field-label" for="manager-title">Document title</label><input id="manager-title" type="text" placeholder="Synthetic university document">
+                <div class="form-grid two-column">
+                    <label>Portal scope<select id="manager-scope"><option>student</option><option>employee</option><option>admin</option></select></label>
+                    <label>Classification<select id="manager-classification"><option>public</option><option>student_private</option><option>employee_private</option><option>admin_internal</option><option>finance_confidential</option><option>exam_confidential</option><option>restricted_secret</option></select></label>
+                </div>
+                <p class="inline-note">Private files must begin with the synthetic-data marker. restricted_secret uploads are rejected by policy.</p>
+                <button id="manager-upload" class="primary-button" type="button">Upload and process</button>
+                <div class="upload-progress" data-upload-progress><span class="upload-spinner"></span><span>Scanning document and enforcing metadata policy...</span></div>
+                <p class="form-message" id="manager-message"></p>
+            </article>
+            <article class="workspace-card index-card">
+                <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#database"></use></svg><span class="am-section-label">VECTOR STORE</span><h2>FAISS index</h2><p>Rebuild from authorized <code>document_chunks</code> metadata after repository changes.</p>
+                <button id="rebuild-index" class="secondary-button" type="button">Rebuild index</button><p class="form-message" id="index-message"></p>
+            </article>
+        </section>
+        <section class="workspace-card">
+            <div class="section-heading"><div><span class="section-kicker">Repository inventory</span><h2>Documents</h2></div><span class="count-badge">{{ documents|length }}</span></div>
+            <div class="responsive-table">
+                <table><thead><tr><th>Document</th><th>Scope</th><th>Classification</th><th>Chunks</th><th>Allowed roles</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td><strong>{{ document.title }}</strong><small>{{ document.source_filename or document.document_id }}</small></td>
+                        <td><span class="status-badge scope-badge">{{ document.portal_scope.value if document.portal_scope else "global" }}</span></td>
+                        <td><span class="status-badge classification-{{ document.classification.value }}">{{ document.classification.value }}</span></td>
+                        <td>{{ document.chunks|length }}</td>
+                        <td><div class="role-list">{% for role in document.allowed_roles %}<span>{{ role }}</span>{% endfor %}</div></td>
+                        {% set document_status = "restricted" if document.classification.value == "restricted_secret" else "quarantined" if document.is_quarantined else "poisoned" if document.metadata_json.get("is_poisoned") else "clean" %}
+                        <td><span class="status-badge document-status-{{ document_status }}">{{ document_status }}</span></td>
+                        <td><button class="table-action danger-action" type="button" data-delete-document="{{ document.document_id }}" {% if document.classification.value == "restricted_secret" %}disabled{% endif %}>Delete</button></td>
+                    </tr>
+                    {% else %}<tr><td colspan="7" class="empty-message">No controlled documents have been ingested.</td></tr>{% endfor %}
+                </tbody></table>
+            </div>
+        </section>
+    </div></div></main>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='portal.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

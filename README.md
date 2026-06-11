@@ -352,3 +352,196 @@ Run the live gateway tests:
 ```powershell
 .\.venv\Scripts\python.exe -m unittest tests.test_ai_gateway -v
 ```
+
+## Phase 9 Enterprise Product Shell
+
+The FastAPI template UI now presents LLMGuard as a role-isolated university AI
+security testbed instead of a single chatbot console.
+
+Product routes:
+
+```text
+GET /                         Product landing page
+GET /login                    Local testbed sign-in
+GET /student/dashboard        Student workspace
+GET /employee/dashboard       Employee workspace
+GET /admin/dashboard          Super admin control plane
+GET /admin/compare            Protected vs vulnerable comparison
+GET /admin/documents          Controlled RAG document manager
+GET /admin/security-dashboard Security operations dashboard
+GET /admin/redteam            Red-team case workspace
+GET /admin/audit              Investigation and audit views
+```
+
+The browser login uses the same local seed accounts and RBAC rules as bearer
+authentication:
+
+```text
+student1  / Student@123
+employee1 / Employee@123
+admin1    / Admin@123
+```
+
+Each portal includes the live AI Gateway response metadata: action, label, risk
+score, threat source, blocked stage, Qwen call status, sources, tool decisions,
+output firewall action, sanitization state, and human-readable reasons.
+
+### Portal Workflow
+
+1. Open `/login` and select a synthetic seed identity.
+2. Use the role-specific dashboard to inspect allowed and blocked data boundaries.
+3. Ask a safe question or a controlled attack prompt through the shared assistant.
+4. Upload a synthetic TXT, PDF, or DOCX through the portal-scoped upload panel.
+5. Review recent role-scoped interactions without crossing portal boundaries.
+
+### Protected vs Vulnerable Comparison
+
+Sign in as `admin1` and open `/admin/compare`. The comparison sends the same
+synthetic prompt through vulnerable and protected gateway modes and displays both
+answers, actions, blocked stages, risk scores, model-call status, sources, tool
+decisions, and the final verdict.
+
+Vulnerable execution remains unavailable unless one of these local red-team
+controls is enabled:
+
+```powershell
+$env:REDTEAM_MODE="true"
+# or
+$env:APP_ENV="local_redteam"
+```
+
+When neither control is enabled, the vulnerable panel shows the gateway's real
+rejection response. Protected mode remains active and blocked or quarantined
+requests do not call Qwen.
+
+### Document And Security Operations
+
+The document manager accepts controlled synthetic TXT, PDF, and DOCX uploads,
+portal scope and classification selection, FAISS rebuilds, chunk counts, role
+metadata, quarantine state, and database-backed document deletion.
+`restricted_secret` content remains excluded from Qwen and cannot be managed as
+ordinary AI context.
+
+The security dashboard provides summarized enforcement KPIs, filters, recent
+critical events, and expandable event details. The audit page separates AI
+interactions, firewall events, tool calls, and repository changes into focused
+investigation tabs. All `/admin/*` product and telemetry routes require the
+`super_admin` identity.
+
+### Red-Team Lab
+
+`/admin/redteam` displays persisted structured cases and expected outcomes. If a
+reusable backend runner is not installed, run controls return an explicit
+unavailable response and the UI does not fabricate completed results. The export
+endpoint still provides the stored case manifest.
+
+Run the Phase 9 route and product-shell tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_frontend tests.test_portals tests.test_product_frontend -v
+```
+
+## Phase 10 Ultra Futuristic AI Firewall Interface
+
+The product shell now uses a responsive futuristic AI cybersecurity design
+system across the landing page, secure login, role portals, comparison lab,
+document manager, security dashboard, red-team lab, and audit views.
+
+The landing page is built from original HTML, CSS, and SVG layers. It uses the
+provided visual reference only as a style target and does not copy external
+text, logos, screenshots, CSS, images, or third-party assets.
+
+Interface behavior includes:
+
+- A cinematic curved-monitor hero with a floating glass navigation bar.
+- Main hero copy: `LLMGUARD: THE NEXT GENERATION AI FIREWALL`.
+- Code-native holographic shield, AI brain network, radar rings, binary
+  telemetry, red attack streams, cyan deflection particles, and packet-flow
+  animations.
+- Glowing "How It Works" cards for Hybrid Firewall, Data Isolation, and
+  Document Scanning connected by an electric arc.
+- Animated security grid, node patterns, scan lines, and premium glass
+  surfaces on every product route.
+- Readable 17px base typography, larger dashboard metrics, and high-contrast
+  action, severity, role, scope, and classification badges.
+- Reduced-motion support through `prefers-reduced-motion`.
+- Student and employee navigation sidebars with animated portal boundary locks.
+- AI Gateway progress states for authorized retrieval, security scanning, and
+  protected generation.
+- Animated allow, block, quarantine, and sanitize decision states.
+- Structured source evidence, human-readable reasons, and tool authorization
+  cards.
+- Protected and vulnerable comparison panels with a final verdict banner.
+- Drag-and-drop styled document upload, scanning progress, FAISS rebuild, and
+  clean, poisoned, quarantined, or restricted repository states.
+- A six-stage Prompt, RBAC, RAG, Context, Tool, and Output pipeline view.
+- Red-team pending states that never fabricate results when no runner exists.
+- Audit timelines plus focused firewall, tool-call, and repository tabs.
+
+The primary workflow remains:
+
+1. Sign in through `/login` using a synthetic seed identity.
+2. Work inside the identity's Student, Employee, or Super Admin portal.
+3. Inspect complete AI Gateway security metadata after each request.
+4. Use `/admin/compare` for controlled protected/vulnerable analysis.
+5. Govern synthetic RAG content through `/admin/documents`.
+6. Investigate enforcement through `/admin/security-dashboard` and
+   `/admin/audit`.
+7. Review stored adversarial cases through `/admin/redteam`.
+
+Run all frontend route, static asset, RBAC, empty-state, gateway, and security
+regression tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+### Ultra Visual Theme Notes
+
+The Phase 10 Ultra interface uses an original futuristic AI security design.
+The supplied image is treated as a visual target for mood, hierarchy, and
+cybersecurity language only. The implementation remains original and
+code-native.
+
+The LLMGuard theme includes:
+
+- Background `#020611`, deep navy panels, cyan borders, attack-red streams,
+  amber-gold highlights, and secure green enforcement states.
+- Original line icons for shield, AI brain/chip, firewall, portals, documents,
+  PDF/DOC, vector database, vault/lock, warning, tools, red-team, audit, RAG,
+  radar, neural network, and output controls.
+- Numbered landing sections for Overview, Access Portals, Core Protection, AI
+  Firewall Pipeline, SOC Operations, and Process.
+- A six-stage Prompt Intake, RBAC Boundary, RAG Isolation, Context Firewall,
+  Tool Authorization, and Output DLP pipeline.
+- Animated title reveal, shield pulse, brain-node pulse, radar sweep, binary
+  snippets, packet flow, document scan, protected/block/quarantine/sanitize
+  states, and reduced-motion support.
+- Shared top status bar, breadcrumbs, role and portal badges, and left command
+  navigation on authenticated dashboards.
+- A secure-access terminal login workflow for Student, Employee, and Super
+  Admin seed identities.
+- A six-stage AI Assistant status path with copy, clear, sources, reasons,
+  security metadata, and tool authorization decisions.
+
+`/app` now redirects to `/login`, preventing the retired console interface from
+appearing as a primary product surface.
+
+### Premium UI Design Pass
+
+The shared product shell was refined with the local UI/UX Pro Max design system
+and interaction ideas adapted from 21st.dev Magic. The implementation remains
+original FastAPI templates, CSS, and JavaScript with no copied external assets.
+
+This pass adds an accessible responsive navigation menu, 17px base typography,
+hero gateway telemetry, live risk visualization, and narrated AI Gateway stages
+for prompt inspection, RBAC, RAG filtering, context scanning, tool
+authorization, and output inspection. Final assistant states visibly distinguish
+allowed, sanitized, blocked, and quarantined outcomes.
+
+Frontend motion remains CSS/JavaScript-only and respects
+`prefers-reduced-motion`. Verify the product shell and portal workflows with:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_product_frontend tests.test_frontend tests.test_portals -v
+```

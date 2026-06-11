@@ -14,7 +14,7 @@ def load_data():
 
 st.set_page_config(page_title="LLMGuard Dashboard", layout="wide")
 
-st.title("🛡️ LLMGuard Security Dashboard")
+st.title("LLMGuard Security Dashboard")
 
 df = load_data()
 

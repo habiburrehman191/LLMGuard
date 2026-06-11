@@ -7,7 +7,9 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.auth import seed_development_users
 from app.config import reset_settings_cache
+from app.database import SessionLocal, init_database
 from app.db import init_db, insert_log
 
 
@@ -62,6 +64,14 @@ class FrontendRouteTests(unittest.TestCase):
         from app.main import app
 
         self.client = TestClient(app)
+        init_database()
+        with SessionLocal() as db:
+            seed_development_users(db)
+        login = self.client.post(
+            "/auth/login",
+            json={"username": "admin1", "password": "Admin@123"},
+        )
+        self.assertEqual(200, login.status_code)
         self.addCleanup(self._restore_env)
 
     def _restore_env(self) -> None:
@@ -72,23 +82,23 @@ class FrontendRouteTests(unittest.TestCase):
         reset_settings_cache()
 
     def test_user_console_page_renders(self) -> None:
+        response = self.client.get("/app", follow_redirects=False)
+        self.assertEqual(307, response.status_code)
+        self.assertEqual("/login", response.headers["location"])
         response = self.client.get("/app")
         self.assertEqual(200, response.status_code)
-        self.assertIn("LLMGuard Console", response.text)
-        self.assertIn("Secure answers with live retrieval.", response.text)
-        self.assertIn("Ask LLMGuard", response.text)
-        self.assertIn("/static/styles.css?v=4", response.text)
-        self.assertIn("/static/app.js?v=4", response.text)
+        self.assertIn("Enter the LLMGuard security testbed", response.text)
+        self.assertIn("/static/product.css?v=15", response.text)
 
     def test_dashboard_page_renders_live_log_data(self) -> None:
         response = self.client.get("/admin/security-dashboard")
         self.assertEqual(200, response.status_code)
-        self.assertIn("LLMGuard Dashboard", response.text)
-        self.assertIn("Risk, retrieval, and enforcement overview.", response.text)
+        self.assertIn("AI Firewall Security Dashboard", response.text)
+        self.assertIn("Monitor enforcement outcomes", response.text)
         self.assertIn("What is the reimbursement deadline?", response.text)
         self.assertIn("docs/clean/reimbursement_policy.txt", response.text)
-        self.assertIn("/static/dashboard.js?v=4", response.text)
-        self.assertIn("Last updated", response.text)
+        self.assertIn("/static/security_dashboard.js?v=15", response.text)
+        self.assertIn("Telemetry live", response.text)
 
     def test_dashboard_data_endpoint_returns_metrics(self) -> None:
         response = self.client.get("/admin/dashboard/data")

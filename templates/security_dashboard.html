@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='security_dashboard.css') }}?v={{ asset_version }}">
+</head>
+<body class="product-body security-body am-tech-shell llmg-shell llmg-cyber-bg">
+    {% include "components/product_nav.html" %}
+    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
+        <header class="page-header security-header">
+            <div><span class="am-section-label">[04] SECURITY OPERATIONS</span><h1 class="am-gradient-title">AI Firewall Security Dashboard</h1><p>Monitor enforcement outcomes, critical events, retrieval violations, and output leakage controls.</p></div>
+            <div class="live-status"><span class="status-dot"></span><div><strong>Telemetry live</strong><small>Session {{ session_started_at }}</small></div></div>
+        </header>
+
+        <section class="security-kpi-grid">
+            <article><span>Total queries</span><strong>{{ metrics.total_queries }}</strong><small>All gateway requests</small></article>
+            <article><span>Allowed</span><strong>{{ metrics.action_counts.get("allow", 0) }}</strong><small>Released responses</small></article>
+            <article><span>Blocked</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong><small>Stopped before release</small></article>
+            <article><span>Quarantined</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong><small>Held for investigation</small></article>
+            <article><span>Sanitized</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong><small>Unsafe content removed</small></article>
+            <article><span>Prompt firewall</span><strong>{{ metrics.zero_trust_metrics.prompt_firewall_blocks }}</strong><small>Prompt-stage blocks</small></article>
+            <article><span>Access policy</span><strong>{{ metrics.zero_trust_metrics.access_policy_blocks }}</strong><small>Role/classification blocks</small></article>
+            <article><span>DLP blocks</span><strong>{{ stage_counts.dlp_blocks }}</strong><small>Sensitive-data controls</small></article>
+            <article><span>Tool firewall</span><strong>{{ metrics.zero_trust_metrics.tool_firewall_blocks }}</strong><small>Unauthorized tools</small></article>
+            <article><span>Output firewall</span><strong>{{ metrics.zero_trust_metrics.output_firewall_blocks }}</strong><small>Unsafe model outputs</small></article>
+            <article><span>Canary attempts</span><strong>{{ metrics.zero_trust_metrics.canary_leakage_attempts }}</strong><small>Leakage traps detected</small></article>
+            <article><span>Unauthorized retrieval</span><strong>{{ metrics.zero_trust_metrics.unauthorized_retrieval_attempts }}</strong><small>Filtered RAG candidates</small></article>
+        </section>
+
+        <section class="pipeline-visual" aria-label="LLMGuard security pipeline">
+            <article class="pipeline-stage"><b>01</b><strong>Prompt</strong><small>Injection and intent</small></article>
+            <article class="pipeline-stage"><b>02</b><strong>RBAC</strong><small>Role and ownership</small></article>
+            <article class="pipeline-stage"><b>03</b><strong>RAG</strong><small>Metadata isolation</small></article>
+            <article class="pipeline-stage"><b>04</b><strong>Context</strong><small>Poisoning scan</small></article>
+            <article class="pipeline-stage"><b>05</b><strong>Tool</strong><small>Call authorization</small></article>
+            <article class="pipeline-stage"><b>06</b><strong>Output</strong><small>DLP and canaries</small></article>
+        </section>
+
+        <section class="soc-analysis-grid">
+            <article class="workspace-card am-glass-card">
+                <div class="section-heading"><div><span class="am-section-label">RISK DISTRIBUTION</span><h2>Threat labels</h2></div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#warning"></use></svg></div>
+                <div class="soc-bar-list">
+                    {% set total = metrics.total_queries if metrics.total_queries else 1 %}
+                    <div><span>Safe</span><i><b style="width: {{ metrics.label_counts.get('safe', 0) / total * 100 }}%"></b></i><strong>{{ metrics.label_counts.get("safe", 0) }}</strong></div>
+                    <div><span>Suspicious</span><i><b class="bar-amber" style="width: {{ metrics.label_counts.get('suspicious', 0) / total * 100 }}%"></b></i><strong>{{ metrics.label_counts.get("suspicious", 0) }}</strong></div>
+                    <div><span>Malicious</span><i><b class="bar-red" style="width: {{ metrics.label_counts.get('malicious', 0) / total * 100 }}%"></b></i><strong>{{ metrics.label_counts.get("malicious", 0) }}</strong></div>
+                </div>
+            </article>
+            <article class="workspace-card am-glass-card">
+                <div class="section-heading"><div><span class="am-section-label">ACTION BREAKDOWN</span><h2>Gateway enforcement</h2></div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                <div class="soc-action-grid">
+                    <div><span class="status-badge action-allow">Allow</span><strong>{{ metrics.action_counts.get("allow", 0) }}</strong></div>
+                    <div><span class="status-badge action-sanitize">Sanitize</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong></div>
+                    <div><span class="status-badge action-quarantine">Quarantine</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong></div>
+                    <div><span class="status-badge action-block">Block</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="workspace-card event-workspace">
+            <div class="section-heading">
+                <div><span class="section-kicker">Investigation queue</span><h2>Security events</h2></div>
+                <span class="critical-count">{{ stage_counts.critical_events }} critical detector events</span>
+            </div>
+            <div class="filter-bar">
+                <label>Mode<select data-filter="mode"><option value="">All modes</option><option value="protected">Protected</option><option value="vulnerable">Vulnerable</option></select></label>
+                <label>Role<select data-filter="role"><option value="">All roles</option><option>public_user</option><option>student</option><option>staff</option><option>super_admin</option></select></label>
+                <label>Action<select data-filter="action"><option value="">All actions</option><option>allow</option><option>sanitize</option><option>quarantine</option><option>block</option></select></label>
+                <label>Stage<select data-filter="stage"><option value="">All stages</option><option>prompt</option><option>access_control</option><option>retrieved_context</option><option>tool_call</option><option>output_firewall</option></select></label>
+                <label>Severity<select data-filter="severity"><option value="">All severity</option><option value="critical">Critical</option><option value="high">High</option><option value="elevated">Elevated</option><option value="low">Low</option></select></label>
+            </div>
+            <div class="responsive-table security-table">
+                <table>
+                    <thead><tr><th>Time</th><th>Decision</th><th>Prompt</th><th>Stage</th><th>Risk</th><th>Qwen</th><th></th></tr></thead>
+                    <tbody id="security-event-rows">
+                    {% for event in recent_logs %}
+                    <tr data-event-row data-mode="{{ event.mode or 'protected' }}" data-role="{{ event.user_role or 'public_user' }}" data-action="{{ event.action }}" data-stage="{{ event.threat_source or 'none' }}" data-severity="{{ 'critical' if event.risk_score >= 0.92 else 'high' if event.risk_score >= 0.72 else 'elevated' if event.risk_score >= 0.38 else 'low' }}" data-event='{{ event|tojson }}'>
+                        <td>{{ event.created_at }}</td>
+                        <td><span class="status-badge action-{{ event.action }}">{{ event.action }}</span></td>
+                        <td><strong>{{ event.prompt }}</strong><small>{{ event.label }}</small></td>
+                        <td>{{ event.threat_source or "none" }}</td>
+                        <td><span class="risk-meter"><i style="width: {{ event.risk_score * 100 }}%"></i></span><b>{{ "%.0f"|format(event.risk_score * 100) }}%</b></td>
+                        <td>{{ "yes" if event.response else "no / unknown" }}</td>
+                        <td><button class="table-action" type="button" data-open-event>Investigate</button></td>
+                    </tr>
+                    {% else %}<tr><td colspan="7" class="empty-message">No security events have been recorded.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div></div></main>
+
+    <dialog id="event-detail-modal" class="event-modal">
+        <div class="modal-header"><div><span class="section-kicker">Security event detail</span><h2>Gateway investigation</h2></div><button type="button" data-close-event aria-label="Close">Close</button></div>
+        <div class="modal-grid">
+            <div><span>Prompt</span><strong data-detail="prompt"></strong></div>
+            <div><span>User role</span><strong data-detail="role"></strong></div>
+            <div><span>Portal scope</span><strong data-detail="scope"></strong></div>
+            <div><span>Final decision</span><strong data-detail="decision"></strong></div>
+            <div><span>Risk score</span><strong data-detail="risk"></strong></div>
+            <div><span>Blocked stage</span><strong data-detail="stage"></strong></div>
+            <div><span>Qwen called</span><strong data-detail="qwen"></strong></div>
+            <div><span>Output firewall</span><strong data-detail="output"></strong></div>
+        </div>
+        <section><h3>Human-readable explanation</h3><p data-detail="reason"></p></section>
+        <section><h3>Retrieved sources and detector signals</h3><pre class="technical-output" data-detail="technical"></pre></section>
+    </dialog>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='security_dashboard.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

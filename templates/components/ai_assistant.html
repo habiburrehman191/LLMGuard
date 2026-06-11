@@ -1,0 +1,84 @@
+<section id="assistant" class="workspace-card assistant-workspace am-glass-card am-glow-border llmg-glass-card llmg-glow-border llmg-corner-bracket" data-ai-assistant>
+    <div class="section-heading">
+        <div>
+            <span class="llmg-section-label">[AI] LIVE SECURITY GATEWAY</span>
+            <h2>Portal AI Assistant</h2>
+        </div>
+        <div class="mode-control">
+            <label for="firewall-active">Firewall mode</label>
+            <select id="firewall-active" data-mode-select>
+                <option value="true">Protected</option>
+                <option value="false" {% if not redteam_enabled %}disabled{% endif %}>Vulnerable Red-Team</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="assistant-context">
+        <svg class="am-inline-icon"><use href="/static/llmguard-icons.svg#chip"></use></svg>
+        <span>Current role <strong>{{ user.role.value }}</strong></span>
+        <span>Portal scope <strong>{{ portal_scope }}</strong></span>
+        <span data-mode-indicator class="status-badge protected-badge">Protected Mode</span>
+    </div>
+
+    <label class="field-label" for="portal-prompt">Ask about authorized university data</label>
+    <textarea id="portal-prompt" rows="5" placeholder="Ask a safe policy question or test a controlled attack scenario.">Summarize the synthetic records available to my role.</textarea>
+    <div class="assistant-actions">
+        <button id="portal-ask" class="am-cyber-button llmg-cyber-button primary-button" type="button">Run through AI Gateway</button>
+        <button id="copy-answer" class="secondary-button" type="button" disabled>Copy answer</button>
+        <button id="clear-assistant" class="secondary-button" type="button">Clear</button>
+        <span class="inline-note">Blocked or quarantined requests never call Qwen.</span>
+    </div>
+    <div class="assistant-progress pipeline-progress llmg-pipeline" data-assistant-progress aria-live="polite">
+        <div class="assistant-progress-status">
+            <span class="status-dot"></span>
+            <strong data-progress-label>Gateway ready</strong>
+        </div>
+        <span class="llmg-firewall-stage" data-progress-step="prompt">Prompt Firewall</span>
+        <span class="llmg-firewall-stage" data-progress-step="rbac">RBAC</span>
+        <span class="llmg-firewall-stage" data-progress-step="rag">RAG Filter</span>
+        <span class="llmg-firewall-stage" data-progress-step="context">Context Firewall</span>
+        <span class="llmg-firewall-stage" data-progress-step="tool">Tool Firewall</span>
+        <span class="llmg-firewall-stage" data-progress-step="output">Output Firewall</span>
+    </div>
+
+    <div class="assistant-result" data-assistant-result hidden>
+        <div class="result-header">
+            <div>
+                <span class="am-section-label">FINAL RESPONSE</span>
+                <h3 data-result-title>Gateway decision</h3>
+            </div>
+            <span class="status-badge" data-result-action>Pending</span>
+        </div>
+        <div class="answer-panel" data-result-answer></div>
+        <div class="security-metadata-grid">
+            <div><span>Label</span><strong data-result-label>—</strong></div>
+            <div><span>Action</span><strong data-result-action-text>—</strong></div>
+            <div><span>Risk score</span><strong data-result-risk>—</strong></div>
+            <div><span>Threat source</span><strong data-result-source>—</strong></div>
+            <div><span>Blocked stage</span><strong data-result-stage>—</strong></div>
+            <div><span>Qwen called</span><strong data-result-llm>—</strong></div>
+            <div><span>Output firewall</span><strong data-result-output>—</strong></div>
+            <div><span>Sanitized</span><strong data-result-sanitized>—</strong></div>
+        </div>
+        <div class="result-columns">
+            <section>
+                <h4>Sources</h4>
+                <ul class="detail-list" data-result-sources></ul>
+            </section>
+            <section>
+                <h4>Human-readable reasons</h4>
+                <ul class="detail-list" data-result-reasons></ul>
+            </section>
+        </div>
+        <details>
+            <summary>Tool decisions and technical metadata</summary>
+            <div class="tool-decision-grid" data-result-tool-cards></div>
+            <pre class="technical-output" data-result-tools></pre>
+        </details>
+    </div>
+    <div class="assistant-empty" data-assistant-empty>
+        <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
+        <strong>Defense console ready</strong>
+        <span>Gateway results will appear here with security decisions, evidence, and model-call status.</span>
+    </div>
+</section>

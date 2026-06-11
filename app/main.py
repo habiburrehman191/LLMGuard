@@ -35,8 +35,8 @@ def startup_event():
     init_database()
 
 
-@app.get("/")
-def root():
+@app.get("/health")
+def health():
     return {"message": "LLMGuard API is running"}
 
 

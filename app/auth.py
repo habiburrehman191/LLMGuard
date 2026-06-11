@@ -8,7 +8,7 @@ import json
 import os
 import secrets
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Response, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -96,11 +96,17 @@ def decode_access_token(token: str) -> dict[str, object]:
 
 def get_current_user(
     authorization: str | None = Header(default=None),
+    llmguard_token: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ) -> User:
-    if not authorization or not authorization.lower().startswith("bearer "):
+    token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    elif llmguard_token:
+        token = llmguard_token
+    if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
-    payload = decode_access_token(authorization.split(" ", 1)[1].strip())
+    payload = decode_access_token(token)
     user = db.scalar(select(User).where(User.username == str(payload["sub"])))
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
@@ -133,14 +139,38 @@ def seed_development_users(db: Session) -> list[User]:
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
+def login(request: LoginRequest, response: Response, db: Session = Depends(get_db)) -> LoginResponse:
     user = db.scalar(select(User).where(User.username == request.username))
     if user is None or not verify_password(request.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
     token = create_access_token(user)
+    response.set_cookie(
+        key="llmguard_token",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        max_age=8 * 60 * 60,
+    )
     return LoginResponse(
         access_token=token,
         username=user.username,
         role=user.role.value,
         portal_scope=user.portal_scope.value,
     )
+
+
+@router.post("/logout")
+def logout(response: Response) -> dict[str, bool]:
+    response.delete_cookie("llmguard_token")
+    return {"logged_out": True}
+
+
+@router.get("/me")
+def current_user(user: User = Depends(get_current_user)) -> dict[str, object]:
+    return {
+        "username": user.username,
+        "role": user.role.value,
+        "portal_scope": user.portal_scope.value,
+        "synthetic_ref": user.synthetic_ref,
+    }

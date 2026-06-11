@@ -1,0 +1,28 @@
+.redteam-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.redteam-overview article { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.redteam-overview .am-feature-icon { width: 40px; height: 40px; margin-bottom: 14px; padding: 8px; }
+.redteam-overview span { color: var(--muted); font-size: 0.9rem; }
+.redteam-overview strong { display: block; margin-top: 7px; font-size: 1.8rem; }
+.runner-banner { display: flex; justify-content: space-between; gap: 26px; align-items: center; margin-bottom: 20px; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); backdrop-filter: blur(16px); }
+.runner-banner.unavailable { border-color: rgba(245, 158, 11, 0.48); background: var(--amber-soft); }
+.runner-banner p { margin: 6px 0 0; color: var(--muted); }
+.runner-banner > div:last-child { display: flex; gap: 11px; }
+.attack-category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.attack-category-grid article { padding: 17px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.attack-category-grid span { color: var(--gold); font: 800 .82rem ui-monospace, monospace; }
+.attack-category-grid strong, .attack-category-grid small { display: block; }
+.attack-category-grid strong { margin: 12px 0 5px; }
+.attack-category-grid small { color: var(--muted-2); }
+.pending-cell { color: var(--muted-2); font-style: italic; }
+.severity-high { color: #fcd34d; border-color: rgba(245, 158, 11, 0.5); background: var(--amber-soft); }
+.severity-medium, .severity-low { color: #67e8f9; border-color: rgba(34, 211, 238, 0.42); background: var(--cyan-soft); }
+.verdict-pass { animation: pass-reveal 0.45s ease both; }
+.verdict-fail { animation: fail-reveal 0.45s ease both; }
+@keyframes pass-reveal { 50% { box-shadow: 0 0 24px rgba(34, 197, 94, 0.32); } }
+@keyframes fail-reveal { 50% { box-shadow: 0 0 24px rgba(239, 68, 68, 0.34); } }
+@media (max-width: 900px) { .redteam-overview, .attack-category-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px) {
+    .runner-banner { align-items: flex-start; flex-direction: column; }
+    .runner-banner > div:last-child { flex-wrap: wrap; }
+}
+@media (max-width: 520px) { .redteam-overview, .attack-category-grid { grid-template-columns: 1fr; } }

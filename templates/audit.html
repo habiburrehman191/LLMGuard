@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='security_dashboard.css') }}?v={{ asset_version }}">
+</head>
+<body class="product-body am-tech-shell llmg-shell llmg-cyber-bg">
+    {% include "components/product_nav.html" %}
+    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
+        <header class="page-header"><div><span class="am-section-label">[06] AUDIT TIMELINE</span><h1 class="am-gradient-title">Audit and Investigation Log</h1><p>Trace gateway interactions, firewall decisions, tool authorization, and controlled repository changes.</p></div>{% include "components/security_badges.html" %}</header>
+        <div class="audit-summary">
+            <article><span>AI interactions</span><strong>{{ interactions|length }}</strong></article>
+            <article><span>Firewall events</span><strong>{{ events|length }}</strong></article>
+            <article><span>Tool calls</span><strong>{{ tools|length }}</strong></article>
+            <article><span>Audit records</span><strong>{{ audits|length }}</strong></article>
+        </div>
+        <section class="workspace-card audit-tabs" data-audit-tabs>
+            <div class="tab-list" role="tablist">
+                <button class="active" type="button" data-audit-tab="interactions">AI interactions</button>
+                <button type="button" data-audit-tab="events">Firewall events</button>
+                <button type="button" data-audit-tab="tools">Tool calls</button>
+                <button type="button" data-audit-tab="audits">Repository and mode changes</button>
+            </div>
+            <div data-audit-panel="interactions" class="audit-panel active">
+                <div class="audit-timeline">
+                {% for item in interactions %}
+                    <article>
+                        <span class="timeline-node action-{{ item.action.value }}"></span>
+                        <div class="timeline-card">
+                            <div class="timeline-heading"><div><strong>{{ item.user_role }} / {{ item.portal_scope or "global" }}</strong><small>{{ item.created_at }}</small></div><span class="status-badge action-{{ item.action.value }}">{{ item.action.value }}</span></div>
+                            <p>{{ item.prompt }}</p>
+                            <div class="badge-row"><span class="status-badge neutral-badge">Risk {{ "%.0f"|format(item.risk_score * 100) }}%</span><span class="status-badge {{ 'protected-badge' if item.qwen_called else 'danger-badge' }}">Qwen {{ "called" if item.qwen_called else "skipped" }}</span></div>
+                        </div>
+                    </article>
+                {% else %}<p class="empty-message">No AI interactions.</p>{% endfor %}
+                </div>
+            </div>
+            <div data-audit-panel="events" class="audit-panel">
+                <div class="responsive-table"><table><thead><tr><th>Time</th><th>Detector</th><th>Decision</th><th>Score</th><th>Explanation</th></tr></thead><tbody>
+                {% for item in events %}<tr><td>{{ item.created_at }}</td><td>{{ item.detector }}</td><td><span class="status-badge action-{{ item.action.value }}">{{ item.action.value }}</span></td><td>{{ "%.0f"|format(item.score * 100) }}%</td><td>{{ item.reason }}</td></tr>
+                {% else %}<tr><td colspan="5" class="empty-message">No firewall events.</td></tr>{% endfor %}</tbody></table></div>
+            </div>
+            <div data-audit-panel="tools" class="audit-panel">
+                <div class="responsive-table"><table><thead><tr><th>Time</th><th>Tool</th><th>Role</th><th>Allowed</th><th>Reason</th></tr></thead><tbody>
+                {% for item in tools %}<tr><td>{{ item.created_at }}</td><td>{{ item.tool_name }}</td><td>{{ item.requested_by_role }}</td><td><span class="status-badge {{ 'protected-badge' if item.allowed else 'danger-badge' }}">{{ "allowed" if item.allowed else "blocked" }}</span></td><td>{{ item.reason }}</td></tr>
+                {% else %}<tr><td colspan="5" class="empty-message">No tool calls.</td></tr>{% endfor %}</tbody></table></div>
+            </div>
+            <div data-audit-panel="audits" class="audit-panel">
+                <div class="responsive-table"><table><thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>Entity</th><th>Summary</th></tr></thead><tbody>
+                {% for item in audits %}<tr><td>{{ item.created_at }}</td><td>{{ item.event_type }}</td><td>{{ item.actor_role or "system" }}</td><td>{{ item.entity_type or "—" }} / {{ item.entity_id or "—" }}</td><td>{{ item.summary }}</td></tr>
+                {% else %}<tr><td colspan="5" class="empty-message">No audit records.</td></tr>{% endfor %}</tbody></table></div>
+            </div>
+        </section>
+    </div></div></main>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='security_dashboard.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

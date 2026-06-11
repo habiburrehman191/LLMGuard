@@ -61,6 +61,7 @@ class PortalRouteTests(unittest.TestCase):
         self.assertNotIn("restricted_secret", classifications)
 
     def test_portal_ai_and_upload_require_authentication(self) -> None:
+        self.client.cookies.clear()
         self.assertEqual(401, self.client.post("/student/ai/ask", json={"prompt": "Hi"}).status_code)
         self.assertEqual(
             401,

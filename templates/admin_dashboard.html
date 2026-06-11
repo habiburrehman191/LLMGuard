@@ -4,28 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin Portal | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
 </head>
-<body data-portal-scope="{{ portal_scope }}">
-    <main class="portal-shell">
-        <header class="portal-hero">
+<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
+    {% include "components/product_nav.html" %}
+    <main class="portal-page">
+      <div class="portal-shell">
+        {% include "components/admin_sidebar.html" %}
+        <div class="portal-main">
+        <header class="portal-header admin-header">
             <div>
-                <p class="eyebrow">Super Admin Portal</p>
-                <h1>Super Admin Dashboard</h1>
-                <p>Cross-module synthetic oversight with restricted-secret enforcement.</p>
+                <span class="am-section-label">[01] SUPER ADMIN MODULE</span>
+                <h1 class="am-gradient-title">Super Admin Command Center</h1>
+                <p>Investigate synthetic activity, compare security modes, manage controlled documents, and review gateway decisions.</p>
             </div>
-            <div class="identity-card">
-                <strong>{{ user.username }}</strong>
-                <span>Role: {{ user.role.value }}</span>
-                <span>Portal: {{ portal_scope }}</span>
-                <a href="/admin/security-dashboard">Security Dashboard</a>
-                <span class="mode-badge protected">LLMGuard Protected</span>
-                <span class="mode-badge vulnerable">Vulnerable Red-Team Mode</span>
-            </div>
+            <section class="identity-panel">
+                <span class="identity-avatar">A1</span>
+                <div><strong>{{ user.username }}</strong><small>{{ user.synthetic_ref }}</small></div>
+                {% include "components/security_badges.html" %}
+            </section>
         </header>
 
-        {% include "_portal_panel.html" %}
+        <section class="admin-kpi-grid">
+            <article><span>Student records</span><strong>{{ record_summary.student }}</strong><small>Synthetic student scope</small></article>
+            <article><span>Employee records</span><strong>{{ record_summary.employee }}</strong><small>Synthetic employee scope</small></article>
+            <article><span>Admin records</span><strong>{{ record_summary.admin }}</strong><small>Internal synthetic scope</small></article>
+            <article class="restricted-kpi"><span>Restricted secret</span><strong>Never</strong><small>Never sent to Qwen</small></article>
+        </section>
+
+        <section class="admin-module-grid">
+            <a href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>Security Dashboard</strong><p>KPI trends, critical events, detector signals, and investigation details.</p></a>
+            <a href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Mode analysis</span><strong>Compare Lab</strong><p>Run one prompt through vulnerable and protected gateway paths side by side.</p></a>
+            <a href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG governance</span><strong>Document Manager</strong><p>Upload, classify, inspect chunks, rebuild FAISS, and remove controlled files.</p></a>
+            <a href="/admin/redteam"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Adversarial testing</span><strong>Red-Team Lab</strong><p>Review structured attack cases and runner availability.</p></a>
+            <a href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Accountability</span><strong>Audit Logs</strong><p>Trace interactions, firewall events, tool calls, and repository changes.</p></a>
+        </section>
+
+        <div class="portal-workspace-grid admin-workspace">
+            {% include "components/ai_assistant.html" %}
+            <aside class="workspace-sidebar">
+                <section class="workspace-card">
+                    <div class="section-heading"><div><span class="section-kicker">Global view</span><h2>Recent interactions</h2></div><span class="count-badge">{{ recent_interactions|length }}</span></div>
+                    <div class="interaction-list compact">
+                        {% for item in recent_interactions %}
+                        <article><span class="status-badge action-{{ item.action.value }}">{{ item.action.value }}</span><div><strong>{{ item.user_role }}</strong><small>{{ item.prompt }}</small></div><b>{{ "%.0f"|format(item.risk_score * 100) }}%</b></article>
+                        {% else %}<p class="empty-message">No gateway interactions recorded yet.</p>{% endfor %}
+                    </div>
+                </section>
+                <section class="workspace-card policy-warning">
+                    <span class="section-kicker">Hard security boundary</span>
+                    <h2>restricted_secret stays isolated</h2>
+                    <p>Super admin can inspect broad synthetic university data, but restricted secrets remain blocked from retrieval, tools, and Qwen context.</p>
+                </section>
+            </aside>
+        </div>
+        </div>
+      </div>
     </main>
-    <script src="{{ url_for('static', path='portal_ai.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+    <script src="{{ url_for('static', path='portal.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>

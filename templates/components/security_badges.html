@@ -1,0 +1,9 @@
+<div class="badge-row" aria-label="Security context">
+    <span class="status-badge role-badge">Role: {{ user.role.value }}</span>
+    <span class="status-badge scope-badge">Scope: {{ portal_scope }}</span>
+    {% if firewall_active %}
+    <span class="status-badge protected-badge">Protected Mode</span>
+    {% else %}
+    <span class="status-badge vulnerable-badge">Vulnerable Mode</span>
+    {% endif %}
+</div>

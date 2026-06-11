@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import PortalScope, User
+from app.models import AIInteraction, PortalScope, User
 from app.portals.common import (
     PortalAskRequest,
     PortalDocumentUploadRequest,
@@ -30,10 +31,21 @@ def student_dashboard(
 ) -> HTMLResponse:
     require_portal(user, PortalScope.student)
     records = accessible_records(db, user, PortalScope.student)
+    interactions = db.scalars(
+        select(AIInteraction)
+        .where(AIInteraction.user_id == user.id)
+        .order_by(AIInteraction.created_at.desc())
+        .limit(6)
+    ).all()
     return templates.TemplateResponse(
         request=request,
         name="student_dashboard.html",
-        context=render_context(user, PortalScope.student, records),
+        context=render_context(
+            user,
+            PortalScope.student,
+            records,
+            recent_interactions=interactions,
+        ),
     )
 
 
