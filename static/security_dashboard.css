@@ -64,6 +64,55 @@
 .timeline-heading small { color: var(--muted-2); }
 .timeline-card p { margin: 12px 0; color: var(--muted); }
 
+.security-kpi-grid article {
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(10, 25, 45, .9), rgba(5, 13, 26, .82));
+}
+.security-kpi-grid article::before {
+    content: "";
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    right: -42px;
+    top: -42px;
+    border: 1px solid rgba(34, 211, 238, .13);
+    border-radius: 50%;
+    animation: soc-risk-ring 8s linear infinite;
+}
+.pipeline-stage {
+    min-height: 130px;
+    display: grid;
+    align-content: center;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(12, 29, 50, .85), rgba(5, 13, 26, .78));
+    overflow: hidden;
+}
+.pipeline-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 25%, rgba(34, 211, 238, .08), transparent 75%);
+    transform: translateX(-100%);
+    animation: soc-stage-flow 6s ease-in-out infinite;
+}
+.pipeline-stage:nth-child(2)::before { animation-delay: .45s; }
+.pipeline-stage:nth-child(3)::before { animation-delay: .9s; }
+.pipeline-stage:nth-child(4)::before { animation-delay: 1.35s; }
+.pipeline-stage:nth-child(5)::before { animation-delay: 1.8s; }
+.pipeline-stage:nth-child(6)::before { animation-delay: 2.25s; }
+.soc-analysis-grid .workspace-card { min-height: 290px; }
+.audit-timeline::before { background: linear-gradient(to bottom, transparent, var(--cyan), rgba(34, 211, 238, .18), transparent); box-shadow: 0 0 12px rgba(34, 211, 238, .35); animation: audit-line 5s ease-in-out infinite; }
+
+@keyframes soc-risk-ring { to { transform: rotate(360deg) scale(1.08); } }
+@keyframes soc-stage-flow { 0%, 55% { transform: translateX(-100%); } 80%, 100% { transform: translateX(100%); } }
+@keyframes audit-line { 50% { filter: brightness(1.6); opacity: .65; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .security-kpi-grid article::before,
+    .pipeline-stage::before,
+    .audit-timeline::before { animation: none !important; }
+}
+
 @media (max-width: 1150px) {
     .security-kpi-grid { grid-template-columns: repeat(3, 1fr); }
     .pipeline-visual { grid-template-columns: repeat(3, 1fr); }

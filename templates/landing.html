@@ -6,221 +6,225 @@
     <title>{{ page_title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body am-tech-shell am-soc-grid landing-body llmg-shell llmg-cyber-bg">
+<body class="product-body llmg-shell neural-os landing-body">
     {% include "components/product_nav.html" %}
     <main>
-        <section class="llmg-hero" id="overview">
-            <div class="llmg-monitor-frame">
-                <span class="llmg-monitor-glow" aria-hidden="true"></span>
-                <div class="llmg-hero-grid">
-                    <div class="llmg-hero-copy">
-                        <span class="llmg-section-label">[01] AI DEFENSE SYSTEM</span>
-                        <h1 class="llmg-hero-title"><em>LLMGUARD:</em><br>THE NEXT GENERATION<br>AI FIREWALL</h1>
-                        <span class="llmg-title-rule"></span>
-                        <p>SECURE YOUR ENTERPRISE LLMS FROM PROMPT INJECTION AND DATA EXFILTRATION IN REAL-TIME.</p>
-                        <div class="hero-actions">
-                            <a class="llmg-cyber-button primary-button" href="#features">Explore the defense</a>
-                            <a class="llmg-cyber-button secondary-button" href="/login?role=admin">Open red-team lab</a>
-                        </div>
-                        <div class="system-status">
-                            <span class="status-dot"></span>
-                            <span>Qwen3 1.7B local gateway</span>
-                            <span class="status-divider"></span>
-                            <span>{{ "Protected by default" if firewall_active else "Firewall disabled by environment" }}</span>
-                        </div>
-                    </div>
-
-                    <div class="llmg-defense-visual" aria-label="Animated AI firewall defending against hostile traffic">
-                        <div class="llmg-telemetry-panel telemetry-status">
-                            <span class="status-dot"></span>
-                            <div><small>Gateway state</small><strong>System protected</strong></div>
-                        </div>
-                        <div class="llmg-telemetry-panel telemetry-risk">
-                            <small>Live risk score</small>
-                            <strong>08<span>/100</span></strong>
-                            <i><b></b></i>
-                        </div>
-                        <div class="llmg-radar radar-left"></div>
-                        <div class="llmg-radar radar-right"></div>
-                        <div class="llmg-binary binary-a">0110011010<br>1100101101<br>0110100110</div>
-                        <div class="llmg-binary binary-b">1011010011<br>0110011010<br>1101010010</div>
-                        <div class="llmg-attack-stream stream-a"></div>
-                        <div class="llmg-attack-stream stream-b"></div>
-                        <div class="llmg-attack-stream stream-c"></div>
-                        <div class="llmg-shield-core">
-                            <span class="llmg-forcefield field-one"></span>
-                            <span class="llmg-forcefield field-two"></span>
-                            <svg class="llmg-shield-svg" viewBox="0 0 420 500" role="img" aria-label="Holographic firewall shield">
-                                <defs>
-                                    <linearGradient id="shieldGradient" x1="0" y1="0" x2="1" y2="1">
-                                        <stop offset="0" stop-color="#a5f3fc"/>
-                                        <stop offset=".48" stop-color="#22d3ee"/>
-                                        <stop offset="1" stop-color="#0e7490"/>
-                                    </linearGradient>
-                                    <filter id="shieldGlow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                                </defs>
-                                <path class="shield-fill" d="M210 24 374 86v138c0 111-67 201-164 251C113 425 46 335 46 224V86L210 24Z"/>
-                                <path class="shield-outline" d="M210 24 374 86v138c0 111-67 201-164 251C113 425 46 335 46 224V86L210 24Z"/>
-                                <path class="shield-inner" d="M210 62 337 109v112c0 84-49 154-127 199-78-45-127-115-127-199V109L210 62Z"/>
-                                <g class="llmg-brain-network">
-                                    <path d="M128 229c-9-43 20-82 61-87 18-28 62-19 70 11 35 2 53 38 38 67 21 31-1 69-36 72-12 31-57 37-76 10-35 7-65-29-50-61-5-3-7-7-7-12Z"/>
-                                    <path d="M180 159c-2 39 16 58 54 67M151 201c31-4 58 13 69 45M165 275c27-21 64-19 90 4M242 159c-13 30-8 57 16 78M210 143v166"/>
-                                    <circle cx="181" cy="159" r="6"/><circle cx="151" cy="201" r="6"/><circle cx="165" cy="275" r="6"/>
-                                    <circle cx="242" cy="159" r="6"/><circle cx="258" cy="237" r="6"/><circle cx="255" cy="279" r="6"/>
-                                    <circle cx="210" cy="226" r="7"/><circle cx="210" cy="309" r="6"/>
-                                </g>
-                            </svg>
-                            <div class="llmg-orb orb-one"></div>
-                            <div class="llmg-orb orb-two"></div>
-                            <div class="llmg-orb orb-three"></div>
-                        </div>
-                        <div class="llmg-particle-field" aria-hidden="true">
-                            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-                        </div>
-                        <div class="llmg-defense-platform"><i></i><b></b></div>
-                    </div>
+        <section class="ndo-hero" id="overview">
+            <div class="ndo-hero-aurora" aria-hidden="true"></div>
+            <div class="ndo-stream-field" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="ndo-hero-copy">
+                <span class="llmg-section-label">AI FIREWALL PLATFORM</span>
+                <h1>LLMGuard <em>Neural Defense OS</em></h1>
+                <p>A zero-trust AI firewall that inspects prompts, retrieved context, tool calls, and model output before sensitive data can escape.</p>
+                <div class="ndo-hero-actions">
+                    <a class="llmg-cyber-button primary-button" href="/login?role=admin">Launch Security Console</a>
+                    <a class="llmg-cyber-button secondary-button" href="/login?role=student">Run Protected Demo</a>
                 </div>
+                <div class="ndo-trust-row" aria-label="Platform assurances">
+                    <span><b>01</b> Prompt Firewall Active</span>
+                    <span><b>02</b> RAG Isolation Online</span>
+                    <span><b>03</b> Tool Policy Enforced</span>
+                    <span><b>04</b> Output DLP Armed</span>
+                    <span><b>05</b> Qwen Skipped When Blocked</span>
+                </div>
+            </div>
 
-                <section class="llmg-how-it-works" id="features">
-                    <div class="llmg-section-heading">
-                        <span class="llmg-section-label">LIVE DEFENSE ARCHITECTURE</span>
-                        <h2>How It Works</h2>
+            {% include "components/neural_defense_spline.html" %}
+
+            <div class="ndo-live-strip">
+                <span><i class="safe"></i>Prompt inspection active</span>
+                <span><i class="safe"></i>RBAC boundary enforced</span>
+                <span><i class="safe"></i>Canary traps monitored</span>
+                <span><i class="{{ 'safe' if firewall_active else 'danger' }}"></i>{{ "Protected mode default" if firewall_active else "Firewall disabled by environment" }}</span>
+            </div>
+        </section>
+
+        <section class="ndo-section ndo-overview" id="technology">
+            <header class="ndo-section-header">
+                <span class="llmg-section-label">[01] NEURAL DEFENSE OVERVIEW</span>
+                <h2>One policy plane. Every AI surface.</h2>
+                <p>LLMGuard assembles identity, retrieval evidence, semantic intent, tool policy, and release controls into one explainable gateway decision.</p>
+            </header>
+            <div class="ndo-bento-grid">
+                <article class="ndo-bento-card bento-wide">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#firewall"></use></svg><span>PRE-MODEL CONTROL</span></div>
+                    <h3>Prompt Injection Defense</h3>
+                    <p>Rules, semantic detection, trained classification, DLP, and access policy combine before retrieval or generation.</p>
+                    <div class="ndo-signal-chart" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                    <span class="am-status-badge protected-badge">Blocks before Qwen</span>
+                </article>
+                <article class="ndo-bento-card bento-tall">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#rag"></use></svg><span>CONTEXT TRUST</span></div>
+                    <h3>RAG Poisoning Control</h3>
+                    <p>Metadata filters keep cross-role chunks outside the model context.</p>
+                    <div class="ndo-vault-stack">
+                        <span>Student <b>isolated</b></span>
+                        <span>Employee <b>isolated</b></span>
+                        <span>Admin <b>isolated</b></span>
                     </div>
-                    <div class="llmg-process-cards">
-                        <span class="llmg-energy-arc" aria-hidden="true"></span>
-                        <article class="llmg-process-card llmg-corner-bracket">
-                            <b>1</b>
-                            <div class="llmg-process-icons">
-                                <svg><use href="/static/llmguard-icons.svg#firewall"></use></svg>
-                                <span>+</span>
-                                <svg><use href="/static/llmguard-icons.svg#brain"></use></svg>
-                            </div>
-                            <h3>Hybrid Firewall</h3>
-                            <p>Rules + Semantic Intent Detection</p>
-                        </article>
-                        <article class="llmg-process-card llmg-corner-bracket">
-                            <b>2</b>
-                            <div class="llmg-vault-row">
-                                <span><svg><use href="/static/llmguard-icons.svg#student"></use></svg><small>Student</small></span>
-                                <span><svg><use href="/static/llmguard-icons.svg#employee"></use></svg><small>Employee</small></span>
-                                <span><svg><use href="/static/llmguard-icons.svg#lock"></use></svg><small>Admin</small></span>
-                            </div>
-                            <h3>Data Isolation</h3>
-                            <p>Role-Based Content Filtering</p>
-                        </article>
-                        <article class="llmg-process-card llmg-corner-bracket">
-                            <b>3</b>
-                            <div class="llmg-process-icons">
-                                <svg class="gold-icon"><use href="/static/llmguard-icons.svg#pdf"></use></svg>
-                                <span class="llmg-laser"></span>
-                                <svg><use href="/static/llmguard-icons.svg#document"></use></svg>
-                            </div>
-                            <h3>Document Scanning</h3>
-                            <p>Block Hidden Indirect Injections</p>
-                        </article>
+                </article>
+                <article class="ndo-bento-card">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg><span>IDENTITY PLANE</span></div>
+                    <h3>Role-Based Isolation</h3>
+                    <p>Portal, role, ownership, and classification stay attached to each authorized record and chunk.</p>
+                </article>
+                <article class="ndo-bento-card">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#tool"></use></svg><span>EXECUTION</span></div>
+                    <h3>Tool-Call Authorization</h3>
+                    <p>Every simulated action is checked against role, ownership, portal, and classification.</p>
+                    <span class="am-status-badge danger-badge">Secret tools denied</span>
+                </article>
+                <article class="ndo-bento-card">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#output"></use></svg><span>RELEASE CONTROL</span></div>
+                    <h3>Output DLP</h3>
+                    <p>Private synthetic records and canary markers are blocked before delivery.</p>
+                </article>
+                <article class="ndo-bento-card">
+                    <div class="ndo-card-top"><svg><use href="/static/llmguard-icons.svg#audit"></use></svg><span>INVESTIGATION</span></div>
+                    <h3>Audit Evidence</h3>
+                    <p>Detector scores, policy reasons, sources, tools, and model-call status form a reviewable trail.</p>
+                    <span class="am-status-badge gold-badge">Evidence preserved</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="ndo-section" id="portals">
+            <header class="ndo-section-header split">
+                <div><span class="llmg-section-label">[02] ROLE-AWARE PORTALS</span><h2>Separate workspaces. Shared security truth.</h2></div>
+                <p>Each identity sees a product built for its job, while the gateway enforces an immutable data boundary beneath it.</p>
+            </header>
+            <div class="ndo-portal-grid">
+                <a class="ndo-portal-card student" href="/login?role=student">
+                    <div class="ndo-portal-number">01</div><svg><use href="/static/llmguard-icons.svg#student"></use></svg>
+                    <span>STUDENT SCOPE</span><h3>Student Workspace</h3>
+                    <p>Own synthetic records, public policies, protected assistance, and controlled uploads.</p>
+                    <b>Open workspace <i>→</i></b>
+                </a>
+                <a class="ndo-portal-card employee" href="/login?role=employee">
+                    <div class="ndo-portal-number">02</div><svg><use href="/static/llmguard-icons.svg#employee"></use></svg>
+                    <span>EMPLOYEE SCOPE</span><h3>Employee Workspace</h3>
+                    <p>Staff data, internal documents, role-isolated RAG, and auditable AI assistance.</p>
+                    <b>Open workspace <i>→</i></b>
+                </a>
+                <a class="ndo-portal-card admin" href="/login?role=admin">
+                    <div class="ndo-portal-number">03</div><svg><use href="/static/llmguard-icons.svg#admin"></use></svg>
+                    <span>GLOBAL SYNTHETIC SCOPE</span><h3>Super Admin Command Center</h3>
+                    <p>SOC telemetry, comparisons, document governance, red-team replay, and audit evidence.</p>
+                    <b>Open command center <i>→</i></b>
+                </a>
+            </div>
+        </section>
+
+        <section class="ndo-section ndo-pipeline-section" id="features">
+            <header class="ndo-section-header">
+                <span class="llmg-section-label">[03] ZERO-TRUST AI PIPELINE</span>
+                <h2>Eight gates between intent and release.</h2>
+                <p>A request advances only when each policy stage produces enough evidence to continue.</p>
+            </header>
+            <div class="ndo-pipeline">
+                {% set stages = [
+                    ("01", "firewall", "Prompt Intake", "Normalize and inspect"),
+                    ("02", "brain", "Intent Analysis", "Rules + semantics"),
+                    ("03", "lock", "RBAC Boundary", "Role and ownership"),
+                    ("04", "database", "RAG Isolation", "Metadata filtering"),
+                    ("05", "neural", "Context Scan", "Poisoning and canaries"),
+                    ("06", "tool", "Tool Policy", "Authorize execution"),
+                    ("07", "output", "Output DLP", "Scan and redact"),
+                    ("08", "audit", "Evidence Log", "Explain the decision")
+                ] %}
+                {% for number, icon, title, text in stages %}
+                <article style="--stage: {{ loop.index0 }}">
+                    <b>{{ number }}</b><svg><use href="/static/llmguard-icons.svg#{{ icon }}"></use></svg>
+                    <h3>{{ title }}</h3><p>{{ text }}</p><i></i>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="ndo-section" id="demo">
+            <header class="ndo-section-header split">
+                <div><span class="llmg-section-label">[04] LIVE SOC OPERATIONS</span><h2>Move from alert to proof.</h2></div>
+                <p>Operational views surface decisions, evidence, model-call status, and affected data boundaries without making raw logs the product.</p>
+            </header>
+            <div class="ndo-ops-grid">
+                <a class="ndo-op-card op-primary" href="/login?role=admin">
+                    <svg><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>LIVE TELEMETRY</span>
+                    <h3>Security Dashboard</h3><p>Risk distribution, pipeline health, critical events, and investigation details.</p>
+                    <div class="ndo-mini-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                </a>
+                <a class="ndo-op-card" href="/login?role=admin"><svg><use href="/static/llmguard-icons.svg#compare"></use></svg><h3>Compare Lab</h3><p>Prove the protected path against the vulnerable synthetic baseline.</p></a>
+                <a class="ndo-op-card" href="/login?role=admin"><svg><use href="/static/llmguard-icons.svg#document"></use></svg><h3>Document Security</h3><p>Classify, scan, index, quarantine, and remove controlled files.</p></a>
+                <a class="ndo-op-card" href="/login?role=admin"><svg><use href="/static/llmguard-icons.svg#target"></use></svg><h3>Red-Team Lab</h3><p>Replay structured attacks without inventing execution results.</p></a>
+                <a class="ndo-op-card" href="/login?role=admin"><svg><use href="/static/llmguard-icons.svg#audit"></use></svg><h3>Audit Timeline</h3><p>Trace prompts, detector evidence, tools, documents, and final actions.</p></a>
+            </div>
+        </section>
+
+        <section class="ndo-section ndo-product-demo" id="interactive-demo" data-product-demo>
+            <header class="ndo-section-header">
+                <span class="llmg-section-label">[05] INTERACTIVE PRODUCT DEMO</span>
+                <h2>Inspect how policy changes the outcome.</h2>
+                <p>Explore representative synthetic scenarios. These previews explain the expected control path and do not fabricate live execution results.</p>
+            </header>
+            <div class="ndo-demo-tabs" role="tablist" aria-label="Security scenario previews">
+                <button id="demo-tab-protected" class="active" type="button" role="tab" aria-selected="true" aria-controls="demo-panel-protected" tabindex="0" data-demo-tab="protected">Protected Mode</button>
+                <button id="demo-tab-vulnerable" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-vulnerable" tabindex="-1" data-demo-tab="vulnerable">Vulnerable Mode</button>
+                <button id="demo-tab-rag" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-rag" tabindex="-1" data-demo-tab="rag">RAG Injection</button>
+                <button id="demo-tab-tool" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-tool" tabindex="-1" data-demo-tab="tool">Tool Misuse</button>
+                <button id="demo-tab-output" type="button" role="tab" aria-selected="false" aria-controls="demo-panel-output" tabindex="-1" data-demo-tab="output">Output Leak</button>
+            </div>
+            {% set demos = [
+                ("protected", "shield", "Protected request path", "ALLOW", "Low risk", "Qwen called after all gates pass", "Authorized context is isolated, inspected, and released through output DLP."),
+                ("vulnerable", "warning", "Controlled vulnerable baseline", "GATED", "Red-team only", "Available only in local red-team mode", "The baseline bypass remains locked unless REDTEAM_MODE=true or APP_ENV=local_redteam."),
+                ("rag", "database", "Poisoned context detected", "QUARANTINE", "High risk", "Qwen skipped / llm_called=false", "Retrieved instructions are quarantined before they can influence model context."),
+                ("tool", "tool", "Unauthorized action denied", "BLOCK", "Critical policy", "Qwen skipped / blocked before model call", "Role and ownership policy reject the requested tool independently of model intent."),
+                ("output", "output", "Sensitive output intercepted", "SANITIZE", "DLP triggered", "Unsafe span withheld", "Output DLP detects synthetic private data or canary markers before release.")
+            ] %}
+            <div class="ndo-demo-panels">
+                {% for key, icon, title, verdict, risk, model, description in demos %}
+                <article id="demo-panel-{{ key }}" role="tabpanel" aria-labelledby="demo-tab-{{ key }}" data-demo-panel="{{ key }}" class="{{ 'active' if loop.first else '' }}" {% if not loop.first %}hidden{% endif %}>
+                    <div class="ndo-demo-visual state-{{ key }}">
+                        <div class="ndo-demo-core"><svg><use href="/static/llmguard-icons.svg#{{ icon }}"></use></svg></div>
+                        <span class="packet packet-one"></span><span class="packet packet-two"></span><span class="packet packet-three"></span>
+                        <div class="ndo-demo-gate"><i></i><i></i><i></i></div>
                     </div>
-                </section>
-            </div>
-        </section>
-
-        <section class="landing-section am-numbered-section llmg-section" id="technology">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[01] OVERVIEW</span><h2>Zero-trust enforcement for every model interaction.</h2></div>
-                <p>LLMGuard joins identity, retrieval, content inspection, tool authorization, and output release into one auditable security boundary.</p>
-            </div>
-        </section>
-
-        <section id="portals" class="landing-section am-numbered-section llmg-section">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[02] ACCESS PORTALS</span><h2>Role-isolated university AI workspaces.</h2></div>
-                <p>Each synthetic identity receives a distinct retrieval boundary, tool surface, and audit trail.</p>
-            </div>
-            <div class="portal-card-grid">
-                <article class="portal-entry am-glass-card am-threat-card accent-cyan">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#student"></use></svg>
-                    <span class="am-status-badge scope-badge">Student scope</span>
-                    <h3>Student Portal</h3>
-                    <p>Own synthetic records, public policies, controlled uploads, and protected AI assistance.</p>
-                    <div class="capability-list"><span>student_private</span><span>public</span></div>
-                    <a href="/login?role=student">Enter student workspace</a>
+                    <div class="ndo-demo-copy">
+                        <span class="llmg-section-label">SYNTHETIC SCENARIO / {{ "%02d"|format(loop.index) }}</span>
+                        <h3>{{ title }}</h3>
+                        <p>{{ description }}</p>
+                        <div class="ndo-demo-verdict"><span>Security outcome</span><strong>{{ verdict }}</strong></div>
+                        <dl>
+                            <div><dt>Risk posture</dt><dd>{{ risk }}</dd></div>
+                            <div><dt>Model gate</dt><dd>{{ model }}</dd></div>
+                            <div><dt>Evidence</dt><dd>Stage reasons and metadata recorded</dd></div>
+                        </dl>
+                        <a class="llmg-cyber-button secondary-button" href="/login?role=admin">Open live console</a>
+                    </div>
                 </article>
-                <article class="portal-entry am-glass-card am-threat-card accent-gold">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#employee"></use></svg>
-                    <span class="am-status-badge gold-badge">Employee scope</span>
-                    <h3>Employee Portal</h3>
-                    <p>Employee records, staff documents, public policy access, and strict cross-portal separation.</p>
-                    <div class="capability-list"><span>employee_private</span><span>public</span></div>
-                    <a href="/login?role=employee">Enter employee workspace</a>
-                </article>
-                <article class="portal-entry am-glass-card am-threat-card accent-red">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#admin"></use></svg>
-                    <span class="am-status-badge danger-badge">Global synthetic scope</span>
-                    <h3>Super Admin Portal</h3>
-                    <p>Security operations, controlled documents, comparison, red-team replay, and investigation.</p>
-                    <div class="capability-list"><span>global synthetic</span><span>never restricted_secret</span></div>
-                    <a href="/login?role=admin">Enter command center</a>
-                </article>
+                {% endfor %}
             </div>
         </section>
 
-        <section id="security" class="landing-section am-numbered-section llmg-section">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[03] CORE PROTECTION</span><h2>Six coordinated protection layers.</h2></div>
-                <p>Every layer contributes evidence to one final allow, sanitize, block, or quarantine decision.</p>
-            </div>
-            <div class="protection-grid">
-                <article class="feature-entry am-glass-card accent-red"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#firewall"></use></svg><span class="am-status-badge danger-badge">Pre-LLM</span><h3>Prompt Firewall</h3><p>Detects jailbreaks, instruction override, and role impersonation before the LLM is called.</p></article>
-                <article class="feature-entry am-glass-card accent-cyan"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#rag"></use></svg><span class="am-status-badge scope-badge">Retrieved context</span><h3>RAG Context Firewall</h3><p>Scans authorized retrieved documents for hidden instructions and poisoned content.</p></article>
-                <article class="feature-entry am-glass-card accent-gold"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#tool"></use></svg><span class="am-status-badge gold-badge">Execution</span><h3>Tool Call Firewall</h3><p>Blocks unauthorized tool execution across Student, Employee, and Admin scopes.</p></article>
-                <article class="feature-entry am-glass-card accent-green"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#output"></use></svg><span class="am-status-badge protected-badge">Release gate</span><h3>Output DLP Firewall</h3><p>Prevents synthetic private records, canary markers, and restricted data from leaving the system.</p></article>
-                <article class="feature-entry am-glass-card accent-cyan"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg><span class="am-status-badge scope-badge">Zero trust</span><h3>Role-Based Access Control</h3><p>Filters documents by portal, classification, ownership, and identity before context reaches Qwen.</p></article>
-                <article class="feature-entry am-glass-card accent-red"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#canary"></use></svg><span class="am-status-badge danger-badge">Leak trap</span><h3>Canary Leakage Detection</h3><p>Turns synthetic trap markers into critical output failures and auditable security events.</p></article>
-            </div>
-        </section>
-
-        <section class="landing-section am-numbered-section llmg-section" id="pipeline">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[04] AI FIREWALL PIPELINE</span><h2>One request. Six illuminated security gates.</h2></div>
-                <p>Each stage adds evidence before the gateway permits generation or releases an answer.</p>
-            </div>
-            <div class="pipeline-visual llmg-pipeline">
-                <article class="pipeline-stage llmg-firewall-stage"><b>01</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#firewall"></use></svg><strong>Prompt Intake</strong><small>Injection and intent</small></article>
-                <article class="pipeline-stage llmg-firewall-stage"><b>02</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg><strong>RBAC Boundary</strong><small>Role and ownership</small></article>
-                <article class="pipeline-stage llmg-firewall-stage"><b>03</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#database"></use></svg><strong>RAG Isolation</strong><small>Metadata filtering</small></article>
-                <article class="pipeline-stage llmg-firewall-stage"><b>04</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#rag"></use></svg><strong>Context Firewall</strong><small>Poisoning scan</small></article>
-                <article class="pipeline-stage llmg-firewall-stage"><b>05</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#tool"></use></svg><strong>Tool Authorization</strong><small>Execution policy</small></article>
-                <article class="pipeline-stage llmg-firewall-stage"><b>06</b><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#output"></use></svg><strong>Output DLP</strong><small>Release control</small></article>
-            </div>
-        </section>
-
-        <section class="landing-section am-numbered-section llmg-section" id="demo">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[05] SOC OPERATIONS</span><h2>Operate, compare, investigate, and prove.</h2></div>
-                <p>Focused security workspaces turn gateway decisions into evidence your team can inspect.</p>
-            </div>
-            <div class="operations-grid">
-                <article class="feature-entry am-glass-card"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><h3>SOC Dashboard</h3><p>Track enforcement KPIs, the firewall pipeline, critical events, and detector evidence.</p><a href="/login?role=admin">Open dashboard</a></article>
-                <article class="feature-entry am-glass-card"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><h3>Compare Lab</h3><p>Runs the same prompt in Vulnerable and Protected mode to prove LLMGuard's impact.</p><a href="/login?role=admin">Compare modes</a></article>
-                <article class="feature-entry am-glass-card"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><h3>Red-Team Replay</h3><p>Review structured attack cases and real runner state without fabricated results.</p><a href="/login?role=admin">Open cyber range</a></article>
-                <article class="feature-entry am-glass-card"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><h3>Document Security</h3><p>Upload, classify, scan, and index controlled files with role-aware access policies.</p><a href="/login?role=admin">Manage documents</a></article>
-                <article class="feature-entry am-glass-card"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><h3>Audit Logs</h3><p>Trace AI interactions, firewall decisions, tool calls, and repository changes.</p><a href="/login?role=admin">Investigate activity</a></article>
-            </div>
-        </section>
-
-        <section class="landing-section am-numbered-section process-section llmg-section">
-            <div class="section-heading">
-                <div><span class="llmg-section-label">[06] PROCESS</span><h2>From controlled file to governed answer.</h2></div>
-                <p>One inspectable workflow keeps identity, retrieval, generation, and release decisions connected.</p>
-            </div>
-            <ol class="process-timeline">
-                <li><span>01</span><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><div><h3>Ingest files</h3><p>Accept synthetic TXT, PDF, and DOCX through controlled routes.</p></div></li>
-                <li><span>02</span><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg><div><h3>Classify data</h3><p>Assign portal scope, classification, ownership, and allowed roles.</p></div></li>
-                <li><span>03</span><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#database"></use></svg><div><h3>Retrieve by role</h3><p>Hard-filter FAISS candidates before context can reach the model.</p></div></li>
-                <li><span>04</span><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#chip"></use></svg><div><h3>Inspect every stage</h3><p>Evaluate prompt, context, tool calls, and generated output.</p></div></li>
-                <li><span>05</span><svg class="am-card-icon"><use href="/static/llmguard-icons.svg#output"></use></svg><div><h3>Enforce the decision</h3><p>Allow, sanitize, block, or quarantine with complete evidence.</p></div></li>
+        <section class="ndo-section ndo-demo-flow">
+            <header class="ndo-section-header">
+                <span class="llmg-section-label">[06] DEMO FLOW</span>
+                <h2>From identity to evidence in one controlled path.</h2>
+            </header>
+            <ol>
+                <li><span>01</span><div><strong>Sign in</strong><small>Select a synthetic portal identity.</small></div></li>
+                <li><span>02</span><div><strong>Ask</strong><small>Submit a safe prompt or controlled attack.</small></div></li>
+                <li><span>03</span><div><strong>Retrieve</strong><small>Filter context by role and classification.</small></div></li>
+                <li><span>04</span><div><strong>Inspect</strong><small>Evaluate intent, context, tools, and output.</small></div></li>
+                <li><span>05</span><div><strong>Enforce</strong><small>Allow, sanitize, block, or quarantine.</small></div></li>
+                <li><span>06</span><div><strong>Audit</strong><small>Review evidence in the command center.</small></div></li>
             </ol>
         </section>
     </main>
+    <footer class="ndo-footer">
+        <a class="brand-lockup" href="/"><span class="brand-mark"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></span><span><strong>LLMGUARD</strong><small>Neural Defense OS</small></span></a>
+        <p>Controlled university AI security testbed. Synthetic data only.</p>
+    </footer>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>

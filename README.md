@@ -545,3 +545,54 @@ Frontend motion remains CSS/JavaScript-only and respects
 ```powershell
 .\.venv\Scripts\python.exe -m unittest tests.test_product_frontend tests.test_frontend tests.test_portals -v
 ```
+
+### Neural Defense OS Visual Reset
+
+The visible product shell now uses a distinct SaaS identity named **LLMGuard
+Neural Defense OS**. This pass replaces the earlier monitor-and-shield landing
+composition with an asymmetric command-center hero built from original HTML,
+CSS, and inline SVG.
+
+The refreshed interface includes:
+
+- An animated neural policy core with orbital firewall rings, hostile request
+  paths, safe packet deflection, and floating model/RAG/DLP telemetry.
+- A modern product bento for intent inspection, role-aware RAG isolation, tool
+  authorization, and output release control.
+- A seven-stage Prompt, Intent, RBAC, RAG, Tool, Output, and Evidence pipeline.
+- Role-aware Student, Employee, and Super Admin workspaces using the same
+  responsive SaaS shell.
+- An AI Security Workbench that explicitly reports when Qwen was called or
+  skipped, including the message `Qwen skipped / blocked before model call`.
+- Motion-enhanced document scanning, comparison, SOC metrics, policy stages,
+  and audit timelines with `prefers-reduced-motion` support.
+- Cache-busted product assets using UI asset version `17`.
+
+The landing hero renders the reusable
+`templates/components/neural_defense_spline.html` component. By default it
+uses the original CSS/SVG/JavaScript interactive neural-core fallback. To use
+a hosted Spline scene, set an HTTPS URL from the `spline.design` domain:
+
+```powershell
+$env:LLMGUARD_SPLINE_SCENE_URL="https://my.spline.design/example/"
+```
+
+Invalid or non-Spline URLs are ignored and the local fallback remains active.
+
+Primary routes remain unchanged:
+
+```text
+/                         Neural Defense OS landing page
+/login                    Secure synthetic identity access
+/student/dashboard        Student workspace
+/employee/dashboard       Employee workspace
+/admin/dashboard          Super Admin command center
+/admin/security-dashboard Live SOC operations
+/admin/compare             Protected/vulnerable proof view
+/admin/documents           Document security console
+/admin/redteam             Controlled cyber range
+/admin/audit               Audit evidence timeline
+```
+
+The redesign does not alter `app/llmguard/`, AI Gateway decisions, RAG access
+policy, model settings, or vulnerable-mode gating.

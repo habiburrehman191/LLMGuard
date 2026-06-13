@@ -53,6 +53,7 @@ class Settings:
     firewall_active: bool
     redteam_mode: bool
     app_env: str
+    spline_scene_url: str
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -160,6 +161,7 @@ def get_settings() -> Settings:
         firewall_active=_bool_from_env("FIREWALL_ACTIVE", True),
         redteam_mode=_bool_from_env("REDTEAM_MODE", False),
         app_env=os.getenv("APP_ENV", "local").strip().lower(),
+        spline_scene_url=os.getenv("LLMGUARD_SPLINE_SCENE_URL", "").strip(),
     )
 
 

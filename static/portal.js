@@ -28,7 +28,13 @@ function renderGatewayResult(payload) {
     const answer = payload.answer || payload.response || (payload.blocked ? "Request blocked by LLMGuard." : "No answer returned.");
     result.querySelector("[data-result-answer]").textContent = answer;
     document.getElementById("copy-answer")?.removeAttribute("disabled");
-    result.querySelector("[data-result-title]").textContent = payload.mode === "vulnerable_red_team" ? "Vulnerable baseline result" : "Protected gateway result";
+    const protectedResult = payload.mode !== "vulnerable_red_team";
+    const modelSkipped = protectedResult && !payload.llm_called;
+    result.querySelector("[data-result-title]").textContent = modelSkipped
+        ? "Threat stopped before model execution"
+        : payload.mode === "vulnerable_red_team"
+            ? "Vulnerable baseline result"
+            : "Protected gateway result";
     const badge = result.querySelector("[data-result-action]");
     badge.textContent = payload.action || "unknown";
     badge.className = `status-badge action-${payload.action || "unknown"} is-active`;
@@ -37,11 +43,32 @@ function renderGatewayResult(payload) {
     result.querySelector("[data-result-risk]").textContent = `${Math.round((payload.risk_score || 0) * 100)}%`;
     result.querySelector("[data-result-source]").textContent = payload.threat_source || "none";
     result.querySelector("[data-result-stage]").textContent = payload.blocked_stage || "none";
-    result.querySelector("[data-result-llm]").textContent = payload.llm_called ? "true" : "false";
+    result.querySelector("[data-result-llm]").textContent = payload.llm_called ? "true (llm_called=true)" : "false (llm_called=false)";
+    const modelGate = result.querySelector("[data-model-gate-result]");
+    if (modelGate) {
+        modelGate.classList.toggle("model-skipped", modelSkipped);
+        modelGate.classList.toggle("model-called", Boolean(payload.llm_called));
+        modelGate.querySelector("[data-model-gate-label]").textContent = modelSkipped
+            ? "Qwen skipped / blocked before model call"
+            : payload.llm_called
+                ? "Qwen called after security gates passed"
+                : "No model call recorded";
+    }
     result.querySelector("[data-result-output]").textContent = payload.output_firewall_action || "not triggered";
     result.querySelector("[data-result-sanitized]").textContent = payload.sanitized ? "true" : "false";
     replaceList(result.querySelector("[data-result-sources]"), payload.sources || [], "No sources released.");
     replaceList(result.querySelector("[data-result-reasons]"), payload.reasons || [payload.reason].filter(Boolean), "No additional reasons.");
+    const evidence = {
+        label: payload.label,
+        action: payload.action,
+        risk_score: payload.risk_score,
+        threat_source: payload.threat_source,
+        blocked_stage: payload.blocked_stage,
+        output_firewall_action: payload.output_firewall_action,
+        sanitized: Boolean(payload.sanitized),
+        llm_called: Boolean(payload.llm_called),
+    };
+    result.querySelector("[data-result-evidence]").textContent = JSON.stringify(evidence, null, 2);
     const decisions = Array.isArray(payload.tool_decisions) ? payload.tool_decisions : [];
     result.querySelector("[data-result-tools]").textContent = JSON.stringify(decisions, null, 2);
     const toolCards = result.querySelector("[data-result-tool-cards]");
@@ -64,10 +91,11 @@ function renderGatewayResult(payload) {
             toolCards.appendChild(card);
         });
     }
+    result.querySelector("[data-result-raw]").textContent = JSON.stringify(payload, null, 2);
 }
 
 const progressLabels = {
-    prompt: "Inspecting prompt intent",
+    prompt: "Analyzing request intent",
     rbac: "Verifying role and portal boundary",
     rag: "Filtering retrieval metadata",
     context: "Scanning authorized context",
@@ -94,7 +122,7 @@ function setAssistantProgress(activeStep = "", terminalState = "") {
                 : terminalState === "quarantine"
                     ? "Request quarantined for review"
                     : terminalState === "block"
-                        ? "Threat blocked before release"
+                        ? "Threat blocked / Qwen skipped"
                         : progressLabels[activeStep] || "Gateway ready";
     }
 }

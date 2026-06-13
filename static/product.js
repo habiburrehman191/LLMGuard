@@ -24,9 +24,81 @@ if (navToggle && productNav) {
     });
 }
 
-document.querySelectorAll(".workspace-card, .portal-entry, .feature-entry, .security-kpi-grid article, .admin-kpi-grid article, .pipeline-stage, .control-plane li, .llmg-process-card, .boundary-card, .admin-module-grid a").forEach((element, index) => {
+document.querySelectorAll(".workspace-card, .portal-entry, .feature-entry, .security-kpi-grid article, .admin-kpi-grid article, .pipeline-stage, .control-plane li, .llmg-process-card, .boundary-card, .admin-module-grid a, .ndo-bento-card, .ndo-portal-card, .ndo-op-card, .ndo-benefit-grid article, .ndo-pipeline article").forEach((element, index) => {
     element.style.animationDelay = `${Math.min(index * 45, 360)}ms`;
     element.classList.add("llmg-reveal-card");
+});
+
+const revealObserver = "IntersectionObserver" in window
+    ? new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, {threshold: 0.12})
+    : null;
+
+document.querySelectorAll(".ndo-section-header, .ndo-bento-card, .ndo-portal-card, .ndo-op-card, .ndo-benefit-grid article, .ndo-pipeline article, .ndo-demo-flow li").forEach((element) => {
+    element.classList.add("ndo-reveal");
+    if (revealObserver) revealObserver.observe(element);
+    else element.classList.add("is-visible");
+});
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const neuralDefenseSpline = document.querySelector("[data-neural-defense-spline]");
+if (neuralDefenseSpline && !reducedMotion.matches && neuralDefenseSpline.querySelector("[data-neural-scene-fallback]")) {
+    const updateSceneTilt = (clientX, clientY) => {
+        const bounds = neuralDefenseSpline.getBoundingClientRect();
+        const x = Math.max(-1, Math.min(1, (clientX - bounds.left) / bounds.width * 2 - 1));
+        const y = Math.max(-1, Math.min(1, (clientY - bounds.top) / bounds.height * 2 - 1));
+        neuralDefenseSpline.style.setProperty("--scene-rotate-y", `${x * 7}deg`);
+        neuralDefenseSpline.style.setProperty("--scene-rotate-x", `${y * -6}deg`);
+        neuralDefenseSpline.style.setProperty("--scene-shift-x", `${x * 10}px`);
+        neuralDefenseSpline.style.setProperty("--scene-shift-y", `${y * 8}px`);
+        neuralDefenseSpline.style.setProperty("--scene-shift-x-neg", `${x * -10}px`);
+        neuralDefenseSpline.style.setProperty("--scene-shift-y-neg", `${y * -8}px`);
+    };
+    neuralDefenseSpline.addEventListener("pointermove", (event) => updateSceneTilt(event.clientX, event.clientY));
+    neuralDefenseSpline.addEventListener("pointerleave", () => {
+        neuralDefenseSpline.style.removeProperty("--scene-rotate-y");
+        neuralDefenseSpline.style.removeProperty("--scene-rotate-x");
+        neuralDefenseSpline.style.removeProperty("--scene-shift-x");
+        neuralDefenseSpline.style.removeProperty("--scene-shift-y");
+        neuralDefenseSpline.style.removeProperty("--scene-shift-x-neg");
+        neuralDefenseSpline.style.removeProperty("--scene-shift-y-neg");
+    });
+}
+
+const demoTabs = Array.from(document.querySelectorAll("[data-demo-tab]"));
+const activateDemoTab = (tab) => {
+    const target = tab.dataset.demoTab;
+    demoTabs.forEach((item) => {
+        const active = item === tab;
+        item.classList.toggle("active", active);
+        item.setAttribute("aria-selected", String(active));
+        item.tabIndex = active ? 0 : -1;
+    });
+    document.querySelectorAll("[data-demo-panel]").forEach((panel) => {
+        const active = panel.dataset.demoPanel === target;
+        panel.hidden = !active;
+        panel.classList.toggle("active", active);
+    });
+};
+demoTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activateDemoTab(tab));
+    tab.addEventListener("keydown", (event) => {
+        let nextIndex = index;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % demoTabs.length;
+        else if (event.key === "ArrowLeft") nextIndex = (index - 1 + demoTabs.length) % demoTabs.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = demoTabs.length - 1;
+        else return;
+        event.preventDefault();
+        activateDemoTab(demoTabs[nextIndex]);
+        demoTabs[nextIndex].focus();
+    });
 });
 
 document.querySelectorAll(".security-kpi-grid article, .admin-kpi-grid article").forEach((element) => {
@@ -39,7 +111,7 @@ document.querySelectorAll(".admin-sidebar a").forEach((link) => {
 
 document.querySelectorAll(".security-kpi-grid strong, .admin-kpi-grid strong, .audit-summary strong").forEach((element) => {
     const target = Number(element.textContent.trim());
-    if (!Number.isFinite(target) || target <= 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!Number.isFinite(target) || target <= 0 || reducedMotion.matches) return;
     const started = performance.now();
     const duration = 550;
     const tick = (now) => {

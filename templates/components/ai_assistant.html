@@ -1,8 +1,9 @@
 <section id="assistant" class="workspace-card assistant-workspace am-glass-card am-glow-border llmg-glass-card llmg-glow-border llmg-corner-bracket" data-ai-assistant>
     <div class="section-heading">
         <div>
-            <span class="llmg-section-label">[AI] LIVE SECURITY GATEWAY</span>
-            <h2>Portal AI Assistant</h2>
+            <span class="llmg-section-label">[AI] NEURAL POLICY WORKSPACE</span>
+            <h2>AI Security Workbench</h2>
+            <p class="inline-note">Observe every gate between user intent and model output.</p>
         </div>
         <div class="mode-control">
             <label for="firewall-active">Firewall mode</label>
@@ -33,12 +34,12 @@
             <span class="status-dot"></span>
             <strong data-progress-label>Gateway ready</strong>
         </div>
-        <span class="llmg-firewall-stage" data-progress-step="prompt">Prompt Firewall</span>
+        <span class="llmg-firewall-stage" data-progress-step="prompt">Intent</span>
         <span class="llmg-firewall-stage" data-progress-step="rbac">RBAC</span>
-        <span class="llmg-firewall-stage" data-progress-step="rag">RAG Filter</span>
-        <span class="llmg-firewall-stage" data-progress-step="context">Context Firewall</span>
-        <span class="llmg-firewall-stage" data-progress-step="tool">Tool Firewall</span>
-        <span class="llmg-firewall-stage" data-progress-step="output">Output Firewall</span>
+        <span class="llmg-firewall-stage" data-progress-step="rag">RAG</span>
+        <span class="llmg-firewall-stage" data-progress-step="context">Context</span>
+        <span class="llmg-firewall-stage" data-progress-step="tool">Tool</span>
+        <span class="llmg-firewall-stage" data-progress-step="output">Output</span>
     </div>
 
     <div class="assistant-result" data-assistant-result hidden>
@@ -50,6 +51,10 @@
             <span class="status-badge" data-result-action>Pending</span>
         </div>
         <div class="answer-panel" data-result-answer></div>
+        <div class="model-gate-result" data-model-gate-result>
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#chip"></use></svg>
+            <div><span>Model execution gate</span><strong data-model-gate-label>Pending decision</strong></div>
+        </div>
         <div class="security-metadata-grid">
             <div><span>Label</span><strong data-result-label>—</strong></div>
             <div><span>Action</span><strong data-result-action-text>—</strong></div>
@@ -60,25 +65,30 @@
             <div><span>Output firewall</span><strong data-result-output>—</strong></div>
             <div><span>Sanitized</span><strong data-result-sanitized>—</strong></div>
         </div>
-        <div class="result-columns">
-            <section>
-                <h4>Sources</h4>
-                <ul class="detail-list" data-result-sources></ul>
-            </section>
-            <section>
-                <h4>Human-readable reasons</h4>
-                <ul class="detail-list" data-result-reasons></ul>
-            </section>
-        </div>
+        <div class="assistant-evidence-accordion">
+        <details open>
+            <summary>Evidence</summary>
+            <ul class="detail-list" data-result-reasons></ul>
+            <pre class="technical-output" data-result-evidence></pre>
+        </details>
         <details>
-            <summary>Tool decisions and technical metadata</summary>
+            <summary>Sources</summary>
+            <ul class="detail-list" data-result-sources></ul>
+        </details>
+        <details>
+            <summary>Tool decisions</summary>
             <div class="tool-decision-grid" data-result-tool-cards></div>
             <pre class="technical-output" data-result-tools></pre>
         </details>
+        <details>
+            <summary>Raw metadata</summary>
+            <pre class="technical-output" data-result-raw></pre>
+        </details>
+        </div>
     </div>
     <div class="assistant-empty" data-assistant-empty>
         <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
-        <strong>Defense console ready</strong>
-        <span>Gateway results will appear here with security decisions, evidence, and model-call status.</span>
+        <strong>Workbench ready</strong>
+        <span>Submit a request to watch intent, access, retrieval, context, tool, and output policy stages resolve.</span>
     </div>
 </section>

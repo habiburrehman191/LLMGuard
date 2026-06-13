@@ -1,49 +1,52 @@
-**Source Visual Truth**
-- `c:\Users\Habib UR Rehman\Downloads\Gemini_Generated_Image_jfydb0jfydb0jfyd.png`
+# LLMGuard Neural Defense OS Visual QA
 
-**Implementation Evidence**
-- Wide landing screenshot: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-ultra-landing-wide-v2.png`
-- Login screenshot: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-ultra-login.png`
-- SOC screenshot: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-ultra-security.png`
-- Mobile landing screenshot: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-ultra-landing-mobile.png`
-- Final desktop landing: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-landing-desktop-final.png`
-- Final mobile menu: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-mobile-menu-open.png`
-- Protected student block: `C:\Users\Habib UR Rehman\AppData\Local\Temp\llmguard-student-blocked.png`
+## Direction
 
-**Viewport And State**
-- Desktop landing: 2048 x 1152, unauthenticated, first viewport.
-- Login: 1440 x 1000, unauthenticated secure-access terminal.
-- SOC dashboard: 1440 x 1000, authenticated synthetic `admin1` session HTML.
-- Mobile landing: 430 x 900, unauthenticated responsive first viewport.
+The active product system is an original full-width enterprise SaaS interface.
+It intentionally departs from the earlier monitor-and-shield reference. The
+first viewport uses an asymmetric neural policy core, orbital enforcement
+rings, hostile request paths, safe packet deflection, and compact operational
+telemetry.
 
-**Full-View Comparison Evidence**
-- The reference shows a curved cyber monitor with a floating glass nav, large uppercase AI-firewall hero, cyan shield/brain visual, red attack traffic, particles, radar/binary telemetry, and three glowing process cards.
-- The implementation recreates those elements with original code-native HTML/CSS/SVG: `.llmg-monitor-frame`, `.llmg-nav`, `.llmg-hero-title`, `.llmg-shield-core`, `.llmg-brain-network`, `.llmg-attack-stream`, `.llmg-process-card`, `.llmg-radar`, and `.llmg-binary`.
+## Design Sources
 
-**Focused Region Checks**
-- Hero typography: large uppercase cyan/white title, strong line-height, and reference-style title reveal.
-- Visual system: dark navy glass, cyan borders, attack red streams, amber document accents, and glowing process cards.
-- Defense visual: central shield, neural network, radar rings, binary snippets, red packet flow, cyan particles, and platform rings are present and animated.
-- Process cards: three numbered cards match the requested Hybrid Firewall, Data Isolation, and Document Scanning sequence.
-- Product surfaces: login, portal, SOC, compare, document, red-team, and audit pages inherit the same futuristic shell and remain route-backed.
+- UI/UX Pro Max research persisted in
+  `design-system/llmguard-neural-defense-os/MASTER.md`.
+- 21st.dev Magic was callable for SaaS hero and security dashboard pattern
+  research. Returned React snippets were used only as structural inspiration;
+  the implementation remains original Jinja, HTML, CSS, SVG, and JavaScript.
+- No external website assets, screenshots, CSS, logos, or component code are
+  included in the product.
 
-**Findings**
-- No actionable P0/P1/P2 mismatches remain for this implementation pass.
+## Viewports
 
-**Follow-Up Polish**
-- P3: A future art pass could add a true raster monitor stand/background scene, but the user explicitly required the shield visual itself to be HTML/CSS/SVG rather than a static generated image.
+- 1440px desktop landing and admin views
+- 1366px laptop portal views
+- 430px and 390px mobile landing/login views
 
-**Patches Made Since Previous QA Pass**
-- Moved landing navigation inside the monitor frame.
-- Increased shield prominence and attack stream density.
-- Added cyan mesh, radar, binary telemetry, forcefield shimmer, and process-card electric arc.
-- Added secure login terminal styling and shared ultra `llmg-*` primitives.
-- Updated asset versioning and route tests.
-- Added gateway-state and live-risk hero telemetry.
-- Added an accessible mobile menu with visible toggle, Escape dismissal, and
-  synchronized `aria-expanded` state.
-- Added narrated Prompt, RBAC, RAG, Context, Tool, and Output assistant states.
-- Verified a protected malicious student prompt renders `block`,
-  `llm_called=false`, and `Threat blocked before release`.
+## Acceptance Checks
 
-**final result: passed**
+- No horizontal viewport overflow.
+- Mobile navigation remains visible and updates `aria-expanded`.
+- Motion is noticeable within five seconds while reading surfaces remain stable.
+- The assistant blocked state says Qwen was skipped before the model call.
+- Document scans, SOC stages, risk rings, and audit timelines use restrained motion.
+- `prefers-reduced-motion` disables continuous decorative movement.
+- Product assets return HTTP 200 and use cache-busting version `16`.
+- `/app` redirects to `/login`; the retired console is not a primary surface.
+- Student and employee boundaries remain role-isolated.
+- Vulnerable mode remains gated by local red-team configuration.
+
+## Functional Evidence
+
+Rendered QA must cover:
+
+1. Desktop and 390px landing page.
+2. Login page and mobile menu behavior.
+3. Student dashboard after synthetic login.
+4. Super Admin dashboard.
+5. Security Dashboard and event detail controls.
+6. Compare Lab.
+7. A protected malicious request showing `llm_called=false`.
+
+Temporary QA servers and browser processes must be stopped before completion.

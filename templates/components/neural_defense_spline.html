@@ -1,0 +1,74 @@
+<div id="NeuralDefenseSpline" class="ndo-command-visual neural-defense-spline" data-neural-defense-spline aria-label="Interactive Neural Defense command center">
+    {% if spline_scene_url %}
+    <div class="ndo-spline-embed">
+        <iframe
+            src="{{ spline_scene_url }}"
+            title="LLMGuard Neural Defense interactive 3D scene"
+            loading="eager"
+            referrerpolicy="no-referrer"
+            allow="fullscreen"
+        ></iframe>
+        <span class="ndo-spline-status"><i></i> Live Spline scene</span>
+    </div>
+    {% else %}
+    <div class="ndo-orbit-stage" data-neural-scene-fallback>
+        <div class="ndo-depth-layer depth-back" aria-hidden="true"></div>
+        <div class="ndo-orbit orbit-one"><span></span><span></span></div>
+        <div class="ndo-orbit orbit-two"><span></span><span></span><span></span></div>
+        <div class="ndo-orbit orbit-three"></div>
+        <div class="ndo-neural-core">
+            <svg viewBox="0 0 280 280" role="img" aria-label="Neural firewall core">
+                <defs>
+                    <radialGradient id="coreGlow">
+                        <stop offset="0" stop-color="#ecfeff"/>
+                        <stop offset=".35" stop-color="#22d3ee"/>
+                        <stop offset="1" stop-color="#07111f" stop-opacity=".2"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="140" cy="140" r="72" fill="url(#coreGlow)" opacity=".2"/>
+                <g class="ndo-neural-lines">
+                    <path d="M75 112 116 82l50 13 37 42-24 55-57 12-47-35Z"/>
+                    <path d="m116 82 6 122m44-109-91 74m128-32-128-25m104 80-63-110"/>
+                </g>
+                <g class="ndo-neural-nodes">
+                    <circle cx="75" cy="112" r="7"/><circle cx="116" cy="82" r="8"/>
+                    <circle cx="166" cy="95" r="7"/><circle cx="203" cy="137" r="8"/>
+                    <circle cx="179" cy="192" r="7"/><circle cx="122" cy="204" r="8"/>
+                    <circle cx="75" cy="169" r="7"/><circle cx="140" cy="140" r="12"/>
+                </g>
+            </svg>
+            <span>AI</span>
+            <small>policy core</small>
+        </div>
+        <div class="ndo-shield-shell" aria-hidden="true"></div>
+        <div class="ndo-threat-path threat-one"><i></i><b>override</b></div>
+        <div class="ndo-threat-path threat-two"><i></i><b>exfiltrate</b></div>
+        <div class="ndo-safe-path safe-one"><i></i><i></i><i></i></div>
+        <div class="ndo-safe-path safe-two"><i></i><i></i></div>
+        <div class="ndo-depth-layer depth-front" aria-hidden="true"></div>
+    </div>
+
+    <article class="ndo-float-panel panel-score">
+        <span>Live Risk</span>
+        <div class="ndo-score-ring"><strong>04</strong><small>/100</small></div>
+        <b><i></i> Protected</b>
+    </article>
+    <article class="ndo-float-panel panel-model">
+        <svg><use href="/static/llmguard-icons.svg#chip"></use></svg>
+        <div><span>Model Call Gate</span><strong>Policy controlled</strong></div>
+    </article>
+    <article class="ndo-float-panel panel-rag">
+        <svg><use href="/static/llmguard-icons.svg#database"></use></svg>
+        <div><span>RAG Boundary</span><strong>Role isolated</strong></div>
+    </article>
+    <article class="ndo-float-panel panel-tool">
+        <svg><use href="/static/llmguard-icons.svg#tool"></use></svg>
+        <div><span>Tool Policy</span><strong>Enforced</strong></div>
+    </article>
+    <article class="ndo-float-panel panel-dlp">
+        <svg><use href="/static/llmguard-icons.svg#output"></use></svg>
+        <div><span>Output DLP</span><strong>Armed</strong></div>
+    </article>
+    <span class="ndo-spline-status fallback"><i></i> Interactive fallback scene</span>
+    {% endif %}
+</div>

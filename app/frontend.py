@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
@@ -19,7 +20,19 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "15"
+ASSET_VERSION = "17"
+
+
+def _safe_spline_scene_url(raw_url: str) -> str:
+    if not raw_url:
+        return ""
+    parsed = urlparse(raw_url)
+    hostname = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not (
+        hostname == "spline.design" or hostname.endswith(".spline.design")
+    ):
+        return ""
+    return raw_url
 
 
 def _risk_band(risk_score: float) -> str:
@@ -39,10 +52,11 @@ def landing(request: Request) -> HTMLResponse:
         request=request,
         name="landing.html",
         context={
-            "page_title": "LLMGuard Zero-Trust AI Firewall",
+            "page_title": "LLMGuard Neural Defense OS",
             "asset_version": ASSET_VERSION,
             "firewall_active": settings.firewall_active,
             "redteam_enabled": settings.redteam_mode or settings.app_env == "local_redteam",
+            "spline_scene_url": _safe_spline_scene_url(settings.spline_scene_url),
         },
     )
 
