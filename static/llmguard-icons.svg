@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
   <symbol id="shield" viewBox="0 0 24 24">
     <path d="M12 2 20 5v6c0 5-3.2 8.7-8 11-4.8-2.3-8-6-8-11V5l8-3Z"/>
     <path d="m8.5 12 2.2 2.2 4.8-5"/>
@@ -87,5 +87,8 @@
   <symbol id="neural" viewBox="0 0 24 24">
     <circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="18" r="2"/>
     <path d="m7 6 3.5 4.5M17 7l-3.5 3.5M10.5 13.5 7 18M13.5 13.5 17 17"/>
+  </symbol>
+  <symbol id="arrow" viewBox="0 0 24 24">
+    <path d="M5 12h14M14 7l5 5-5 5"/>
   </symbol>
 </svg>

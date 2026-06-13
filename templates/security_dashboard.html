@@ -16,18 +16,18 @@
         </header>
 
         <section class="security-kpi-grid">
-            <article><span>Total queries</span><strong>{{ metrics.total_queries }}</strong><small>All gateway requests</small></article>
-            <article><span>Allowed</span><strong>{{ metrics.action_counts.get("allow", 0) }}</strong><small>Released responses</small></article>
-            <article><span>Blocked</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong><small>Stopped before release</small></article>
-            <article><span>Quarantined</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong><small>Held for investigation</small></article>
-            <article><span>Sanitized</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong><small>Unsafe content removed</small></article>
-            <article><span>Prompt firewall</span><strong>{{ metrics.zero_trust_metrics.prompt_firewall_blocks }}</strong><small>Prompt-stage blocks</small></article>
-            <article><span>Access policy</span><strong>{{ metrics.zero_trust_metrics.access_policy_blocks }}</strong><small>Role/classification blocks</small></article>
-            <article><span>DLP blocks</span><strong>{{ stage_counts.dlp_blocks }}</strong><small>Sensitive-data controls</small></article>
-            <article><span>Tool firewall</span><strong>{{ metrics.zero_trust_metrics.tool_firewall_blocks }}</strong><small>Unauthorized tools</small></article>
-            <article><span>Output firewall</span><strong>{{ metrics.zero_trust_metrics.output_firewall_blocks }}</strong><small>Unsafe model outputs</small></article>
-            <article><span>Canary attempts</span><strong>{{ metrics.zero_trust_metrics.canary_leakage_attempts }}</strong><small>Leakage traps detected</small></article>
-            <article><span>Unauthorized retrieval</span><strong>{{ metrics.zero_trust_metrics.unauthorized_retrieval_attempts }}</strong><small>Filtered RAG candidates</small></article>
+            <article class="metric-card product-card"><span>Total queries</span><strong>{{ metrics.total_queries }}</strong><small>All gateway requests</small></article>
+            <article class="metric-card product-card"><span>Allowed</span><strong>{{ metrics.action_counts.get("allow", 0) }}</strong><small>Released responses</small></article>
+            <article class="metric-card product-card"><span>Blocked</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong><small>Stopped before release</small></article>
+            <article class="metric-card product-card"><span>Quarantined</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong><small>Held for investigation</small></article>
+            <article class="metric-card product-card"><span>Sanitized</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong><small>Unsafe content removed</small></article>
+            <article class="metric-card product-card"><span>Prompt firewall</span><strong>{{ metrics.zero_trust_metrics.prompt_firewall_blocks }}</strong><small>Prompt-stage blocks</small></article>
+            <article class="metric-card product-card"><span>Access policy</span><strong>{{ metrics.zero_trust_metrics.access_policy_blocks }}</strong><small>Role/classification blocks</small></article>
+            <article class="metric-card product-card"><span>DLP blocks</span><strong>{{ stage_counts.dlp_blocks }}</strong><small>Sensitive-data controls</small></article>
+            <article class="metric-card product-card"><span>Tool firewall</span><strong>{{ metrics.zero_trust_metrics.tool_firewall_blocks }}</strong><small>Unauthorized tools</small></article>
+            <article class="metric-card product-card"><span>Output firewall</span><strong>{{ metrics.zero_trust_metrics.output_firewall_blocks }}</strong><small>Unsafe model outputs</small></article>
+            <article class="metric-card product-card"><span>Canary attempts</span><strong>{{ metrics.zero_trust_metrics.canary_leakage_attempts }}</strong><small>Leakage traps detected</small></article>
+            <article class="metric-card product-card"><span>Unauthorized retrieval</span><strong>{{ metrics.zero_trust_metrics.unauthorized_retrieval_attempts }}</strong><small>Filtered RAG candidates</small></article>
         </section>
 
         <section class="pipeline-visual" aria-label="LLMGuard security pipeline">

@@ -546,12 +546,12 @@ Frontend motion remains CSS/JavaScript-only and respects
 .\.venv\Scripts\python.exe -m unittest tests.test_product_frontend tests.test_frontend tests.test_portals -v
 ```
 
-### Neural Defense OS Visual Reset
+### LLMGuard Premium Product Interface
 
-The visible product shell now uses a distinct SaaS identity named **LLMGuard
-Neural Defense OS**. This pass replaces the earlier monitor-and-shield landing
-composition with an asymmetric command-center hero built from original HTML,
-CSS, and inline SVG.
+The visible product brand remains **LLMGuard**. **Neural Defense OS** is used
+only as the product mode subtitle for the dark cybersecurity SaaS interface.
+The current shell uses an asymmetric command-center hero built from original
+HTML, CSS, and inline SVG.
 
 The refreshed interface includes:
 
@@ -566,7 +566,9 @@ The refreshed interface includes:
   skipped, including the message `Qwen skipped / blocked before model call`.
 - Motion-enhanced document scanning, comparison, SOC metrics, policy stages,
   and audit timelines with `prefers-reduced-motion` support.
-- Cache-busted product assets using UI asset version `17`.
+- A consistent premium card and icon system with readable metadata, restrained
+  glass surfaces, and balanced dashboard density.
+- Cache-busted product assets using UI asset version `18`.
 
 The landing hero renders the reusable
 `templates/components/neural_defense_spline.html` component. By default it
@@ -582,7 +584,7 @@ Invalid or non-Spline URLs are ignored and the local fallback remains active.
 Primary routes remain unchanged:
 
 ```text
-/                         Neural Defense OS landing page
+/                         LLMGuard AI Firewall landing page
 /login                    Secure synthetic identity access
 /student/dashboard        Student workspace
 /employee/dashboard       Employee workspace

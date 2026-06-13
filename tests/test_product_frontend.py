@@ -35,7 +35,8 @@ class ProductFrontendTests(unittest.TestCase):
     def test_landing_page_renders(self) -> None:
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        self.assertIn("LLMGuard Neural Defense OS", response.text)
+        self.assertIn("LLMGuard", response.text)
+        self.assertIn("Zero-Trust AI Firewall", response.text)
         self.assertIn("AI FIREWALL PLATFORM", response.text)
         self.assertIn("ZERO-TRUST AI PIPELINE", response.text)
         self.assertIn("Live Risk", response.text)
@@ -51,7 +52,7 @@ class ProductFrontendTests(unittest.TestCase):
     def test_login_page_renders(self) -> None:
         response = self.client.get("/login")
         self.assertEqual(200, response.status_code)
-        self.assertIn("Enter the Neural Defense OS", response.text)
+        self.assertIn("Secure access to LLMGuard", response.text)
         self.assertIn("student1", response.text)
         self.assertIn("admin1", response.text)
 
@@ -116,7 +117,7 @@ class ProductFrontendTests(unittest.TestCase):
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
                 self.assertIn("Protected Mode", response.text)
-                self.assertIn("/static/portal.css?v=17", response.text)
+                self.assertIn("/static/portal.css?v=18", response.text)
 
     def test_security_dashboard_renders(self) -> None:
         self._login("admin1", "Admin@123")

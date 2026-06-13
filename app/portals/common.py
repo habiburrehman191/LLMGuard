@@ -29,7 +29,7 @@ from app.rbac import can_access_classification, can_access_portal, enforce_porta
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-ASSET_VERSION = "17"
+ASSET_VERSION = "18"
 FIREWALL_ACTIVE = True
 
 

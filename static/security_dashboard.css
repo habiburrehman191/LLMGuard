@@ -124,3 +124,119 @@
 @media (max-width: 540px) {
     .security-kpi-grid, .filter-bar, .audit-summary, .modal-grid, .pipeline-visual, .soc-analysis-grid { grid-template-columns: 1fr; }
 }
+
+/* Premium SOC correction */
+.security-body .product-page {
+    padding-top: 54px;
+}
+
+.security-header {
+    gap: 24px;
+}
+
+.live-status {
+    min-width: 230px;
+    padding: 14px 16px;
+    border-radius: 13px;
+}
+
+.live-status small,
+.critical-count {
+    font-size: .84rem;
+}
+
+.security-kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 13px;
+    margin-bottom: 0;
+}
+
+.security-kpi-grid article {
+    min-height: 142px;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.security-kpi-grid span,
+.security-kpi-grid small {
+    font-size: .88rem;
+}
+
+.security-kpi-grid strong {
+    font-size: 2.2rem;
+}
+
+.pipeline-visual {
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.pipeline-stage {
+    min-height: 122px;
+    padding: 17px 13px;
+}
+
+.pipeline-stage strong {
+    font-size: 1.02rem;
+}
+
+.pipeline-stage small {
+    font-size: .88rem;
+}
+
+.soc-analysis-grid {
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.soc-bar-list span,
+.soc-action-grid span {
+    font-size: .92rem;
+}
+
+.event-workspace > .section-heading {
+    padding: 24px 24px 6px;
+}
+
+.filter-bar {
+    gap: 12px;
+}
+
+.filter-bar label,
+.security-table,
+.modal-grid span,
+.timeline-heading small,
+.timeline-card p {
+    font-size: .9rem;
+}
+
+.security-table th {
+    font-size: .82rem;
+}
+
+.security-table td {
+    min-height: 54px;
+    font-size: .9rem;
+}
+
+@media (max-width: 1150px) {
+    .security-kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 780px) {
+    .security-body .product-page {
+        padding-top: 28px;
+    }
+
+    .security-kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 540px) {
+    .security-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}

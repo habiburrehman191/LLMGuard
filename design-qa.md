@@ -1,8 +1,9 @@
-# LLMGuard Neural Defense OS Visual QA
+# LLMGuard Premium Interface Visual QA
 
 ## Direction
 
-The active product system is an original full-width enterprise SaaS interface.
+The active product system is an original full-width LLMGuard enterprise SaaS
+interface. Neural Defense OS is a mode subtitle, never the primary brand.
 It intentionally departs from the earlier monitor-and-shield reference. The
 first viewport uses an asymmetric neural policy core, orbital enforcement
 rings, hostile request paths, safe packet deflection, and compact operational
@@ -12,8 +13,9 @@ telemetry.
 
 - UI/UX Pro Max research persisted in
   `design-system/llmguard-neural-defense-os/MASTER.md`.
-- 21st.dev Magic was callable for SaaS hero and security dashboard pattern
-  research. Returned React snippets were used only as structural inspiration;
+- 21st.dev Magic was callable for premium navigation, feature-card, and SOC
+  dashboard pattern research. Returned React snippets were used only as
+  structural inspiration;
   the implementation remains original Jinja, HTML, CSS, SVG, and JavaScript.
 - No external website assets, screenshots, CSS, logos, or component code are
   included in the product.
@@ -32,7 +34,10 @@ telemetry.
 - The assistant blocked state says Qwen was skipped before the model call.
 - Document scans, SOC stages, risk rings, and audit timelines use restrained motion.
 - `prefers-reduced-motion` disables continuous decorative movement.
-- Product assets return HTTP 200 and use cache-busting version `16`.
+- Product assets return HTTP 200 and use cache-busting version `18`.
+- The main brand, navigation lockup, footer, and page title identify LLMGuard.
+- Body copy is at least 16px and metadata remains readable at 13px or larger.
+- Product icons use visible cyan, white, green, amber, or red strokes.
 - `/app` redirects to `/login`; the retired console is not a primary surface.
 - Student and employee boundaries remain role-isolated.
 - Vulnerable mode remains gated by local red-team configuration.

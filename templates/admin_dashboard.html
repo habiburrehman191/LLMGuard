@@ -27,18 +27,18 @@
         </header>
 
         <section class="admin-kpi-grid">
-            <article><span>Student records</span><strong>{{ record_summary.student }}</strong><small>Synthetic student scope</small></article>
-            <article><span>Employee records</span><strong>{{ record_summary.employee }}</strong><small>Synthetic employee scope</small></article>
-            <article><span>Admin records</span><strong>{{ record_summary.admin }}</strong><small>Internal synthetic scope</small></article>
-            <article class="restricted-kpi"><span>Restricted secret</span><strong>Never</strong><small>Never sent to Qwen</small></article>
+            <article class="metric-card product-card"><span>Student records</span><strong>{{ record_summary.student }}</strong><small>Synthetic student scope</small></article>
+            <article class="metric-card product-card"><span>Employee records</span><strong>{{ record_summary.employee }}</strong><small>Synthetic employee scope</small></article>
+            <article class="metric-card product-card"><span>Admin records</span><strong>{{ record_summary.admin }}</strong><small>Internal synthetic scope</small></article>
+            <article class="metric-card product-card restricted-kpi"><span>Restricted secret</span><strong>Never</strong><small>Never sent to Qwen</small></article>
         </section>
 
         <section class="admin-module-grid">
-            <a href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>Security Dashboard</strong><p>KPI trends, critical events, detector signals, and investigation details.</p></a>
-            <a href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Mode analysis</span><strong>Compare Lab</strong><p>Run one prompt through vulnerable and protected gateway paths side by side.</p></a>
-            <a href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG governance</span><strong>Document Manager</strong><p>Upload, classify, inspect chunks, rebuild FAISS, and remove controlled files.</p></a>
-            <a href="/admin/redteam"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Adversarial testing</span><strong>Red-Team Lab</strong><p>Review structured attack cases and runner availability.</p></a>
-            <a href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Accountability</span><strong>Audit Logs</strong><p>Trace interactions, firewall events, tool calls, and repository changes.</p></a>
+            <a class="product-card soc-card" href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>Security Dashboard</strong><p>KPI trends, critical events, detector signals, and investigation details.</p></a>
+            <a class="product-card soc-card" href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Mode analysis</span><strong>Compare Lab</strong><p>Run one prompt through vulnerable and protected gateway paths side by side.</p></a>
+            <a class="product-card soc-card" href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG governance</span><strong>Document Manager</strong><p>Upload, classify, inspect chunks, rebuild FAISS, and remove controlled files.</p></a>
+            <a class="product-card soc-card" href="/admin/redteam"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Adversarial testing</span><strong>Red-Team Lab</strong><p>Review structured attack cases and runner availability.</p></a>
+            <a class="product-card soc-card" href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Accountability</span><strong>Audit Logs</strong><p>Trace interactions, firewall events, tool calls, and repository changes.</p></a>
         </section>
 
         <div class="portal-workspace-grid admin-workspace">

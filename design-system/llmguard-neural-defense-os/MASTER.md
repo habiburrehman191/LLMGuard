@@ -6,7 +6,7 @@
 
 ---
 
-**Project:** LLMGuard Neural Defense OS
+**Project:** LLMGuard
 **Generated:** 2026-06-12 00:27:03
 **Category:** Cybersecurity Platform
 
@@ -25,6 +25,21 @@ than a terminal, game, or crypto dashboard. Continuous motion belongs in the
 hero data system, policy pipelines, scanning states, and live telemetry.
 Reading surfaces remain stable. Long text uses Inter/Sora/system-ui; mono type
 is reserved for counters, labels, IDs, and evidence.
+
+### Brand Lock
+
+- The primary product name is **LLMGuard**.
+- **Neural Defense OS** appears only as a small subtitle, mode label, or
+  section tagline.
+- Navigation, page identity, footer, and documentation lead with LLMGuard.
+
+### Premium Correction
+
+UI/UX Pro Max research was applied through a disciplined modular type scale,
+clear navigation grouping, 16px minimum body copy, visible SVG icon
+containers, consistent card padding, restrained hover lift, and reduced dead
+space. The implementation keeps Inter, Sora, Space Grotesk, and system fonts
+so the interface does not depend on external font delivery.
 
 ### Project Tokens
 
@@ -186,13 +201,13 @@ is reserved for counters, labels, IDs, and evidence.
 
 ## Style Guidelines
 
-**Style:** Cyberpunk UI
+**Style:** Premium AI Cybersecurity SaaS
 
-**Keywords:** Neon, dark mode, terminal, HUD, sci-fi, glitch, dystopian, futuristic, matrix, tech noir
+**Keywords:** Dark SaaS, AI-native, restrained HUD, glassmorphism, dimensional cards, live SOC
 
-**Best For:** Gaming platforms, tech products, crypto apps, sci-fi applications, developer tools, entertainment
+**Best For:** AI security platforms, SOC dashboards, policy workbenches, controlled product demos
 
-**Key Effects:** Neon glow (text-shadow), glitch animations (skew/offset), scanlines (::before overlay), terminal fonts
+**Key Effects:** Subtle cyan glow, scan sweeps, orbital telemetry, readable motion, stable content surfaces
 
 ### Page Pattern
 
