@@ -117,7 +117,7 @@ class ProductFrontendTests(unittest.TestCase):
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
                 self.assertIn("Protected Mode", response.text)
-                self.assertIn("/static/portal.css?v=18", response.text)
+                self.assertIn("/static/portal.css?v=19", response.text)
 
     def test_security_dashboard_renders(self) -> None:
         self._login("admin1", "Admin@123")
