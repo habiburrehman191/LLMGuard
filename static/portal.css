@@ -885,3 +885,153 @@
         padding: 22px;
     }
 }
+
+/* Precision layout correction: portal command surfaces */
+.portal-page,
+.product-page {
+    width: min(1180px, calc(100% - 40px));
+    max-width: none;
+    margin-right: auto;
+    margin-left: auto;
+    padding: 42px 0 68px;
+}
+
+.portal-shell {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: 218px minmax(0, 1fr);
+    gap: 24px;
+}
+
+.portal-main {
+    min-width: 0;
+}
+
+.portal-header,
+.page-header {
+    min-height: 180px;
+    padding: 30px 32px;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.portal-header::before,
+.portal-header::after,
+.page-header::before,
+.page-header::after {
+    display: none;
+}
+
+.portal-header h1,
+.page-header h1 {
+    max-width: 760px;
+    margin: 10px 0 12px;
+    font-size: clamp(2.1rem, 4vw, 3.8rem);
+    line-height: 1.06;
+    letter-spacing: -.045em;
+    text-wrap: balance;
+}
+
+.portal-header p,
+.page-header p {
+    max-width: 720px;
+    font-size: 1rem;
+    line-height: 1.68;
+}
+
+.identity-panel,
+.live-status {
+    min-width: 210px;
+    padding: 16px 18px;
+}
+
+.admin-kpi-grid,
+.admin-module-grid,
+.portal-workspace-grid {
+    gap: 22px;
+}
+
+.admin-kpi-grid article {
+    min-height: 140px;
+    padding: 24px;
+}
+
+.admin-module-grid a {
+    min-height: 196px;
+    padding: 26px;
+}
+
+.workspace-card,
+.assistant-workspace {
+    padding: 30px;
+}
+
+.section-heading h2 {
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    line-height: 1.15;
+}
+
+.section-heading p,
+.workspace-card p,
+.workspace-card li,
+.assistant-workspace p,
+.assistant-workspace label {
+    font-size: 1rem;
+    line-height: 1.68;
+}
+
+.assistant-progress [data-progress-step] {
+    min-height: 66px;
+    font-size: .84rem;
+}
+
+.assistant-result,
+.security-metadata-grid > div {
+    font-size: .92rem;
+    line-height: 1.58;
+}
+
+@media (max-width: 1120px) {
+    .portal-shell {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 820px) {
+    .portal-page,
+    .product-page {
+        width: min(100% - 28px, 1180px);
+        padding: 34px 0 54px;
+    }
+
+    .portal-header,
+    .page-header {
+        min-height: 0;
+        padding: 26px;
+        grid-template-columns: 1fr;
+    }
+
+    .portal-header h1,
+    .page-header h1 {
+        font-size: clamp(2.1rem, 9vw, 3rem);
+    }
+
+    .identity-panel,
+    .live-status {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .admin-kpi-grid,
+    .admin-module-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workspace-card,
+    .assistant-workspace {
+        padding: 24px;
+    }
+}

@@ -88,7 +88,7 @@ class FrontendRouteTests(unittest.TestCase):
         response = self.client.get("/app")
         self.assertEqual(200, response.status_code)
         self.assertIn("Secure access to LLMGuard", response.text)
-        self.assertIn("/static/product.css?v=19", response.text)
+        self.assertIn("/static/product.css?v=20", response.text)
 
     def test_dashboard_page_renders_live_log_data(self) -> None:
         response = self.client.get("/admin/security-dashboard")
@@ -97,7 +97,7 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("Monitor enforcement outcomes", response.text)
         self.assertIn("What is the reimbursement deadline?", response.text)
         self.assertIn("docs/clean/reimbursement_policy.txt", response.text)
-        self.assertIn("/static/security_dashboard.js?v=19", response.text)
+        self.assertIn("/static/security_dashboard.js?v=20", response.text)
         self.assertIn("Telemetry live", response.text)
 
     def test_dashboard_data_endpoint_returns_metrics(self) -> None:

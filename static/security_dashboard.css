@@ -332,3 +332,40 @@
     opacity: .72;
     animation: none;
 }
+
+/* Precision layout correction: SOC density and hierarchy */
+.security-kpi-grid,
+.soc-analysis-grid {
+    gap: 22px;
+}
+
+.security-kpi-grid article {
+    min-height: 138px;
+    padding: 24px;
+}
+
+.pipeline-visual {
+    gap: 16px;
+}
+
+.pipeline-stage {
+    min-height: 122px;
+    padding: 18px 15px;
+}
+
+.pipeline-stage strong {
+    font-size: 1.02rem;
+    line-height: 1.2;
+}
+
+.pipeline-stage small,
+.filter-bar label,
+.security-table th,
+.security-table td {
+    font-size: .9rem;
+    line-height: 1.5;
+}
+
+.event-workspace > .section-heading {
+    padding: 26px 26px 8px;
+}

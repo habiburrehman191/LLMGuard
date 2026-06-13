@@ -1,4 +1,4 @@
-<header class="product-nav am-tech-nav llmg-nav">
+<header class="product-nav am-tech-nav llmg-nav {{ 'is-authenticated' if user else 'is-public' }}">
     <a class="brand-lockup" href="/" aria-label="LLMGuard home">
         <span class="brand-mark">
             <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
@@ -14,6 +14,7 @@
     </button>
     <nav id="product-navigation" aria-label="Primary navigation" data-product-nav-menu>
         {% if user %}
+            <div class="nav-links">
             {% if user.role.value == "student" %}
             <a href="/student/dashboard">Student Portal</a>
             {% elif user.role.value == "employee" %}
@@ -26,12 +27,15 @@
             <a href="/admin/redteam">Red-Team</a>
             <a href="/admin/audit">Audit</a>
             {% endif %}
+            </div>
             <button class="nav-action" type="button" data-logout>Sign out</button>
         {% else %}
+            <div class="nav-links">
             <a href="/#technology">Platform</a>
             <a href="/#portals">Portals</a>
             <a href="/#features">Pipeline</a>
             <a href="/#demo">Operations</a>
+            </div>
             <a class="nav-action" href="/login"><span>Launch console</span><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a>
         {% endif %}
     </nav>
