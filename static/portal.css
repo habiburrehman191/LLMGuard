@@ -1035,3 +1035,89 @@
         padding: 24px;
     }
 }
+
+/* Final precision pass: dashboard readability and title hierarchy */
+.portal-header h1,
+.page-header h1,
+.am-gradient-title {
+    background: linear-gradient(90deg, #fff 4%, #a5f3fc 54%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(34, 211, 238, .14);
+}
+
+.portal-header,
+.page-header {
+    padding: 30px 32px;
+    border-color: rgba(103, 232, 249, .17);
+    background: linear-gradient(145deg, rgba(9, 22, 40, .92), rgba(4, 12, 24, .78));
+}
+
+.portal-header > div:first-child,
+.page-header > div:first-child {
+    min-width: 0;
+}
+
+.portal-header p,
+.page-header p,
+.admin-module-grid p,
+.workspace-card p,
+.workspace-card li,
+.assistant-workspace p,
+.assistant-workspace label {
+    font-size: 1rem;
+    line-height: 1.68;
+}
+
+.admin-module-grid a,
+.workspace-card,
+.assistant-workspace {
+    padding: 28px;
+}
+
+.admin-module-grid span {
+    font-size: .82rem;
+    letter-spacing: .08em;
+}
+
+.admin-module-grid strong {
+    font-size: 1.3rem;
+    line-height: 1.2;
+}
+
+.identity-panel,
+.live-status {
+    align-self: center;
+    margin: 0;
+}
+
+.shell-status-inner {
+    gap: 18px;
+}
+
+.shell-status-inner .badge-row {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.assistant-progress [data-progress-step] {
+    font-size: .88rem;
+}
+
+.assistant-result,
+.security-metadata-grid > div,
+.assistant-evidence-accordion summary {
+    font-size: .94rem;
+}
+
+@media (max-width: 820px) {
+    .portal-header,
+    .page-header {
+        padding: 26px;
+    }
+
+    .shell-status-inner .badge-row {
+        justify-content: center;
+    }
+}

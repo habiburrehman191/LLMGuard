@@ -20,7 +20,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "20"
+ASSET_VERSION = "22"
 
 
 def _safe_spline_scene_url(raw_url: str) -> str:

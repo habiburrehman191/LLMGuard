@@ -369,3 +369,31 @@
 .event-workspace > .section-heading {
     padding: 26px 26px 8px;
 }
+
+/* Final precision pass: readable SOC surfaces */
+.security-kpi-grid article,
+.pipeline-stage,
+.soc-analysis-grid > article,
+.event-workspace {
+    border-color: rgba(103, 232, 249, .16);
+}
+
+.security-kpi-grid span,
+.security-kpi-grid small,
+.pipeline-stage small,
+.soc-bar-list span,
+.soc-action-grid span,
+.security-table th,
+.security-table td,
+.filter-bar label {
+    font-size: max(.9rem, 14px);
+}
+
+.pipeline-stage {
+    padding: 20px 17px;
+    background: linear-gradient(155deg, rgba(9, 22, 40, .92), rgba(4, 12, 24, .78));
+}
+
+.pipeline-stage strong {
+    font-size: 1.05rem;
+}

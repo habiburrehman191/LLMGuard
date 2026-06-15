@@ -44,17 +44,22 @@ class ProductFrontendTests(unittest.TestCase):
         self.assertIn("Policy Outcome Simulator", response.text)
         self.assertIn("Controlled Evidence Flow", response.text)
         self.assertIn("AI FIREWALL PLATFORM", response.text)
-        self.assertIn("ZERO-TRUST AI PIPELINE", response.text)
+        self.assertIn("[03] Zero-Trust AI Pipeline", response.text)
         self.assertIn("Live Risk", response.text)
         self.assertIn("data-nav-toggle", response.text)
         self.assertIn('class="nav-links"', response.text)
+        self.assertIn('class="product-nav-inner"', response.text)
+        self.assertIn('class="hero-title"', response.text)
         self.assertIn("Student Workspace", response.text)
         self.assertIn("Compare Lab", response.text)
         self.assertIn('id="NeuralDefenseSpline"', response.text)
-        self.assertIn("INTERACTIVE PRODUCT DEMO", response.text)
+        self.assertIn("[05] Policy Outcome Simulator", response.text)
         self.assertIn('role="tab"', response.text)
         self.assertIn("Context Scan", response.text)
         self.assertIn("Qwen Skipped When Blocked", response.text)
+        self.assertEqual(6, response.text.count('class="section-title"'))
+        self.assertEqual(6, response.text.count('class="flow-step-marker"'))
+        self.assertIn('class="ndo-footer-description"', response.text)
 
     def test_login_page_renders(self) -> None:
         response = self.client.get("/login")
@@ -124,7 +129,7 @@ class ProductFrontendTests(unittest.TestCase):
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
                 self.assertIn("Protected Mode", response.text)
-                self.assertIn("/static/portal.css?v=20", response.text)
+                self.assertIn("/static/portal.css?v=22", response.text)
 
     def test_security_dashboard_renders(self) -> None:
         self._login("admin1", "Admin@123")
