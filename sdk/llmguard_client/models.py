@@ -30,3 +30,18 @@ class HeartbeatResult:
     integration_state: str | None = None
     last_heartbeat_at: str | None = None
     error: LLMGuardClientError | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class InputInspectionResult:
+    ok: bool
+    request_id: str | None = None
+    stage: str | None = None
+    decision: str | None = None
+    classification: str | None = None
+    threat_type: str | None = None
+    severity: str | None = None
+    risk_score: float | None = None
+    action: str | None = None
+    reasons: tuple[str, ...] = ()
+    error: LLMGuardClientError | None = None

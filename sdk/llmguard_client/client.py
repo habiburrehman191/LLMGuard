@@ -6,10 +6,16 @@ from typing import Any
 
 import httpx
 
-from .models import ClientErrorCode, HeartbeatResult, LLMGuardClientError
+from .models import (
+    ClientErrorCode,
+    HeartbeatResult,
+    InputInspectionResult,
+    LLMGuardClientError,
+)
 
 
 HEARTBEAT_PATH = "/api/v1/integrations/heartbeat"
+GUARD_PATH = "/api/v1/guard"
 
 
 class LLMGuardClient:
@@ -60,12 +66,90 @@ class LLMGuardClient:
             "timestamp": heartbeat_time.isoformat(),
             "channels": _normalize_channels(channels),
         }
+        response_data, error = await self._post_json(
+            HEARTBEAT_PATH,
+            payload,
+            operation="heartbeat",
+            http_client=http_client,
+        )
+        if error is not None:
+            return HeartbeatResult(ok=False, error=error)
+
+        if not _is_valid_heartbeat_response(response_data, self.application_id):
+            return _failure(
+                ClientErrorCode.INVALID_RESPONSE,
+                "LLMGuard returned an invalid heartbeat response.",
+            )
+
+        return HeartbeatResult(
+            ok=True,
+            accepted=True,
+            application_id=self.application_id,
+            integration_state=response_data["integration_state"],
+            last_heartbeat_at=response_data["last_heartbeat_at"],
+        )
+
+    async def inspect_input(
+        self,
+        *,
+        request_id: str,
+        channel: str,
+        content: str,
+        security_context: Mapping[str, Any],
+        http_client: httpx.AsyncClient | None = None,
+    ) -> InputInspectionResult:
+        payload = {
+            "application_id": self.application_id,
+            "request_id": _required_text(request_id, "request_id"),
+            "channel": _required_text(channel, "channel").lower(),
+            "stage": "input",
+            "content": _required_content(content),
+            "security_context": dict(security_context),
+        }
+        response_data, error = await self._post_json(
+            GUARD_PATH,
+            payload,
+            operation="input inspection",
+            http_client=http_client,
+        )
+        if error is not None:
+            return InputInspectionResult(ok=False, error=error)
+
+        if not _is_valid_input_response(response_data, payload["request_id"]):
+            return InputInspectionResult(
+                ok=False,
+                error=LLMGuardClientError(
+                    code=ClientErrorCode.INVALID_RESPONSE,
+                    message="LLMGuard returned an invalid input inspection response.",
+                ),
+            )
+
+        return InputInspectionResult(
+            ok=True,
+            request_id=response_data["request_id"],
+            stage=response_data["stage"],
+            decision=response_data["decision"],
+            classification=response_data["classification"],
+            threat_type=response_data["threat_type"],
+            severity=response_data["severity"],
+            risk_score=float(response_data["risk_score"]),
+            action=response_data["action"],
+            reasons=tuple(response_data["reasons"]),
+        )
+
+    async def _post_json(
+        self,
+        path: str,
+        payload: dict[str, Any],
+        *,
+        operation: str,
+        http_client: httpx.AsyncClient | None,
+    ) -> tuple[Any | None, LLMGuardClientError | None]:
         headers = {
             "X-LLMGuard-Key-ID": self.key_id,
             "X-LLMGuard-API-Secret": self._api_secret,
         }
-        url = f"{self.base_url}{HEARTBEAT_PATH}"
-
+        url = f"{self.base_url}{path}"
         try:
             if http_client is not None:
                 response = await http_client.post(
@@ -82,49 +166,40 @@ class LLMGuardClient:
                         headers=headers,
                     )
         except httpx.TimeoutException:
-            return _failure(
-                ClientErrorCode.TIMEOUT,
-                "LLMGuard heartbeat request timed out.",
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.TIMEOUT,
+                message=f"LLMGuard {operation} request timed out.",
             )
         except httpx.ConnectError:
-            return _failure(
-                ClientErrorCode.CONNECTION_FAILURE,
-                "Could not connect to LLMGuard.",
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.CONNECTION_FAILURE,
+                message="Could not connect to LLMGuard.",
             )
         except httpx.RequestError:
-            return _failure(
-                ClientErrorCode.REQUEST_FAILURE,
-                "LLMGuard heartbeat request could not be sent.",
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.REQUEST_FAILURE,
+                message=f"LLMGuard {operation} request could not be sent.",
+            )
+        except (TypeError, ValueError):
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.REQUEST_FAILURE,
+                message=f"LLMGuard {operation} request could not be encoded.",
             )
 
         if not response.is_success:
-            return _failure(
-                ClientErrorCode.HTTP_ERROR,
-                "LLMGuard rejected the heartbeat request.",
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.HTTP_ERROR,
+                message=f"LLMGuard rejected the {operation} request.",
                 status_code=response.status_code,
             )
 
         try:
-            response_data = response.json()
+            return response.json(), None
         except ValueError:
-            return _failure(
-                ClientErrorCode.INVALID_RESPONSE,
-                "LLMGuard returned an invalid heartbeat response.",
+            return None, LLMGuardClientError(
+                code=ClientErrorCode.INVALID_RESPONSE,
+                message=f"LLMGuard returned an invalid {operation} response.",
             )
-
-        if not _is_valid_heartbeat_response(response_data, self.application_id):
-            return _failure(
-                ClientErrorCode.INVALID_RESPONSE,
-                "LLMGuard returned an invalid heartbeat response.",
-            )
-
-        return HeartbeatResult(
-            ok=True,
-            accepted=True,
-            application_id=self.application_id,
-            integration_state=response_data["integration_state"],
-            last_heartbeat_at=response_data["last_heartbeat_at"],
-        )
 
 
 def _failure(
@@ -155,6 +230,28 @@ def _is_valid_heartbeat_response(value: Any, application_id: str) -> bool:
     )
 
 
+def _is_valid_input_response(value: Any, request_id: str) -> bool:
+    if not isinstance(value, Mapping):
+        return False
+    risk_score = value.get("risk_score")
+    threat_type = value.get("threat_type")
+    reasons = value.get("reasons")
+    return (
+        value.get("request_id") == request_id
+        and value.get("stage") == "input"
+        and value.get("decision") in {"allow", "restrict"}
+        and value.get("classification") in {"safe", "suspicious", "malicious"}
+        and (threat_type is None or isinstance(threat_type, str))
+        and value.get("severity") in {"none", "low", "medium", "high", "critical"}
+        and isinstance(risk_score, (int, float))
+        and not isinstance(risk_score, bool)
+        and 0 <= float(risk_score) <= 1
+        and value.get("action") in {"allow", "log", "sanitize", "quarantine", "block"}
+        and isinstance(reasons, list)
+        and all(isinstance(reason, str) for reason in reasons)
+    )
+
+
 def _required_text(value: str, field_name: str) -> str:
     normalized = value.strip()
     if not normalized:
@@ -167,6 +264,12 @@ def _optional_text(value: str | None) -> str | None:
         return None
     normalized = value.strip()
     return normalized or None
+
+
+def _required_content(value: str) -> str:
+    if not value.strip():
+        raise ValueError("content must not be empty")
+    return value
 
 
 def _normalize_channels(channels: Sequence[str]) -> list[str]:

@@ -12,6 +12,7 @@ from app.ai.gateway import process_ai_request
 from app.database import get_db, init_database
 from app.db import init_db
 from app.frontend import router as frontend_router
+from app.guard_routes import router as guard_router
 from app.integration_routes import router as integration_router
 from app.portals.admin import router as admin_portal_router
 from app.schemas import AskRequest, AskResponse
@@ -24,6 +25,7 @@ app.include_router(admin_portal_router)
 app.include_router(frontend_router)
 app.include_router(auth_router)
 app.include_router(integration_router)
+app.include_router(guard_router)
 
 
 @app.on_event("startup")

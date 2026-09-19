@@ -59,6 +59,36 @@ result = await client.send_heartbeat(
 connection failures, rejected requests, and invalid responses. It never
 contains the API secret or the server response body.
 
+### Input Firewall API
+
+Authenticated applications can inspect bounded input with
+`POST /api/v1/guard`. Phase 6A accepts `stage="input"` only and validates that
+the requested `public`, `student`, or `employee` channel is enabled for the
+application. It reuses the existing rule, semantic, trained ML, hybrid, and
+risk-scoring implementation; it does not perform context or output inspection.
+
+```python
+result = await client.inspect_input(
+    request_id="<application-generated-request-id>",
+    channel="public",
+    content="<content-to-inspect>",
+    security_context={"actor_ref": "<opaque-reference>"},
+)
+```
+
+The response includes the existing classification, risk score, action, and
+reasons. `decision` is `allow` for existing `allow`/`log` actions and
+`restrict` for `sanitize`/`quarantine`/`block`. Severity is a presentation
+mapping (`safe` → `none`, `suspicious` → `medium`, `malicious` → `high`). The
+current hybrid result has no stable threat category, so `threat_type` is
+truthfully `null`. Reusing an application request ID returns HTTP 409 and does
+not create a second telemetry row.
+
+Only application ID, channel, request ID, classification, risk score, action,
+and timestamp are stored in guard telemetry. Input content and
+`security_context` are not stored there. University chatbot traffic remains
+disconnected from this API in Phase 6A.
+
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and
 `/demo/*` are not mounted by the LLMGuard process.

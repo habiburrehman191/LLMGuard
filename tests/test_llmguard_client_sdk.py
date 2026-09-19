@@ -103,6 +103,93 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertEqual(ClientErrorCode.INVALID_RESPONSE, result.error.code)
         self._assert_secret_safe(result, logs)
 
+    def test_inspect_input_sends_authenticated_input_contract(self) -> None:
+        captured: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            captured["request"] = request
+            captured["body"] = json.loads(request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "sdk-input-001",
+                    "stage": "input",
+                    "decision": "allow",
+                    "classification": "safe",
+                    "threat_type": None,
+                    "severity": "none",
+                    "risk_score": 0.03,
+                    "action": "allow",
+                    "reasons": ["All hybrid firewall layers classified the content as safe"],
+                },
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_input(
+                    request_id="sdk-input-001",
+                    channel="public",
+                    content="  What are the admissions requirements?  ",
+                    security_context={"actor_type": "anonymous"},
+                    http_client=http_client,
+                )
+
+        result = run(exercise())
+        request = captured["request"]
+        body = captured["body"]
+        self.assertTrue(result.ok)
+        self.assertEqual("safe", result.classification)
+        self.assertEqual("/api/v1/guard", request.url.path)
+        self.assertEqual(self.secret, request.headers["X-LLMGuard-API-Secret"])
+        self.assertEqual("synthetic-key-id", request.headers["X-LLMGuard-Key-ID"])
+        self.assertEqual("generic-test-application", body["application_id"])
+        self.assertEqual("sdk-input-001", body["request_id"])
+        self.assertEqual("public", body["channel"])
+        self.assertEqual("input", body["stage"])
+        self.assertEqual("  What are the admissions requirements?  ", body["content"])
+        self.assertEqual({"actor_type": "anonymous"}, body["security_context"])
+        self.assertNotIn(self.secret, json.dumps(body))
+
+    def test_inspect_input_error_does_not_expose_secret_or_response_body(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                401,
+                json={"detail": "server echoed " + self.secret},
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_input(
+                    request_id="sdk-input-error",
+                    channel="public",
+                    content="Inspect this request",
+                    security_context={},
+                    http_client=http_client,
+                )
+
+        stream = io.StringIO()
+        log_handler = logging.StreamHandler(stream)
+        root_logger = logging.getLogger()
+        previous_level = root_logger.level
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(log_handler)
+        try:
+            result = run(exercise())
+        finally:
+            root_logger.removeHandler(log_handler)
+            root_logger.setLevel(previous_level)
+
+        self.assertFalse(result.ok)
+        self.assertEqual(ClientErrorCode.HTTP_ERROR, result.error.code)
+        self.assertEqual(401, result.error.status_code)
+        self.assertNotIn(self.secret, str(result.error))
+        self.assertNotIn(self.secret, repr(result))
+        self.assertNotIn(self.secret, stream.getvalue())
+
     def _send(self, handler):
         async def exercise():
             async with httpx.AsyncClient(
