@@ -12,7 +12,15 @@ LLMGuard owns an external-application registry in `logs/llmguard.db`. The
 authenticated `/admin/applications` page lists registered application identity,
 organization, environment, integration status, and channels. Registration is
 not evidence of an active connection or protection state; credentials,
-heartbeat, and the security-decision API are intentionally not implemented yet.
+heartbeat, and the security-decision API are intentionally separate concerns.
+
+An authenticated application detail page at
+`/admin/applications/{application_id}` manages per-application API credentials.
+Credential secrets are cryptographically generated, stored only as SHA-256
+hashes, and displayed once in a non-cacheable creation response. Normal views
+show only the key ID and lifecycle metadata. These credentials are not accepted
+by a security-decision API yet; heartbeat and `/api/v1/guard` remain
+unimplemented.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

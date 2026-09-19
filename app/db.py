@@ -120,6 +120,28 @@ def init_db() -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS api_credentials (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            key_id TEXT NOT NULL UNIQUE,
+            secret_hash TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL CHECK (status IN ('ACTIVE', 'REVOKED')),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP,
+            revoked_at TIMESTAMP,
+            last_used_at TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_api_credentials_application
+        ON api_credentials (application_id, status)
+        """
+    )
 
     existing_columns = {
         row[1]

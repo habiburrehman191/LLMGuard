@@ -5,13 +5,18 @@ import binascii
 
 from fastapi import APIRouter, Depends, Request
 from fastapi import HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.gateway import process_ai_request
-from app.application_registry import list_applications
+from app.application_credentials import (
+    create_credential,
+    list_credentials,
+    revoke_credential,
+)
+from app.application_registry import get_application, list_applications
 from app.auth import get_current_user
 from app.config import get_settings
 from app.database import get_db
@@ -108,6 +113,62 @@ def applications_page(
             **_admin_ui_context(user),
             "applications": list_applications(),
         },
+    )
+
+
+@router.get("/applications/{application_id}", response_class=HTMLResponse)
+def application_detail_page(
+    application_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    require_portal(user, PortalScope.admin)
+    return _render_application_detail(request, user, application_id)
+
+
+@router.post("/applications/{application_id}/credentials", response_class=HTMLResponse)
+def create_application_credential(
+    application_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    require_portal(user, PortalScope.admin)
+    application = get_application(application_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    created_credential = create_credential(application_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="application_detail.html",
+        context={
+            **_admin_ui_context(user),
+            "application": application,
+            "credentials": list_credentials(application_id),
+            "created_credential": created_credential,
+        },
+        status_code=status.HTTP_201_CREATED,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@router.post("/applications/{application_id}/credentials/{key_id}/revoke")
+def revoke_application_credential(
+    application_id: str,
+    key_id: str,
+    user: User = Depends(get_current_user),
+) -> RedirectResponse:
+    require_portal(user, PortalScope.admin)
+    if get_application(application_id) is None:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    if not any(
+        credential.key_id == key_id
+        for credential in list_credentials(application_id)
+    ):
+        raise HTTPException(status_code=404, detail="Credential not found.")
+    revoke_credential(application_id, key_id)
+    return RedirectResponse(
+        url=f"/admin/applications/{application_id}",
+        status_code=status.HTTP_303_SEE_OTHER,
     )
 
 
@@ -452,3 +513,23 @@ def _record_payload(record: PortalRecord) -> dict[str, object]:
         "content": record.content,
         "is_synthetic": record.is_synthetic,
     }
+
+
+def _render_application_detail(
+    request: Request,
+    user: User,
+    application_id: str,
+) -> HTMLResponse:
+    application = get_application(application_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    return templates.TemplateResponse(
+        request=request,
+        name="application_detail.html",
+        context={
+            **_admin_ui_context(user),
+            "application": application,
+            "credentials": list_credentials(application_id),
+            "created_credential": None,
+        },
+    )

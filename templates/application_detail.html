@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ application.name }} | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+</head>
+<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
+    {% include "components/product_nav.html" %}
+    <main class="product-page">
+      <div class="portal-shell">
+        {% include "components/admin_sidebar.html" %}
+        <div class="portal-main">
+            <header class="page-header">
+                <div>
+                    <span class="am-section-label">APPLICATION REGISTRY / {{ application.environment|upper }}</span>
+                    <h1 class="am-gradient-title">{{ application.name }}</h1>
+                    <p>{{ application.organization.name }} · <code>{{ application.application_id }}</code></p>
+                </div>
+                <span class="application-status">{{ application.status|replace("_", " ")|title }}</span>
+            </header>
+
+            <section class="workspace-card application-summary-card">
+                <div class="section-heading">
+                    <div><span class="section-kicker">Registration</span><h2>Application identity</h2></div>
+                    <a class="secondary-button dashboard-text-link" href="/admin/applications">Back to registry</a>
+                </div>
+                <dl class="application-details">
+                    <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
+                    <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
+                    <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
+                    <div><dt>Status</dt><dd>{{ application.status|replace("_", " ")|title }}</dd></div>
+                </dl>
+                <div class="application-channel-section">
+                    <span class="section-kicker">Registered channels</span>
+                    <div class="application-channel-list">
+                        {% for channel in application.channels %}
+                        <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}">{{ channel.channel }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            {% if created_credential %}
+            <section class="one-time-secret-card" aria-labelledby="one-time-secret-title">
+                <div>
+                    <span class="section-kicker">One-time secret</span>
+                    <h2 id="one-time-secret-title">Copy this credential secret now</h2>
+                    <p>LLMGuard stores only its hash. This plaintext value will not be shown again.</p>
+                </div>
+                <dl class="one-time-secret-values">
+                    <div><dt>Key ID</dt><dd><code>{{ created_credential.credential.key_id }}</code></dd></div>
+                    <div><dt>Secret</dt><dd><code>{{ created_credential.secret }}</code></dd></div>
+                </dl>
+            </section>
+            {% endif %}
+
+            <section class="workspace-card credential-management-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Backend authentication</span>
+                        <h2>API credentials</h2>
+                        <p>Credential metadata is retained here. Plaintext secrets are never stored or listed.</p>
+                    </div>
+                    <form method="post" action="/admin/applications/{{ application.application_id }}/credentials">
+                        <button class="primary-button" type="submit">Create credential</button>
+                    </form>
+                </div>
+                <div class="responsive-table">
+                    <table class="credential-table">
+                        <thead>
+                            <tr><th>Key ID</th><th>Status</th><th>Created</th><th>Expires</th><th>Last used</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for credential in credentials %}
+                            <tr>
+                                <td><code>{{ credential.key_id }}</code></td>
+                                <td><span class="credential-status status-{{ credential.effective_status|lower }}">{{ credential.effective_status|title }}</span></td>
+                                <td>{{ credential.created_at }}</td>
+                                <td>{{ credential.expires_at or "No expiry" }}</td>
+                                <td>{{ credential.last_used_at or "Never" }}</td>
+                                <td>
+                                    {% if credential.status == "ACTIVE" %}
+                                    <form method="post" action="/admin/applications/{{ application.application_id }}/credentials/{{ credential.key_id }}/revoke">
+                                        <button class="secondary-button credential-revoke-button" type="submit">Revoke</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="credential-revoked-at">{{ credential.revoked_at or "Revoked" }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="empty-message">No credentials have been created for this application.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+      </div>
+    </main>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>
