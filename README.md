@@ -107,9 +107,10 @@ The response includes the existing classification, risk score, action, and
 reasons. `decision` is `allow` for existing `allow`/`log` actions and
 `restrict` for `sanitize`/`quarantine`/`block`. Severity is a presentation
 mapping (`safe` → `none`, `suspicious` → `medium`, `malicious` → `high`). The
-current hybrid result has no stable threat category, so `threat_type` is
-truthfully `null`. Reusing an application request ID returns HTTP 409 and does
-not create a second telemetry row.
+current input hybrid result has no stable threat category, so its `threat_type`
+is truthfully `null`. Unsafe context uses the existing
+`retrieved_context` threat source. Reusing an application request ID within a
+stage returns HTTP 409 and does not create a second telemetry row.
 
 Input telemetry stores only application ID, channel, request ID,
 classification, risk score, action, and timestamp. Context telemetry adds the
@@ -127,8 +128,13 @@ credentials absent, the University keeps its documented standalone behavior.
 Channel and portal identity are derived from the backend route and signed
 session rather than prompt or browser-supplied identity fields. University
 RBAC remains a separate, later authorization check after an input is allowed.
-University retrieval is not connected to the context API in Phase 7A. Output
-inspection is also not exposed through this integration API yet.
+For model-generated answers, Phase 7B sends only University-authorized
+retrieval evidence to the context API using the same request ID as input
+inspection. Allowed evidence continues unchanged; sanitized evidence replaces
+the raw chunks before prompt construction; quarantine, block, missing safe
+continuation, and configured inspection failures stop before Qwen. LLMGuard
+does not decide University record ownership or portal permissions. Output
+inspection is not exposed through this integration API yet.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

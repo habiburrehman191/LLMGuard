@@ -55,8 +55,19 @@ ID which is sent to LLMGuard and retained by the downstream University request
 flow. Input inspection remains separate from University authorization: an
 input that LLMGuard allows can still be rejected by portal RBAC.
 
-This phase applies input inspection only. Context and output inspection are
-not sent through the integration API.
+For responses that require the main language model, the University first
+applies its own authorization and retrieval rules. Only the resulting
+authorized evidence is sent to `inspect_context()` with the same request ID.
+An allow decision continues with the approved evidence. A sanitize decision
+rebuilds the model context exclusively from the returned sanitized chunks.
+Quarantine, block, a restricted response without sanitized continuation, or a
+configured integration failure stops before the model runs. Context metadata
+contains only source type, classification, and portal scope; LLMGuard does not
+decide University record ownership or permissions.
+
+When both credentials are absent, the previous local context check and
+standalone generation behavior remain in use. Output inspection is not sent
+through the integration API in this phase.
 
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.

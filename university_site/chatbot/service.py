@@ -2,14 +2,18 @@ from __future__ import annotations
 
 from collections import Counter
 from datetime import datetime
+from functools import partial
 import logging
 import re
 from time import perf_counter
 
+from anyio import from_thread
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session, joinedload
 
 from ..models import ChatConversation, ChatFeedback, ChatMessage, ChatSource
+from .context_firewall import inspect_chat_context
+from .input_firewall import GENERIC_BLOCKED_MESSAGE, GENERIC_FAILURE_MESSAGE
 from .llm import LLMUnavailable, generate_answer
 from .retrieval import retrieve
 from .security import access_restriction, inspect_prompt_with_llmguard
@@ -128,6 +132,13 @@ def _authorized_sources(sources: list[SourceReference], identity: ChatIdentity) 
     return [item for item in sources if _authorized_source(item, identity)]
 
 
+def _context_from_sources(sources: list[SourceReference]) -> str:
+    return "\n\n".join(
+        f"SOURCE: {item.title}\n{item.content}"
+        for item in sources
+    )
+
+
 def _model_history(history: list[str], identity: ChatIdentity) -> list[str]:
     if identity.portal_context != "student" or identity.student is None:
         return history
@@ -227,6 +238,8 @@ def ask(
 
     bundle = retrieve(session, identity, question, history + [f"User: {question}"], current_page)
     bundle.sources = _authorized_sources(bundle.sources, identity)
+    if bundle.sources:
+        bundle.context = _context_from_sources(bundle.sources)
     if bundle.answer_status == "supported" and bundle.context and not bundle.sources:
         bundle = RetrievalBundle(
             retrieval_type="blocked", topic="security", context="", sources=[],
@@ -236,26 +249,57 @@ def ask(
     model_called = False
     answer = bundle.grounded_answer
     status = bundle.answer_status
-    if _llmguard_context_block(bundle, identity):
+    if answer is not None and _llmguard_context_block(bundle, identity):
         answer = "I couldn't safely use the retrieved university record for this request."
         status = "access_restricted"
         bundle.sources = []
     elif answer is None:
-        try:
-            page_context = f"Current local page: {page_title} ({current_page}).\n" if page_title else ""
-            answer = generate_answer(identity.portal_context, question, page_context + bundle.context, _model_history(history, identity))
-            model_called = True
-            checked = _safe_output(answer, bundle, identity)
-            if checked is None:
-                answer = "The generated response was withheld by the university assistant's output safety check."
-                status = "access_restricted"
-                bundle.sources = []
-            else:
-                answer = checked
-        except LLMUnavailable:
-            answer = "The University AI Assistant is temporarily unavailable. Please try again shortly."
-            status = "unavailable"
+        context_preflight = from_thread.run(
+            partial(
+                inspect_chat_context,
+                request_id=request_id,
+                channel=identity.portal_context,
+                sources=bundle.sources,
+            )
+        )
+        standalone_blocked = (
+            not context_preflight.configured
+            and _llmguard_context_block(bundle, identity)
+        )
+        if standalone_blocked:
+            answer = "I couldn't safely use the retrieved university record for this request."
+            status = "access_restricted"
             bundle.sources = []
+        elif not context_preflight.allowed:
+            answer = (
+                GENERIC_FAILURE_MESSAGE
+                if context_preflight.inspection_failed
+                else GENERIC_BLOCKED_MESSAGE
+            )
+            status = (
+                "unavailable"
+                if context_preflight.inspection_failed
+                else "access_restricted"
+            )
+            bundle.sources = []
+        else:
+            bundle.sources = list(context_preflight.sources)
+            bundle.context = _context_from_sources(bundle.sources)
+            try:
+                page_context = f"Current local page: {page_title} ({current_page}).\n" if page_title else ""
+                answer = generate_answer(identity.portal_context, question, page_context + bundle.context, _model_history(history, identity))
+                model_called = True
+                checked = _safe_output(answer, bundle, identity)
+                if checked is None:
+                    answer = "The generated response was withheld by the university assistant's output safety check."
+                    status = "access_restricted"
+                    bundle.sources = []
+                else:
+                    answer = checked
+            except LLMUnavailable:
+                answer = "The University AI Assistant is temporarily unavailable. Please try again shortly."
+                status = "unavailable"
+                bundle.sources = []
     latency = int((perf_counter() - started) * 1000)
     message = _store_assistant(
         session, conversation, answer or "I couldn't find that information in the university records available to me.",
