@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class ClientErrorCode(str, Enum):
@@ -44,4 +45,20 @@ class InputInspectionResult:
     risk_score: float | None = None
     action: str | None = None
     reasons: tuple[str, ...] = ()
+    error: LLMGuardClientError | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ContextInspectionResult:
+    ok: bool
+    request_id: str | None = None
+    stage: str | None = None
+    decision: str | None = None
+    classification: str | None = None
+    threat_type: str | None = None
+    severity: str | None = None
+    risk_score: float | None = None
+    action: str | None = None
+    reasons: tuple[str, ...] = ()
+    sanitized_chunks: tuple[dict[str, Any], ...] | None = None
     error: LLMGuardClientError | None = None

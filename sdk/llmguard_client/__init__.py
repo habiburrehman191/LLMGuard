@@ -3,6 +3,7 @@
 from .client import LLMGuardClient
 from .models import (
     ClientErrorCode,
+    ContextInspectionResult,
     HeartbeatResult,
     InputInspectionResult,
     LLMGuardClientError,
@@ -10,6 +11,7 @@ from .models import (
 
 __all__ = [
     "ClientErrorCode",
+    "ContextInspectionResult",
     "HeartbeatResult",
     "InputInspectionResult",
     "LLMGuardClient",

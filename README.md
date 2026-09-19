@@ -59,13 +59,13 @@ result = await client.send_heartbeat(
 connection failures, rejected requests, and invalid responses. It never
 contains the API secret or the server response body.
 
-### Input Firewall API
+### Guard API
 
 Authenticated applications can inspect bounded input with
-`POST /api/v1/guard`. Phase 6A accepts `stage="input"` only and validates that
-the requested `public`, `student`, or `employee` channel is enabled for the
-application. It reuses the existing rule, semantic, trained ML, hybrid, and
-risk-scoring implementation; it does not perform context or output inspection.
+`POST /api/v1/guard`. The API validates that the requested `public`, `student`,
+or `employee` channel is enabled for the application. Input inspection reuses
+the existing rule, semantic, trained ML, hybrid, and risk-scoring
+implementation.
 
 ```python
 result = await client.inspect_input(
@@ -76,6 +76,33 @@ result = await client.inspect_input(
 )
 ```
 
+Phase 7A also accepts bounded retrieved chunks with `stage="context"` through
+the same authenticated endpoint. It reuses the existing retrieved-context
+firewall for indirect instructions, document overrides, hidden HTML/Markdown
+instructions, encoded payloads, role overrides, leakage requests, and tool
+invocation instructions.
+
+```python
+result = await client.inspect_context(
+    request_id="<application-generated-request-id>",
+    channel="public",
+    chunks=(
+        {
+            "source_id": "<source-id>",
+            "chunk_id": "<chunk-id>",
+            "text": "<retrieved-context>",
+            "metadata": {"format": "policy"},
+        },
+    ),
+)
+```
+
+Context requests accept at most 32 chunks, 16,000 UTF-8 bytes per chunk, and
+64,000 UTF-8 bytes of chunk text in total. `sanitized_chunks` is returned only
+when the existing firewall chooses `sanitize` and the sanitizer actually
+changes content. Quarantined context is restricted without returning a
+sanitized continuation.
+
 The response includes the existing classification, risk score, action, and
 reasons. `decision` is `allow` for existing `allow`/`log` actions and
 `restrict` for `sanitize`/`quarantine`/`block`. Severity is a presentation
@@ -84,9 +111,12 @@ current hybrid result has no stable threat category, so `threat_type` is
 truthfully `null`. Reusing an application request ID returns HTTP 409 and does
 not create a second telemetry row.
 
-Only application ID, channel, request ID, classification, risk score, action,
-and timestamp are stored in guard telemetry. Input content and
-`security_context` are not stored there.
+Input telemetry stores only application ID, channel, request ID,
+classification, risk score, action, and timestamp. Context telemetry adds the
+decision and bounded source/chunk identifiers. Input content,
+`security_context`, context text, and context metadata are not stored in these
+telemetry tables. A request ID may be used once per application at each stage,
+allowing one logical request to correlate input and context decisions.
 
 The standalone University backend uses this API for Public, Student, and
 Employee chatbot input when both integration credential environment variables
@@ -97,7 +127,8 @@ credentials absent, the University keeps its documented standalone behavior.
 Channel and portal identity are derived from the backend route and signed
 session rather than prompt or browser-supplied identity fields. University
 RBAC remains a separate, later authorization check after an input is allowed.
-Context and output are not routed through the API in Phase 6B.
+University retrieval is not connected to the context API in Phase 7A. Output
+inspection is also not exposed through this integration API yet.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

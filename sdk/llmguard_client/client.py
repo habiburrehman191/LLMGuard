@@ -8,6 +8,7 @@ import httpx
 
 from .models import (
     ClientErrorCode,
+    ContextInspectionResult,
     HeartbeatResult,
     InputInspectionResult,
     LLMGuardClientError,
@@ -137,6 +138,58 @@ class LLMGuardClient:
             reasons=tuple(response_data["reasons"]),
         )
 
+    async def inspect_context(
+        self,
+        *,
+        request_id: str,
+        channel: str,
+        chunks: Sequence[Mapping[str, Any]],
+        http_client: httpx.AsyncClient | None = None,
+    ) -> ContextInspectionResult:
+        payload = {
+            "application_id": self.application_id,
+            "request_id": _required_text(request_id, "request_id"),
+            "channel": _required_text(channel, "channel").lower(),
+            "stage": "context",
+            "chunks": _normalize_context_chunks(chunks),
+        }
+        response_data, error = await self._post_json(
+            GUARD_PATH,
+            payload,
+            operation="context inspection",
+            http_client=http_client,
+        )
+        if error is not None:
+            return ContextInspectionResult(ok=False, error=error)
+
+        if not _is_valid_context_response(response_data, payload["request_id"]):
+            return ContextInspectionResult(
+                ok=False,
+                error=LLMGuardClientError(
+                    code=ClientErrorCode.INVALID_RESPONSE,
+                    message="LLMGuard returned an invalid context inspection response.",
+                ),
+            )
+
+        sanitized_chunks = response_data.get("sanitized_chunks")
+        return ContextInspectionResult(
+            ok=True,
+            request_id=response_data["request_id"],
+            stage=response_data["stage"],
+            decision=response_data["decision"],
+            classification=response_data["classification"],
+            threat_type=response_data.get("threat_type"),
+            severity=response_data["severity"],
+            risk_score=float(response_data["risk_score"]),
+            action=response_data["action"],
+            reasons=tuple(response_data["reasons"]),
+            sanitized_chunks=(
+                tuple(dict(chunk) for chunk in sanitized_chunks)
+                if isinstance(sanitized_chunks, list)
+                else None
+            ),
+        )
+
     async def _post_json(
         self,
         path: str,
@@ -231,6 +284,31 @@ def _is_valid_heartbeat_response(value: Any, application_id: str) -> bool:
 
 
 def _is_valid_input_response(value: Any, request_id: str) -> bool:
+    return _is_valid_inspection_response(value, request_id, stage="input")
+
+
+def _is_valid_context_response(value: Any, request_id: str) -> bool:
+    if not _is_valid_inspection_response(value, request_id, stage="context"):
+        return False
+    if not isinstance(value, Mapping):
+        return False
+    sanitized_chunks = value.get("sanitized_chunks")
+    if sanitized_chunks is None:
+        return True
+    return (
+        value.get("action") == "sanitize"
+        and isinstance(sanitized_chunks, list)
+        and bool(sanitized_chunks)
+        and all(_is_valid_context_chunk(chunk) for chunk in sanitized_chunks)
+    )
+
+
+def _is_valid_inspection_response(
+    value: Any,
+    request_id: str,
+    *,
+    stage: str,
+) -> bool:
     if not isinstance(value, Mapping):
         return False
     risk_score = value.get("risk_score")
@@ -238,7 +316,7 @@ def _is_valid_input_response(value: Any, request_id: str) -> bool:
     reasons = value.get("reasons")
     return (
         value.get("request_id") == request_id
-        and value.get("stage") == "input"
+        and value.get("stage") == stage
         and value.get("decision") in {"allow", "restrict"}
         and value.get("classification") in {"safe", "suspicious", "malicious"}
         and (threat_type is None or isinstance(threat_type, str))
@@ -249,6 +327,20 @@ def _is_valid_input_response(value: Any, request_id: str) -> bool:
         and value.get("action") in {"allow", "log", "sanitize", "quarantine", "block"}
         and isinstance(reasons, list)
         and all(isinstance(reason, str) for reason in reasons)
+    )
+
+
+def _is_valid_context_chunk(value: Any) -> bool:
+    if not isinstance(value, Mapping):
+        return False
+    metadata = value.get("metadata")
+    return (
+        isinstance(value.get("source_id"), str)
+        and bool(value["source_id"].strip())
+        and isinstance(value.get("chunk_id"), str)
+        and bool(value["chunk_id"].strip())
+        and isinstance(value.get("text"), str)
+        and (metadata is None or isinstance(metadata, Mapping))
     )
 
 
@@ -277,6 +369,38 @@ def _normalize_channels(channels: Sequence[str]) -> list[str]:
     if not normalized or any(not channel for channel in normalized):
         raise ValueError("channels must contain at least one non-empty channel")
     return normalized
+
+
+def _normalize_context_chunks(
+    chunks: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    if not chunks:
+        raise ValueError("chunks must contain at least one context chunk")
+    normalized: list[dict[str, Any]] = []
+    for chunk in chunks:
+        if not isinstance(chunk, Mapping):
+            raise ValueError("each context chunk must be a mapping")
+        text = chunk.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("context chunk text must not be empty")
+        item: dict[str, Any] = {
+            "source_id": _required_mapping_text(chunk.get("source_id"), "source_id"),
+            "chunk_id": _required_mapping_text(chunk.get("chunk_id"), "chunk_id"),
+            "text": text,
+        }
+        metadata = chunk.get("metadata")
+        if metadata is not None:
+            if not isinstance(metadata, Mapping):
+                raise ValueError("context chunk metadata must be a mapping")
+            item["metadata"] = dict(metadata)
+        normalized.append(item)
+    return normalized
+
+
+def _required_mapping_text(value: Any, field_name: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string")
+    return _required_text(value, field_name)
 
 
 def _as_utc(value: datetime) -> datetime:
