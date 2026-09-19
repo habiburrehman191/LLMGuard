@@ -1,0 +1,23 @@
+.utility-bar, .admissions-utility { min-height: 41px; color: #fff; background: #000; }
+.utility-inner { display: flex; min-height: 41px; align-items: center; justify-content: space-between; gap: 20px; }
+.utility-inner a { color: #fff; }
+.utility-links { display: flex; gap: 9px; align-items: center; }
+.social-links, .admissions-social { display: flex; align-items: center; gap: 18px; }
+.social-links img { width: 20px; max-height: 20px; object-fit: contain; }
+.admissions-social img { width: 25px; height: 25px; object-fit: contain; }
+.utility-toggle { display: none; border: 0; color: #fff; background: transparent; font-size: 24px; }
+.brand-bar, .admissions-brand {
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(to bottom, #014068 0%, #014772 18%, #013856 50%, #015382 100%);
+}
+.brand-inner { display: grid; grid-template-columns: 1fr 360px; min-height: 101px; align-items: center; gap: 34px; }
+.university-logo img { display: block; width: 575px; }
+.header-quick-links { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 24px; }
+.header-quick-links a { display: flex; align-items: center; gap: 7px; color: #fff; font-size: 14px; }
+.header-quick-links img { width: 21px; height: 21px; object-fit: contain; }
+.admissions-brand-inner { display: flex; min-height: 96px; align-items: center; justify-content: space-between; }
+.admissions-brand img { display: block; width: 520px; max-height: 94px; object-fit: contain; object-position: left center; }
+.admissions-brand strong { color: #ffef00; font-size: 18px; line-height: 1.35; text-align: center; text-shadow: 2px 2px #e80000; }
+.admissions-utility .utility-inner { font-size: 14px; }
+.admissions-utility .utility-inner > div:first-child { display: flex; align-items: center; gap: 8px; }

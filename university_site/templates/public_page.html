@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="inner-page site-container">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span>›</span><span>{{ heading }}</span></nav>
+    <div class="inner-layout">
+        <article class="page-content">
+            <h1>{{ heading }}</h1>
+            {% for paragraph in paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+            {% if information_items %}<ul class="institutional-list">{% for item in information_items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+            {% if departments %}<div class="faculty-list">{% for department in departments %}<section><h2>{{ department.name }}</h2><p>{% if department.description %}{{ department.description }}{% else %}View programs and local academic information for this department.{% endif %}</p><a href="/university/departments/{{ department.slug }}">Open Department</a></section>{% endfor %}</div>{% endif %}
+        </article>
+        <aside class="page-sidebar">
+            <h2>University Links</h2><a href="/university/about">About UOH</a><a href="/university/academics">Academics</a><a href="/university/admissions">Admissions</a><a href="/university/policies">Public Policies</a><a href="/search">Search</a><a href="/portal">Student &amp; Employee Portals</a><a href="/university/contact">Contact Us</a>
+        </aside>
+    </div>
+</section>
+{% endblock %}

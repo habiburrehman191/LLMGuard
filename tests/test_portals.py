@@ -29,21 +29,33 @@ class PortalRouteTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         return response.json()["access_token"]
 
-    def test_student_can_access_student_portal_only(self) -> None:
+    def test_student_routes_are_not_exposed_by_llmguard(self) -> None:
         token = self._token("student1", "Student@123")
         headers = {"Authorization": f"Bearer {token}"}
 
-        self.assertEqual(200, self.client.get("/student/dashboard", headers=headers).status_code)
-        self.assertEqual(403, self.client.get("/employee/dashboard", headers=headers).status_code)
-        self.assertEqual(403, self.client.get("/admin/dashboard", headers=headers).status_code)
+        for method, path in (
+            ("GET", "/student/dashboard"),
+            ("GET", "/student/records"),
+            ("POST", "/student/ai/ask"),
+            ("POST", "/student/documents/upload"),
+        ):
+            with self.subTest(path=path):
+                response = self.client.request(method, path, headers=headers, json={})
+                self.assertEqual(404, response.status_code)
 
-    def test_employee_can_access_employee_portal_only(self) -> None:
+    def test_employee_routes_are_not_exposed_by_llmguard(self) -> None:
         token = self._token("employee1", "Employee@123")
         headers = {"Authorization": f"Bearer {token}"}
 
-        self.assertEqual(200, self.client.get("/employee/dashboard", headers=headers).status_code)
-        self.assertEqual(403, self.client.get("/student/dashboard", headers=headers).status_code)
-        self.assertEqual(403, self.client.get("/admin/dashboard", headers=headers).status_code)
+        for method, path in (
+            ("GET", "/employee/dashboard"),
+            ("GET", "/employee/records"),
+            ("POST", "/employee/ai/ask"),
+            ("POST", "/employee/documents/upload"),
+        ):
+            with self.subTest(path=path):
+                response = self.client.request(method, path, headers=headers, json={})
+                self.assertEqual(404, response.status_code)
 
     def test_super_admin_can_view_all_non_secret_records(self) -> None:
         token = self._token("admin1", "Admin@123")
@@ -60,16 +72,16 @@ class PortalRouteTests(unittest.TestCase):
         self.assertIn("admin_internal", classifications)
         self.assertNotIn("restricted_secret", classifications)
 
-    def test_portal_ai_and_upload_require_authentication(self) -> None:
+    def test_removed_portal_routes_are_unavailable_without_authentication(self) -> None:
         self.client.cookies.clear()
-        self.assertEqual(401, self.client.post("/student/ai/ask", json={"prompt": "Hi"}).status_code)
-        self.assertEqual(
-            401,
-            self.client.post(
-                "/student/documents/upload",
-                json={"title": "x", "filename": "x.txt", "content": "SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA"},
-            ).status_code,
-        )
+        for path in (
+            "/student/ai/ask",
+            "/student/documents/upload",
+            "/employee/ai/ask",
+            "/employee/documents/upload",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(404, self.client.post(path, json={}).status_code)
 
 
 if __name__ == "__main__":

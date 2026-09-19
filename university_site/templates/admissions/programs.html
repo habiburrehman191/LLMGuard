@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admissions-content site-container">
+    <h1 class="admissions-page-title">{{ heading }}</h1>
+    {% if scholarship_note %}<p class="important-note"><strong>Important:</strong> 50% Scholarships on Lump Sum Fee for International Students.</p>{% endif %}
+    <div class="program-columns">
+        {% for faculty, programs in program_groups.items() %}
+        <section class="program-group">
+            <h2>{{ faculty }}</h2>
+            <ul>
+                {% for program in programs %}
+                <li><span aria-hidden="true">▸</span> <strong>{{ program }}</strong> <a href="/portal/login?role=student">(Apply Online)</a>{% if program in concession_programs %} <small>(100% Concession in Tuition Fee)</small>{% endif %}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endfor %}
+    </div>
+    {% include 'admissions/support.html' %}
+</section>
+{% endblock %}

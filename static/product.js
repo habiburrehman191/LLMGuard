@@ -157,8 +157,6 @@ if (loginForm) {
     const message = document.getElementById("login-message");
     const queryRole = new URLSearchParams(window.location.search).get("role");
     const presets = {
-        student: ["student1", "Student@123"],
-        employee: ["employee1", "Employee@123"],
         admin: ["admin1", "Admin@123"],
     };
     if (queryRole && presets[queryRole]) {
@@ -187,20 +185,20 @@ if (loginForm) {
                 method: "POST",
                 body: JSON.stringify({username: username.value, password: password.value}),
             });
+            if (payload.role !== "super_admin") {
+                window.localStorage.removeItem("llmguard_token");
+                await apiRequest("/auth/logout", {method: "POST"});
+                throw new Error("LLMGuard console access is restricted to security administrators.");
+            }
             window.localStorage.setItem("llmguard_token", payload.access_token);
-            const destination = payload.role === "student"
-                ? "/student/dashboard"
-                : payload.role === "employee"
-                    ? "/employee/dashboard"
-                    : "/admin/dashboard";
-            window.location.href = destination;
+            window.location.href = "/admin/dashboard";
         } catch (error) {
             message.className = "form-message error";
             message.textContent = error.message;
             loginForm.classList.remove("is-authenticating");
             if (submitButton) {
                 submitButton.disabled = false;
-                submitButton.textContent = "Continue to portal";
+                submitButton.textContent = "Continue to security console";
             }
         }
     });

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="portal-login-page">
+    <div class="login-panel">
+        <div class="login-heading">
+            <img src="{{ url_for('university_static', path='university/images/logo.png') }}" alt="The University of Haripur">
+            <h1>{{ portal_name }} Login</h1>
+            <p>Academic Demo Environment</p>
+        </div>
+        {% if error %}<div class="login-error" role="alert">{{ error }}</div>{% endif %}
+        <form method="post" action="/portal/{{ portal_type }}/login" class="portal-login-form">
+            <label for="username">{{ portal_name }} username</label>
+            <input id="username" name="username" autocomplete="username" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="submit">Sign in to {{ portal_name }}</button>
+        </form>
+        <div class="demo-accounts">
+            <h2>{{ portal_name }} test accounts</h2>
+            {% for username, password in demo_accounts %}
+            <button type="button" data-demo-user="{{ username }}" data-demo-password="{{ password }}"><strong>{{ username }}</strong><span>Use synthetic test account</span></button>
+            {% endfor %}
+        </div>
+        <p class="login-safety">Passwords are documented in the local developer README. Credentials are checked only by this application and are never sent to uoh.edu.pk.</p>
+        <p class="login-switch">{% if portal_type == 'student' %}University employee? <a href="/portal/employee/login">Open Employee Portal Login</a>{% else %}University student? <a href="/portal/student/login">Open Student Portal Login</a>{% endif %}</p>
+    </div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('university_static', path='university/js/portal.js') }}" defer></script>{% endblock %}

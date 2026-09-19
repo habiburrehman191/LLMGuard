@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="access-denied site-container">
+    <div class="access-denied-card">
+        <span aria-hidden="true">!</span>
+        <h1>Access Denied</h1>
+        <p>{{ message }}</p>
+        <p>No restricted record details have been disclosed.</p>
+        <a class="portal-action" href="/portal/{{ portal_role }}/dashboard">Return to {{ portal_role|title }} Portal</a>
+    </div>
+</section>
+{% endblock %}

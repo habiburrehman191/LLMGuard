@@ -1,0 +1,67 @@
+{% if admissions_shell %}
+<nav class="admissions-nav" aria-label="Admissions navigation">
+    <div class="site-container">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="admissions-nav-list">MENU</button>
+        <ul id="admissions-nav-list" class="admissions-nav-list">
+            <li><a href="/university/admissions/bs-programs">Programs offered</a></li>
+            <li><a href="/university/admissions/schedule">Admission Schedule</a></li>
+            <li><a href="/university/admissions/eligibility">Eligibility Criteria</a></li>
+            <li><a href="/university/admissions/fee">Fee Structure</a></li>
+            <li><a href="/university/admissions/scholarships">Scholarships</a></li>
+            <li><a href="/university/admissions/facilities">Transport</a></li>
+            <li><a href="/university/admissions/facilities">Hostels</a></li>
+            <li><a href="/university/admissions/facilities">Facilities</a></li>
+            <li><a href="/university/contact">Help Desk</a></li>
+            <li><a href="/university/admissions/schedule">Entry Test</a></li>
+        </ul>
+    </div>
+</nav>
+{% else %}
+<nav class="main-nav" aria-label="Main navigation">
+    <div class="site-container main-nav-inner">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav-list"><span aria-hidden="true">☰</span> Main Menu</button>
+        <ul id="main-nav-list" class="main-nav-list">
+            <li><a href="/">Home</a></li>
+            <li class="has-dropdown">
+                <button class="dropdown-toggle" type="button" aria-expanded="false">Faculties <span aria-hidden="true">▾</span></button>
+                <div class="mega-menu">
+                    {% for faculty in faculties %}
+                    <section>
+                        <h3>{{ faculty.name }}</h3>
+                        {% for department in faculty.departments %}<a href="/university/departments/{{ department|lower|replace('&', 'and')|replace(' ', '-') }}">Department of {{ department }}</a>{% endfor %}
+                    </section>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="has-dropdown">
+                <button class="dropdown-toggle" type="button" aria-expanded="false">Administration <span aria-hidden="true">▾</span></button>
+                <div class="dropdown-menu">
+                    <a href="/university/information/vice-chancellor-office">Vice Chancellor's Office</a>
+                    <a href="/university/information/registrar-office">Registrar Office</a>
+                    <a href="/university/information/qec">Quality Enhancement Cell</a>
+                    <a href="/university/information/examinations">Examinations Section</a>
+                    <a href="/university/information/it-services">Directorate of IT Services</a>
+                    <a href="/university/information/central-library">Central Library</a>
+                    <a href="/university/policies">Public Policies</a>
+                </div>
+            </li>
+            <li><a href="/university/academics">Academics</a></li>
+            <li><a href="/university/information/examinations">Examinations</a></li>
+            <li><a href="/university/admissions/scholarships">Scholarships</a></li>
+            <li class="has-dropdown">
+                <button class="dropdown-toggle" type="button" aria-expanded="false">Journals <span aria-hidden="true">▾</span></button>
+                <div class="dropdown-menu compact">
+                    <a href="/university/information/journal-management">Journal of Management</a>
+                    <a href="/university/information/journal-religious-studies">Journal of Islamic &amp; Religious Studies</a>
+                    <a href="/university/information/journal-education">Haripur Journal of Educational Research</a>
+                </div>
+            </li>
+            <li><a href="/university/information/oric">ORIC</a></li>
+            <li><a href="/university/information/qec">QEC</a></li>
+            <li><a href="/university/information/bic">BIC</a></li>
+            <li><a href="/university/information/asrb">ASRB</a></li>
+            <li><a href="/search" aria-label="Search">Search</a></li>
+        </ul>
+    </div>
+</nav>
+{% endif %}

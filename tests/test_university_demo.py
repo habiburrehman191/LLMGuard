@@ -34,24 +34,17 @@ class UniversityDemoTests(unittest.TestCase):
             os.environ["LLMGUARD_DB_PATH"] = self.previous_db_path
         reset_settings_cache()
 
-    def test_university_demo_page_renders(self) -> None:
+    def test_university_demo_page_is_not_exposed_by_llmguard(self) -> None:
         response = self.client.get("/demo/university")
 
-        self.assertEqual(200, response.status_code)
-        self.assertIn("Northbridge University", response.text)
-        self.assertIn("Unprotected AI Response", response.text)
-        self.assertIn("LLMGuard Protected Response", response.text)
+        self.assertEqual(404, response.status_code)
 
-    def test_uoh_demo_page_renders_with_disclaimer(self) -> None:
+    def test_uoh_demo_page_is_not_exposed_by_llmguard(self) -> None:
         response = self.client.get("/demo/uoh")
 
-        self.assertEqual(200, response.status_code)
-        self.assertIn("LLMGuard University Portal Security Demo", response.text)
-        self.assertIn("not an official University of Haripur website", response.text)
-        self.assertIn("Unprotected AI Response", response.text)
-        self.assertIn("LLMGuard Protected Response", response.text)
+        self.assertEqual(404, response.status_code)
 
-    def test_unprotected_demo_endpoint_uses_only_synthetic_restricted_data(self) -> None:
+    def test_unprotected_demo_endpoint_is_not_exposed_by_llmguard(self) -> None:
         response = self.client.post(
             "/demo/ask-unprotected",
             json={
@@ -60,14 +53,10 @@ class UniversityDemoTests(unittest.TestCase):
             },
         )
 
-        self.assertEqual(200, response.status_code)
-        payload = response.json()
-        self.assertFalse(payload["blocked"])
-        self.assertEqual("restricted_student_record_lookup", payload["tool_call"]["name"])
-        self.assertIn("SYNTHETIC DEMO DATA", payload["response"])
-        self.assertIn("NBU-SYN", payload["response"])
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(404, self.client.post("/demo/audit", json={}).status_code)
 
-    def test_uoh_unprotected_endpoint_uses_only_synthetic_portal_records(self) -> None:
+    def test_uoh_unprotected_demo_endpoint_is_not_exposed_by_llmguard(self) -> None:
         response = self.client.post(
             "/demo/ask-unprotected",
             json={
@@ -77,12 +66,7 @@ class UniversityDemoTests(unittest.TestCase):
             },
         )
 
-        self.assertEqual(200, response.status_code)
-        payload = response.json()
-        self.assertFalse(payload["blocked"])
-        self.assertEqual("restricted_student_record_lookup", payload["tool_call"]["name"])
-        self.assertIn("SYNTHETIC DEMO DATA", payload["response"])
-        self.assertIn("DEMO-UOH-APP", payload["response"])
+        self.assertEqual(404, response.status_code)
 
     def test_protected_pipeline_blocks_restricted_tool_before_model_call(self) -> None:
         qwen_called = False

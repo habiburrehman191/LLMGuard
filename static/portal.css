@@ -25,6 +25,15 @@
     font-weight: 750;
 }
 .portal-sidebar nav a.active, .portal-sidebar nav a:hover { color: var(--cyan); border-color: var(--line); background: var(--cyan-soft); }
+.sidebar-navigation { display: grid; gap: 18px; }
+.sidebar-group { display: grid; gap: 7px; }
+.sidebar-group-label {
+    padding: 0 12px;
+    color: var(--muted-2);
+    font: 700 .68rem "Fira Code", monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
 .boundary-lock {
     position: relative;
     padding: 18px;
@@ -202,6 +211,38 @@
 .admin-module-grid .am-feature-icon { width: 42px; height: 42px; margin-bottom: 15px; padding: 9px; }
 .admin-module-grid strong { display: block; margin: 21px 0 9px; font-size: 1.08rem; }
 .admin-module-grid p { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+.security-overview-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.security-overview-kpis .warning-kpi { border-color: rgba(245, 158, 11, .35); }
+.security-overview-kpis .warning-kpi::after { background: var(--amber); }
+.security-overview-kpis .danger-kpi { border-color: rgba(239, 68, 68, .38); }
+.security-overview-kpis .danger-kpi::after { background: var(--red); }
+.security-overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(280px, .75fr);
+    gap: 20px;
+    margin-top: 22px;
+}
+.recent-security-card,
+.protection-posture-card { min-width: 0; }
+.security-event-list { margin-bottom: 18px; }
+.dashboard-text-link { display: inline-flex; width: fit-content; text-decoration: none; }
+.protection-metric-list { display: grid; gap: 1px; margin: 0; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; background: var(--line); }
+.protection-metric-list div { display: flex; justify-content: space-between; gap: 18px; padding: 13px 14px; background: rgba(5, 10, 22, .84); }
+.protection-metric-list dt { color: var(--muted); }
+.protection-metric-list dd { margin: 0; color: var(--cyan); font: 800 1rem "Fira Code", monospace; }
+.protected-applications-panel {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 160px;
+    margin-top: 22px;
+    border-style: dashed;
+}
+.protected-applications-panel h2 { margin: 7px 0 8px; }
+.protected-applications-panel p { margin: 0; color: var(--muted); line-height: 1.65; }
+.protected-applications-icon { width: 64px; height: 64px; flex: 0 0 64px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 14px; background: var(--cyan-soft); }
+.protected-applications-icon svg { width: 32px; height: 32px; color: var(--cyan); fill: none; stroke: currentColor; }
+.login-access-note { margin: 18px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
 .policy-warning { border-color: rgba(239, 68, 68, 0.4); }
 .policy-warning p { color: var(--muted); line-height: 1.65; }
 
@@ -324,6 +365,22 @@
     .assistant-progress { grid-template-columns: 1fr 1fr; }
     .assistant-actions { align-items: flex-start; flex-direction: column; }
     .portal-page, .product-page { padding-top: 92px; }
+}
+
+@media (max-width: 1080px) {
+    .security-overview-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .security-overview-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+    .security-overview-kpis { grid-template-columns: 1fr; }
+    .protected-applications-panel { align-items: flex-start; }
+}
+
+@media (max-width: 480px) {
+    .protected-applications-panel { display: grid; }
+    .security-event-list article { grid-template-columns: 1fr; }
+    .security-event-list article b { text-align: left; }
 }
 
 @media (prefers-reduced-motion: reduce) {

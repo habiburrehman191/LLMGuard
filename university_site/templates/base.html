@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Local University of Haripur academic demonstration website">
+    <title>{{ page_title }} | The University of Haripur</title>
+    <link rel="icon" href="{{ url_for('university_static', path='university/images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/navigation.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/homepage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/pages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/admissions.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/portal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('university_static', path='university/css/chatbot.css') }}">
+</head>
+<body class="{% if admissions_shell %}admissions-site{% endif %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    {% include 'components/header.html' %}
+    {% include 'components/navigation.html' %}
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    {% include 'components/footer.html' %}
+    {% include 'components/chatbot.html' %}
+    <script src="{{ url_for('university_static', path='university/js/navigation.js') }}" defer></script>
+    <script src="{{ url_for('university_static', path='university/js/chatbot.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

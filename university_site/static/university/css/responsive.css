@@ -1,0 +1,103 @@
+@media (max-width: 1100px) {
+    .main-nav-list > li > a, .dropdown-toggle { padding-inline: 11px; }
+    .admissions-nav-list a { padding-inline: 7px; font-size: 13px; }
+    .home-tiles { gap: 14px; }
+    .portal-choice-grid { padding-inline: 70px; }
+}
+
+@media (max-width: 800px) {
+    .site-container { width: 100%; }
+    .utility-bar .utility-inner { position: relative; min-height: 41px; padding-inline: 10px; }
+    .utility-toggle { display: block; }
+    .utility-links { position: absolute; top: 41px; left: 0; z-index: 80; display: none; width: 55%; padding: 8px; flex-direction: column; align-items: stretch; gap: 0; background: #000; }
+    .utility-links.open { display: flex; }
+    .utility-links span { display: none; }
+    .utility-links a { padding: 6px; border-bottom: 1px solid #fff; }
+    .social-links { margin-left: auto; }
+    .brand-inner { display: block; min-height: 258px; padding: 8px 30px; overflow: hidden; }
+    .university-logo img { width: 590px; max-width: none; height: 68px; object-fit: contain; object-position: left; }
+    .header-quick-links { display: block; margin-top: 5px; }
+    .header-quick-links a { margin-bottom: 2px; }
+    .main-nav-inner { min-height: 54px; }
+    .nav-toggle { display: block; padding-inline: 15px; }
+    .main-nav-list, .admissions-nav-list { display: none; min-height: 0; flex-direction: column; }
+    .main-nav-list.open, .admissions-nav-list.open { display: flex; }
+    .main-nav-list > li > a, .dropdown-toggle, .admissions-nav-list a { width: 100%; height: auto; min-height: 42px; justify-content: flex-start; }
+    .dropdown-menu, .mega-menu { position: static; width: 100%; min-width: 0; box-shadow: none; }
+    .mega-menu { grid-template-columns: 1fr; }
+    .slides { aspect-ratio: 1.18 / 1; }
+    .slide img { object-position: center; }
+    .announcement-strip { font-size: 18px; }
+    .home-tiles { grid-template-columns: repeat(2, 1fr); padding-inline: 15px; }
+    .home-columns, .news-list, .inner-layout, .faculty-list { grid-template-columns: 1fr; padding-inline: 15px; }
+    .milestone-band { grid-template-columns: 1fr 1fr; width: calc(100% - 30px); }
+    .institution-link-grid { grid-template-columns: repeat(2, 1fr); padding-inline: 20px; gap: 22px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; padding-inline: 20px; }
+    .admissions-utility .utility-inner { padding: 5px 15px; flex-direction: column; gap: 4px; }
+    .admissions-utility .utility-inner > div:first-child { gap: 5px; font-size: 11px; }
+    .admissions-brand-inner { min-height: 165px; padding: 10px 40px; align-items: center; flex-direction: column; }
+    .admissions-brand img { width: 570px; max-width: none; height: 88px; object-position: left center; }
+    .admissions-brand strong { font-size: 16px; }
+    .admissions-nav .nav-toggle { text-align: left; }
+    .admissions-content { padding-inline: 15px; }
+    .program-columns, .admission-program-grid, .admission-support { grid-template-columns: 1fr; }
+    .portal-choice-grid { grid-template-columns: 1fr; gap: 45px; padding-inline: 30px; }
+    .portal-choice-grid img { width: 270px; }
+    .portal-app { grid-template-columns: 1fr; margin: 0; }
+    .portal-sidebar nav { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .student-summary, .dashboard-grid, .role-card-grid { grid-template-columns: 1fr 1fr; }
+    .portal-two-column { grid-template-columns: 1fr; }
+    .document-grid, .filter-grid { grid-template-columns: 1fr 1fr; }
+    .semester-summary { grid-template-columns: 1fr 1fr; }
+    .role-dashboard { padding-inline: 15px; }
+}
+
+@media (max-width: 600px) {
+    .social-links { display: none; }
+    .utility-links { width: 72%; }
+    .brand-inner { min-height: 258px; }
+    .university-logo img { width: 570px; }
+    .header-quick-links { font-size: 14px; }
+    .slides { aspect-ratio: 1.13 / 1; }
+    .slide-arrow { display: none; }
+    .home-tiles { grid-template-columns: 1fr; }
+    .home-tile { min-height: 215px; }
+    .home-tile img { height: 145px; }
+    .home-columns { padding-inline: 15px; }
+    .milestone-band, .footer-grid { grid-template-columns: 1fr; }
+    .institution-link-grid { grid-template-columns: 1fr 1fr; }
+    .round-icon { width: 130px; height: 130px; }
+    .announcement-card { padding: 18px 14px; }
+    .announcement-card h2 { margin-left: 0; font-size: 21px; }
+    .announcement-card p { margin-left: 0; }
+    .announcement-card a { font-size: 13px; }
+    .admissions-brand-inner { align-items: flex-start; padding-inline: 40px; overflow: hidden; }
+    .admissions-brand img { width: 560px; }
+    .admissions-brand strong { align-self: center; font-size: 14px; }
+    .admissions-page-title { white-space: normal; }
+    .program-group h2 { font-size: 22px; }
+    .program-group li { white-space: normal; }
+    .table-scroll { border: 1px solid #c7d4da; }
+    .portal-landing h1 { margin-inline: 40px 10px; font-size: 24px; }
+    .portal-landing > .demo-ribbon { display: none; }
+    .portal-choice-grid img { width: 266px; }
+    .admissions-content { padding-top: 26px; }
+    .portal-choice-grid { padding-inline: 15px; }
+    .login-panel { padding-inline: 22px; }
+    .demo-accounts button { align-items: flex-start; flex-direction: column; }
+    .portal-main { padding: 15px; }
+    .portal-sidebar nav { grid-template-columns: 1fr 1fr; }
+    .student-summary, .dashboard-grid, .role-card-grid { grid-template-columns: 1fr; }
+    .student-summary div { border-right: 0; border-bottom: 1px solid #ccd6db; }
+    .portal-topline { align-items: flex-start; gap: 14px; }
+    .portal-topline h1 { font-size: 21px; }
+    .portal-two-column > .portal-panel > p { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: 1fr; }
+    .portal-entry-card p { min-height: 0; }
+    .panel-heading, .policy-title { align-items: stretch; flex-direction: column; }
+    .inline-search { width: 100%; min-width: 0; }
+    .record-list article { align-items: flex-start; flex-direction: column; }
+    .document-grid, .filter-grid, .semester-summary { grid-template-columns: 1fr; }
+    .policy-metadata { grid-template-columns: 1fr; }
+    .compact-filter { align-items: stretch; flex-direction: column; }
+}

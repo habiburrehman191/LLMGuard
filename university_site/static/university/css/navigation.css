@@ -1,0 +1,39 @@
+.main-nav, .admissions-nav {
+    position: relative;
+    z-index: 40;
+    color: #fff;
+    background: linear-gradient(to bottom, #014068, #007a9e);
+    box-shadow: 0 7px 7px rgba(0, 0, 0, 0.38);
+}
+.main-nav-inner { min-height: 50px; }
+.main-nav-list, .admissions-nav-list { display: flex; min-height: 50px; padding: 0; margin: 0; align-items: stretch; justify-content: center; list-style: none; }
+.main-nav-list > li { position: relative; }
+.main-nav-list > li > a, .dropdown-toggle, .admissions-nav-list a {
+    display: flex;
+    height: 50px;
+    padding: 0 18px;
+    align-items: center;
+    border: 0;
+    color: #fff;
+    background: transparent;
+    font-size: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.main-nav-list > li > a:hover, .dropdown-toggle:hover, .admissions-nav-list a:hover, .main-nav-list > li:focus-within > .dropdown-toggle {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.22);
+    text-decoration: none;
+}
+.dropdown-menu, .mega-menu { position: absolute; top: 50px; left: 0; display: none; min-width: 270px; padding: 8px 0; border-top: 3px solid #b2252e; background: #fff; box-shadow: var(--uoh-shadow); }
+.dropdown-menu.compact { min-width: 330px; }
+.dropdown-menu a, .mega-menu a { display: block; padding: 7px 14px; color: #222; font-size: 13px; }
+.dropdown-menu a:hover, .mega-menu a:hover { color: #fff; background: var(--uoh-blue); text-decoration: none; }
+.mega-menu { left: -110px; grid-template-columns: repeat(2, minmax(250px, 1fr)); width: 720px; padding: 14px; gap: 14px; }
+.mega-menu h3 { margin: 0 0 6px; color: var(--uoh-blue); font-size: 14px; }
+.has-dropdown:hover > .dropdown-menu, .has-dropdown:hover > .mega-menu, .has-dropdown:focus-within > .dropdown-menu, .has-dropdown:focus-within > .mega-menu, .has-dropdown.open > .dropdown-menu { display: block; }
+.has-dropdown.open > .mega-menu { display: grid; }
+.nav-toggle { display: none; width: 100%; min-height: 54px; border: 0; color: #fff; background: transparent; text-align: left; font-size: 20px; }
+.nav-toggle span { margin-right: 20px; }
+.admissions-nav-list { justify-content: space-between; }
+.admissions-nav-list a { padding: 0 12px; font-size: 14px; }

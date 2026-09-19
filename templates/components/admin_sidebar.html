@@ -1,14 +1,37 @@
-<aside class="portal-sidebar am-glass-card admin-sidebar" aria-label="Administration navigation">
-    <div>
-        <span class="am-section-label">[SYS] COMMAND NAV</span>
-        <nav>
-            <a href="/admin/dashboard">Command Center</a>
-            <a href="/admin/security-dashboard">SOC Dashboard</a>
-            <a href="/admin/compare">Compare Lab</a>
-            <a href="/admin/documents">Document Security</a>
-            <a href="/admin/redteam">Red-Team Lab</a>
-            <a href="/admin/audit">Audit Timeline</a>
-        </nav>
+<aside class="portal-sidebar am-glass-card admin-sidebar" aria-label="LLMGuard navigation">
+    <div class="sidebar-navigation">
+        <section class="sidebar-group">
+            <span class="sidebar-group-label">Overview</span>
+            <nav aria-label="Overview">
+                <a href="/admin/dashboard">Security Overview</a>
+            </nav>
+        </section>
+        <section class="sidebar-group">
+            <span class="sidebar-group-label">Security</span>
+            <nav aria-label="Security">
+                <a href="/admin/security-dashboard">SOC / Live Events</a>
+                <a href="/admin/audit">Logs &amp; Request History</a>
+            </nav>
+        </section>
+        <section class="sidebar-group">
+            <span class="sidebar-group-label">Protection</span>
+            <nav aria-label="Protection">
+                <a href="/admin/documents">Document Security</a>
+            </nav>
+        </section>
+        <section class="sidebar-group">
+            <span class="sidebar-group-label">Applications</span>
+            <nav aria-label="Applications">
+                <a href="/admin/dashboard#protected-applications">Protected Applications</a>
+            </nav>
+        </section>
+        <section class="sidebar-group">
+            <span class="sidebar-group-label">Evaluation</span>
+            <nav aria-label="Evaluation">
+                <a href="/admin/redteam">Red Team</a>
+                <a href="/admin/compare">Detector Comparison</a>
+            </nav>
+        </section>
     </div>
     <div class="boundary-lock">
         <svg class="am-inline-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg>

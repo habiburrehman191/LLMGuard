@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admissions-content site-container how-to-apply">
+    <h1 class="admissions-page-title">How to Apply</h1>
+    <h2>Step 1: Creation of Online Account</h2>
+    <p>Use the <a href="/portal/login?role=student">local academic-demo portal</a> for this recreation. It does not create an application on the production university system.</p>
+    <h2>Step 2: Login to Your New Created Account</h2>
+    <ol>
+        <li>Sign in with a synthetic demo account and review the local form interface.</li>
+        <li>Use only fictional details in the academic demonstration.</li>
+        <li>Select programs in priority order and review all entries before the demo submission.</li>
+        <li>The local demo shows a synthetic application status; it does not generate a real fee challan.</li>
+        <li>No payment or personal information is transmitted to the University of Haripur.</li>
+    </ol>
+    <h2>Step 3: After the Submission of Application</h2>
+    <ol>
+        <li>Review the local notices and admission schedule.</li>
+        <li>For the real public process, consult the official university guidance separately.</li>
+        <li>Do not send documents or credentials through this academic demonstration.</li>
+    </ol>
+    <div class="demo-safety-box"><strong>Academic Demo Environment:</strong> this form flow is inert, local, and uses synthetic data only.</div>
+    {% include 'admissions/support.html' %}
+</section>
+{% endblock %}

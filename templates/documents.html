@@ -9,15 +9,15 @@
 <body class="product-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
     {% include "components/product_nav.html" %}
     <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
-        <header class="page-header"><div><span class="am-section-label">[03] DOCUMENT SECURITY</span><h1 class="am-gradient-title">Controlled Document Manager</h1><p>Manage synthetic university documents, classifications, portal scopes, chunks, and the FAISS index.</p></div>{% include "components/security_badges.html" %}</header>
+        <header class="page-header"><div><span class="am-section-label">[03] DOCUMENT SECURITY</span><h1 class="am-gradient-title">Controlled Document Manager</h1><p>Manage controlled synthetic documents, classifications, application scopes, chunks, and the FAISS index.</p></div>{% include "components/security_badges.html" %}</header>
         <section class="document-layout">
             <article class="workspace-card upload-manager">
                 <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span class="am-section-label">INGEST DOCUMENT</span><h2>Upload TXT, PDF, or DOCX</h2>
                 <div class="file-type-row"><span>TXT</span><span>PDF</span><span>DOCX</span></div>
                 <div class="drop-zone" data-drop-zone><label class="field-label" for="manager-file">Choose or drop a controlled file</label><input id="manager-file" type="file" accept=".txt,.pdf,.docx"></div>
-                <label class="field-label" for="manager-title">Document title</label><input id="manager-title" type="text" placeholder="Synthetic university document">
+                <label class="field-label" for="manager-title">Document title</label><input id="manager-title" type="text" placeholder="Controlled synthetic document">
                 <div class="form-grid two-column">
-                    <label>Portal scope<select id="manager-scope"><option>student</option><option>employee</option><option>admin</option></select></label>
+                    <label>Application scope<select id="manager-scope"><option value="student">student test scope</option><option value="employee">employee test scope</option><option value="admin">administrative test scope</option></select></label>
                     <label>Classification<select id="manager-classification"><option>public</option><option>student_private</option><option>employee_private</option><option>admin_internal</option><option>finance_confidential</option><option>exam_confidential</option><option>restricted_secret</option></select></label>
                 </div>
                 <p class="inline-note">Private files must begin with the synthetic-data marker. restricted_secret uploads are rejected by policy.</p>

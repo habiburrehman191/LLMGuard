@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin Portal | LLMGuard</title>
+    <title>Security Overview | LLMGuard</title>
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
 </head>
@@ -15,9 +15,9 @@
         <div class="portal-main">
         <header class="portal-header admin-header">
             <div>
-                <span class="am-section-label">[01] SUPER ADMIN MODULE</span>
-                <h1 class="am-gradient-title">Super Admin Command Center</h1>
-                <p>Investigate synthetic activity, compare security modes, manage controlled documents, and review gateway decisions.</p>
+                <span class="am-section-label">[01] SECURITY OVERVIEW</span>
+                <h1 class="am-gradient-title">LLMGuard AI Security Dashboard</h1>
+                <p>Monitor firewall decisions, threat activity, detector outcomes, and the applications entering LLMGuard protection.</p>
             </div>
             <section class="identity-panel">
                 <span class="identity-avatar">A1</span>
@@ -26,43 +26,58 @@
             </section>
         </header>
 
-        <section class="admin-kpi-grid">
-            <article class="metric-card product-card"><span>Student records</span><strong>{{ record_summary.student }}</strong><small>Synthetic student scope</small></article>
-            <article class="metric-card product-card"><span>Employee records</span><strong>{{ record_summary.employee }}</strong><small>Synthetic employee scope</small></article>
-            <article class="metric-card product-card"><span>Admin records</span><strong>{{ record_summary.admin }}</strong><small>Internal synthetic scope</small></article>
-            <article class="metric-card product-card restricted-kpi"><span>Restricted secret</span><strong>Never</strong><small>Never sent to Qwen</small></article>
+        <section class="admin-kpi-grid security-overview-kpis" aria-label="Security telemetry">
+            <article class="metric-card product-card"><span>Total requests</span><strong>{{ metrics.total_queries }}</strong><small>Inspected by the gateway</small></article>
+            <article class="metric-card product-card"><span>Safe</span><strong>{{ metrics.label_counts.get("safe", 0) }}</strong><small>Low-risk decisions</small></article>
+            <article class="metric-card product-card warning-kpi"><span>Suspicious</span><strong>{{ metrics.label_counts.get("suspicious", 0) }}</strong><small>Requests requiring attention</small></article>
+            <article class="metric-card product-card danger-kpi"><span>Malicious</span><strong>{{ metrics.label_counts.get("malicious", 0) }}</strong><small>High-risk detections</small></article>
+            <article class="metric-card product-card danger-kpi"><span>Blocked</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong><small>Stopped by policy</small></article>
+            <article class="metric-card product-card"><span>Sanitized</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong><small>Released after filtering</small></article>
+            <article class="metric-card product-card warning-kpi"><span>Quarantined</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong><small>Held for investigation</small></article>
+            <article class="metric-card product-card"><span>Latest risk</span><strong>{{ "%.0f%%"|format(metrics.recent_logs[0].risk_score * 100) if metrics.recent_logs else "—" }}</strong><small>{{ metrics.recent_logs[0].label|title if metrics.recent_logs else "No events recorded" }}</small></article>
         </section>
 
         <section class="admin-module-grid">
-            <a class="product-card soc-card" href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>Security Dashboard</strong><p>KPI trends, critical events, detector signals, and investigation details.</p></a>
-            <a class="product-card soc-card" href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Mode analysis</span><strong>Compare Lab</strong><p>Run one prompt through vulnerable and protected gateway paths side by side.</p></a>
-            <a class="product-card soc-card" href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG governance</span><strong>Document Manager</strong><p>Upload, classify, inspect chunks, rebuild FAISS, and remove controlled files.</p></a>
+            <a class="product-card soc-card" href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>SOC &amp; Live Events</strong><p>Review current telemetry, critical events, detector signals, and enforcement details.</p></a>
+            <a class="product-card soc-card" href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Investigation</span><strong>Logs &amp; Request History</strong><p>Trace requests, firewall decisions, tool calls, and audit evidence.</p></a>
+            <a class="product-card soc-card" href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Detection analysis</span><strong>Detector Comparison</strong><p>Compare the controlled vulnerable baseline with the protected gateway path.</p></a>
+            <a class="product-card soc-card" href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG protection</span><strong>Document Security</strong><p>Classify, inspect, index, and remove controlled synthetic sources.</p></a>
             <a class="product-card soc-card" href="/admin/redteam"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Adversarial testing</span><strong>Red-Team Lab</strong><p>Review structured attack cases and runner availability.</p></a>
-            <a class="product-card soc-card" href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Accountability</span><strong>Audit Logs</strong><p>Trace interactions, firewall events, tool calls, and repository changes.</p></a>
         </section>
 
-        <div class="portal-workspace-grid admin-workspace">
-            {% include "components/ai_assistant.html" %}
-            <aside class="workspace-sidebar">
-                <section class="workspace-card">
-                    <div class="section-heading"><div><span class="section-kicker">Global view</span><h2>Recent interactions</h2></div><span class="count-badge">{{ recent_interactions|length }}</span></div>
-                    <div class="interaction-list compact">
-                        {% for item in recent_interactions %}
-                        <article><span class="status-badge action-{{ item.action.value }}">{{ item.action.value }}</span><div><strong>{{ item.user_role }}</strong><small>{{ item.prompt }}</small></div><b>{{ "%.0f"|format(item.risk_score * 100) }}%</b></article>
-                        {% else %}<p class="empty-message">No gateway interactions recorded yet.</p>{% endfor %}
-                    </div>
-                </section>
-                <section class="workspace-card policy-warning">
-                    <span class="section-kicker">Hard security boundary</span>
-                    <h2>restricted_secret stays isolated</h2>
-                    <p>Super admin can inspect broad synthetic university data, but restricted secrets remain blocked from retrieval, tools, and Qwen context.</p>
-                </section>
-            </aside>
+        <div class="security-overview-grid">
+            <section class="workspace-card recent-security-card">
+                <div class="section-heading"><div><span class="section-kicker">Live security activity</span><h2>Recent security events</h2></div><span class="count-badge">{{ recent_security_events|length }}</span></div>
+                <div class="interaction-list compact security-event-list">
+                    {% for event in recent_security_events %}
+                    <article><span class="status-badge action-{{ event.action }}">{{ event.action }}</span><div><strong>{{ event.label|title }} · {{ event.threat_source or "gateway" }}</strong><small>{{ event.prompt }}</small></div><b>{{ "%.0f"|format(event.risk_score * 100) }}%</b></article>
+                    {% else %}<p class="empty-message">No security events have been recorded yet.</p>{% endfor %}
+                </div>
+                <a class="secondary-button dashboard-text-link" href="/admin/security-dashboard">Open SOC investigation view</a>
+            </section>
+            <section class="workspace-card protection-posture-card">
+                <div class="section-heading"><div><span class="section-kicker">Protection</span><h2>Firewall activity</h2></div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                <dl class="protection-metric-list">
+                    <div><dt>Prompt firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.prompt_firewall_blocks }}</dd></div>
+                    <div><dt>Access policy blocks</dt><dd>{{ metrics.zero_trust_metrics.access_policy_blocks }}</dd></div>
+                    <div><dt>Tool firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.tool_firewall_blocks }}</dd></div>
+                    <div><dt>Output firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.output_firewall_blocks }}</dd></div>
+                    <div><dt>Unauthorized retrieval</dt><dd>{{ metrics.zero_trust_metrics.unauthorized_retrieval_attempts }}</dd></div>
+                </dl>
+            </section>
         </div>
+
+        <section id="protected-applications" class="workspace-card protected-applications-panel" aria-labelledby="protected-applications-title">
+            <div class="protected-applications-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+            <div>
+                <span class="section-kicker">Applications</span>
+                <h2 id="protected-applications-title">Protected Applications</h2>
+                <p>No external applications have been migrated to the LLMGuard V2 integration architecture yet.</p>
+            </div>
+        </section>
         </div>
       </div>
     </main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
-    <script src="{{ url_for('static', path='portal.js') }}?v={{ asset_version }}" defer></script>
 </body>
 </html>

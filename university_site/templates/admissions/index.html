@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admissions-content site-container">
+    <div class="admissions-alerts">
+        <p><strong>Note:</strong> For online application instructions click <a href="/university/admissions/how-to-apply">How To Apply</a>. To exercise the local demonstration, use <a href="/portal/student/login">Student Portal Login</a>.</p>
+        <p><strong>Important:</strong> Entry Test for MS/M.Phil/M.Sc (Hons)/Ph.D Programs will be conducted according to the published admission schedule.</p>
+    </div>
+    <div class="admission-program-grid">
+        {% set cards = [
+            ('PHD PROGRAMS','admissions-phd.png','/university/admissions/phd-programs'),
+            ('MS/M.PHIL PROGRAMS','admissions-ms.png','/university/admissions/ms-programs'),
+            ('BS PROGRAMS','admissions-bs.png','/university/admissions/bs-programs'),
+            ('5TH SEMESTER BS PROGRAMS','admissions-5th.png','/university/admissions/bs-programs'),
+            ('DIPLOMA PROGRAMS','admissions-diploma.png','/university/admissions/bs-programs')
+        ] %}
+        {% for label, image, href in cards %}
+        <article class="admission-program-card">
+            <h1>{{ label }}</h1>
+            <img src="{{ url_for('university_static', path='university/images/' + image) }}" alt="">
+            <a href="{{ href }}">Programs Offered</a>
+            <a href="/university/admissions/eligibility">Eligibility Criteria</a>
+            <a href="/university/admissions/fee">Semester Fee Structure</a>
+            <a href="/university/admissions/how-to-apply">Application Fee &amp; Bank Details</a>
+        </article>
+        {% endfor %}
+    </div>
+    <section class="tutorial-block">
+        <h2>VIDEO TUTORIAL</h2>
+        <div class="tutorial-card">
+            <span>How To Apply Online</span>
+            <strong>(UoH Admissions)</strong>
+            <a href="/university/admissions/how-to-apply">View local instructions</a>
+        </div>
+    </section>
+    {% include 'admissions/support.html' %}
+</section>
+{% endblock %}

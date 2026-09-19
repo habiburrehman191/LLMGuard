@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admissions-content site-container">
+    <h1 class="admissions-page-title">{{ heading }}</h1>
+    <ul class="admissions-feature-list">
+        {% for item in items %}<li><span aria-hidden="true">▸</span><h2>{{ item }}</h2></li>{% endfor %}
+    </ul>
+    {% include 'admissions/support.html' %}
+</section>
+{% endblock %}

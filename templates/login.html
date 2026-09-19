@@ -17,7 +17,7 @@
             </div>
             <span class="llmg-section-label">NEURAL DEFENSE OS / SECURE IDENTITY</span>
             <h1 class="llmg-gradient-title">Secure access to LLMGuard</h1>
-            <p>Select a synthetic identity to enter a role-isolated workspace backed by the same zero-trust gateway and evidence trail.</p>
+            <p>Authenticate with a security administrator account to enter the monitoring, protection, and evaluation console.</p>
             <div class="login-security-note">
                 <strong>Security invariant</strong>
                 <p>Restricted secrets are never sent to Qwen, including for the Super Admin role.</p>
@@ -25,30 +25,9 @@
         </section>
 
         <section class="login-workspace llmg-login-workspace">
-            <div class="login-role-grid">
-                <button class="login-role-card am-glass-card llmg-corner-bracket accent-cyan" type="button" data-seed-user="student1" data-seed-password="Student@123">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#student"></use></svg>
-                    <span class="am-status-badge scope-badge">Student</span>
-                    <strong>Student Portal</strong>
-                    <small><code>student1</code> / <code>Student@123</code></small>
-                </button>
-                <button class="login-role-card am-glass-card llmg-corner-bracket accent-gold" type="button" data-seed-user="employee1" data-seed-password="Employee@123">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#employee"></use></svg>
-                    <span class="am-status-badge gold-badge">Employee</span>
-                    <strong>Employee Portal</strong>
-                    <small><code>employee1</code> / <code>Employee@123</code></small>
-                </button>
-                <button class="login-role-card am-glass-card llmg-corner-bracket accent-red" type="button" data-seed-user="admin1" data-seed-password="Admin@123">
-                    <svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#admin"></use></svg>
-                    <span class="am-status-badge danger-badge">Super Admin</span>
-                    <strong>Command Center</strong>
-                    <small><code>admin1</code> / <code>Admin@123</code></small>
-                </button>
-            </div>
-
             <section class="login-card am-glass-card llmg-glass-card llmg-glow-border llmg-corner-bracket">
                 <div class="section-heading">
-                    <div><span class="llmg-section-label">IDENTITY VERIFICATION</span><h2>Secure sign in</h2></div>
+                    <div><span class="llmg-section-label">SECURITY CONSOLE</span><h2>Administrator sign in</h2></div>
                     <span class="am-status-badge protected-badge">Synthetic demo</span>
                 </div>
                 <form id="login-form">
@@ -56,9 +35,10 @@
                     <input id="username" name="username" type="text" autocomplete="username" required>
                     <label class="field-label" for="password">Password</label>
                     <input id="password" name="password" type="password" autocomplete="current-password" required>
-                    <button class="am-cyber-button llmg-cyber-button primary-button" type="submit">Continue to portal</button>
+                    <button class="am-cyber-button llmg-cyber-button primary-button" type="submit">Continue to security console</button>
                     <p class="form-message" id="login-message" role="status"></p>
                 </form>
+                <p class="login-access-note">Use the existing synthetic security-administrator credentials for this controlled testbed.</p>
             </section>
         </section>
     </main>

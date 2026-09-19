@@ -1,0 +1,42 @@
+# Local databases and sidecars
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Generated retrieval/model data and browser profiles
+demo_data/chat_vector_store/
+demo_data/browser_profile/
+demo_data/browser_profile_*/
+demo_data/test_models/
+
+# Python and tool caches
+**/__pycache__/
+*.py[cod]
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Runtime logs and temporary/recovery files
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*~
+demo_data/recovered_*
+
+# Local operating-system metadata
+.DS_Store
+Thumbs.db
+
+tests/visual/

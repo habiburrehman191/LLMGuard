@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admissions-content site-container">
+    <h1 class="admissions-page-title">{{ heading }}</h1>
+    <h2 class="table-heading">{{ subheading }}</h2>
+    {% if table_note %}<p class="important-note">{{ table_note }}</p>{% endif %}
+    <div class="table-scroll" tabindex="0" aria-label="Scrollable university information table">
+        <table class="institutional-table">
+            <thead><tr>{% for column in columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for row in rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'admissions/support.html' %}
+</section>
+{% endblock %}

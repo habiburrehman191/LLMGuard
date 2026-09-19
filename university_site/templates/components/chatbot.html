@@ -1,0 +1,112 @@
+{% set chat_titles = {
+    'public': ('University AI Assistant', 'Official digital information desk', 'Public University Information'),
+    'student': ('Student AI Assistant', 'Personal academic assistance', 'Student Portal · Personal Academic Access'),
+    'employee': ('Employee AI Assistant', 'Authorized institutional assistance', 'Employee Portal · Authorized Institutional Access')
+} %}
+{% set chat_welcomes = {
+    'public': ('How may I assist you?', 'Ask about admissions, programs, departments, scholarships, facilities and University services.'),
+    'student': ('Welcome back', 'Review your studies and ask about your own courses, attendance, results, fees or timetable.'),
+    'employee': ('University Information Assistant', 'Search authorized University records, policies, departments and administrative information.')
+} %}
+{% set chat_footnotes = {
+    'public': 'Answers use public University records.',
+    'student': 'Your private academic data remains limited to your account.',
+    'employee': 'Results follow your authorized institutional access.'
+} %}
+{% set launcher_labels = {'public': 'Ask UoH AI Assistant', 'student': 'Ask Student AI Assistant', 'employee': 'Ask Employee AI Assistant'} %}
+{% set chat_title, chat_subtitle, chat_ribbon = chat_titles[chatbot_context] %}
+{% set welcome_title, chat_welcome = chat_welcomes[chatbot_context] %}
+{% set display_name = student.full_name if chatbot_context == 'student' and student is defined else (employee.full_name if chatbot_context == 'employee' and employee is defined else '') %}
+{% set display_detail = (student.program.name ~ ' · Semester ' ~ student.current_semester) if chatbot_context == 'student' and student is defined else ((employee.designation ~ ' · ' ~ employee.organizational_unit) if chatbot_context == 'employee' and employee is defined else '') %}
+
+<div class="uoh-chat uoh-assistant uoh-assistant--{{ chatbot_context }}" id="uoh-chat"
+     data-context="{{ chatbot_context }}" data-current-page="{{ request.url.path }}"
+     data-page-title="{{ page_title }}" data-welcome-title="{{ welcome_title }}"
+     data-welcome="{{ chat_welcome }}" data-display-name="{{ display_name }}" data-display-detail="{{ display_detail }}">
+    <button class="uoh-chat-launcher" type="button" aria-label="{{ launcher_labels[chatbot_context] }}"
+            aria-controls="uoh-chat-panel" aria-expanded="false">
+        <span class="uoh-chat-launcher-ring" aria-hidden="true"></span>
+        <span class="uoh-chat-launcher-surface" aria-hidden="true">
+            <span class="uoh-chat-logo-crop"><img src="/static/university/images/logo.png" alt=""></span>
+            <span class="uoh-chat-activity"><i></i><i></i><i></i></span>
+            <span class="uoh-chat-tail"></span>
+        </span>
+        <span class="uoh-chat-launcher-text">{{ launcher_labels[chatbot_context] }}</span>
+    </button>
+
+    <section class="uoh-chat-panel" id="uoh-chat-panel" role="dialog" aria-modal="true"
+             aria-labelledby="uoh-chat-title" hidden>
+        <header class="uoh-chat-header">
+            <div class="uoh-chat-header-main">
+                <div class="uoh-chat-brand">
+                    <span class="uoh-chat-brand-crest" aria-hidden="true"><img src="/static/university/images/logo.png" alt=""></span>
+                    <div><strong id="uoh-chat-title">{{ chat_title }}</strong><small>{{ chat_subtitle }}</small></div>
+                </div>
+                <div class="uoh-chat-header-actions">
+                    <button type="button" data-chat-history aria-label="Show conversation history" data-tooltip="Conversation history">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v6h6M12 7v5l3 2"/></svg>
+                    </button>
+                    <button type="button" data-chat-new aria-label="Start a new conversation" data-tooltip="Start new conversation">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                    <button type="button" data-chat-minimize aria-label="Minimize assistant" data-tooltip="Minimize">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>
+                    </button>
+                    <button type="button" data-chat-close aria-label="Close assistant" data-tooltip="Close">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="uoh-chat-context-ribbon">
+                <span>{{ chat_ribbon }}</span>
+                {% if display_name %}<small>Signed in as {{ display_name }}{% if display_detail %} · {{ display_detail }}{% endif %}</small>{% endif %}
+            </div>
+        </header>
+
+        <aside class="uoh-chat-history" data-chat-history-panel aria-label="Conversation history" hidden>
+            <div class="uoh-chat-history-heading">
+                <div><strong>Conversation History</strong><small>Your saved University Assistant conversations</small></div>
+                <button type="button" data-history-close aria-label="Close conversation history">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+            <div data-history-list><p>Loading history…</p></div>
+        </aside>
+
+        <div class="uoh-chat-messages" data-chat-messages role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div class="uoh-chat-suggestions" data-chat-suggestions role="group" aria-label="Suggested questions"></div>
+        <div class="uoh-chat-loading" data-chat-loading role="status" aria-live="polite" hidden>
+            <span class="uoh-chat-loader-logo" aria-hidden="true"><img src="/static/university/images/logo.png" alt=""></span>
+            <span><strong data-loading-label>Searching university records</strong><small data-loading-detail>Reviewing authorized sources…</small></span>
+            <span class="uoh-chat-typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
+
+        <form class="uoh-chat-form" data-chat-form>
+            <label for="uoh-chat-question">Ask the {{ chat_title }}</label>
+            <div class="uoh-chat-composer">
+                <textarea id="uoh-chat-question" data-chat-input rows="2" maxlength="1200"
+                    placeholder="{{ {'public': 'Ask about university information…', 'student': 'Ask about your academic record…', 'employee': 'Ask about authorized university records…'}[chatbot_context] }}" required></textarea>
+                <button type="submit" data-chat-send aria-label="Send question">
+                    <span>Send</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Zm7 1 3-3"/></svg>
+                </button>
+            </div>
+            <small>{{ chat_footnotes[chatbot_context] }}</small>
+        </form>
+
+        <div class="uoh-chat-feedback-form" data-feedback-form role="dialog" aria-modal="true" aria-labelledby="uoh-feedback-title" hidden>
+            <div class="uoh-chat-feedback-heading">
+                <strong id="uoh-feedback-title">What could be improved?</strong>
+                <button type="button" data-feedback-cancel aria-label="Close feedback form">×</button>
+            </div>
+            <fieldset>
+                <legend>Choose a reason</legend>
+                {% for reason in ['Incorrect information', 'Incomplete answer', 'Wrong source', 'Outdated information', "Didn't understand my question", 'Other'] %}
+                <label><input type="radio" name="uoh-feedback-reason" value="{{ reason }}"{% if loop.first %} checked{% endif %}> <span>{{ reason }}</span></label>
+                {% endfor %}
+            </fieldset>
+            <label for="uoh-feedback-comment">Optional comment</label>
+            <textarea id="uoh-feedback-comment" data-feedback-comment maxlength="1000" placeholder="Add a short note"></textarea>
+            <button type="button" data-feedback-submit>Submit Feedback</button>
+        </div>
+    </section>
+</div>

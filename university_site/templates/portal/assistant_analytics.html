@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="portal-app site-container employee-portal-app">
+    {% include 'portal/employee_sidebar.html' %}
+    <div class="portal-main">
+        <div class="portal-topline"><div><span>Employee Portal · {{ employee.designation }}</span><h1>AI Assistant Analytics</h1></div><form method="post" action="/portal/employee/logout"><button type="submit">Logout</button></form></div>
+        <div class="demo-ribbon compact">Synthetic employee environment — analytics exclude passwords, session data, and private conversation transcripts</div>
+        <section class="portal-panel">
+            <h1>University AI Assistant Analytics</h1>
+            <div class="dashboard-grid assistant-stat-grid">
+                <article><span>Total questions</span><strong>{{ analytics.total_questions }}</strong></article>
+                <article><span>Public</span><strong>{{ analytics.portal_counts.public }}</strong></article>
+                <article><span>Student</span><strong>{{ analytics.portal_counts.student }}</strong></article>
+                <article><span>Employee</span><strong>{{ analytics.portal_counts.employee }}</strong></article>
+                <article><span>Helpful</span><strong>{{ analytics.helpful }}</strong></article>
+                <article><span>Not helpful</span><strong>{{ analytics.not_helpful }}</strong></article>
+                <article><span>No-answer rate</span><strong>{{ analytics.no_answer_rate }}%</strong></article>
+                <article><span>Average response</span><strong>{{ analytics.average_latency }} ms</strong></article>
+            </div>
+        </section>
+        <div class="portal-two-column">
+            <section class="portal-panel"><h2>Most Queried Topics</h2>{% if analytics.top_topics %}<ul class="analytics-list">{% for topic, count in analytics.top_topics %}<li><span>{{ topic|replace('_',' ')|title }}</span><strong>{{ count }}</strong></li>{% endfor %}</ul>{% else %}<p class="context-empty">No questions have been recorded yet.</p>{% endif %}</section>
+            <section class="portal-panel"><h2>Top Negative Reasons</h2>{% if analytics.negative_reasons %}<ul class="analytics-list">{% for reason, count in analytics.negative_reasons %}<li><span>{{ reason }}</span><strong>{{ count }}</strong></li>{% endfor %}</ul>{% else %}<p class="context-empty">No negative feedback has been recorded.</p>{% endif %}</section>
+        </div>
+        <section class="portal-panel"><h2>Recent Feedback</h2>{% if analytics.recent_feedback %}<div class="table-scroll"><table class="portal-table"><thead><tr><th>Context</th><th>Rating</th><th>Reason</th><th>Comment</th><th>Recorded</th></tr></thead><tbody>{% for item in analytics.recent_feedback %}<tr><td>{{ item.portal_context|title }}</td><td>{{ item.rating|replace('_',' ')|title }}</td><td>{{ item.reason or '—' }}</td><td>{{ item.comment or '—' }}</td><td>{{ item.created_at.strftime('%d %b %Y %H:%M') }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="context-empty">No feedback has been submitted.</p>{% endif %}</section>
+    </div>
+</section>
+{% endblock %}

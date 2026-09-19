@@ -1,0 +1,6 @@
+<aside class="portal-sidebar employee-sidebar">
+    <div class="portal-user"><span>{{ employee.first_name[0] }}{{ employee.last_name[0] }}</span><strong>{{ employee.full_name }}</strong><small>{{ employee.employee_number }}</small><small>{{ employee.designation }}</small></div>
+    <nav aria-label="Employee portal">
+        {% for label, href in employee_menu %}<a href="{{ href }}">{{ label }}</a>{% endfor %}
+    </nav>
+</aside>

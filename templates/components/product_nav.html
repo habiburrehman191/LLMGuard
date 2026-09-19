@@ -16,26 +16,22 @@
     <nav id="product-navigation" aria-label="Primary navigation" data-product-nav-menu>
         {% if user %}
             <div class="nav-links">
-            {% if user.role.value == "student" %}
-            <a href="/student/dashboard">Student Portal</a>
-            {% elif user.role.value == "employee" %}
-            <a href="/employee/dashboard">Employee Portal</a>
-            {% else %}
-            <a href="/admin/dashboard">Admin Portal</a>
-            <a href="/admin/security-dashboard">Security</a>
-            <a href="/admin/compare">Compare</a>
-            <a href="/admin/documents">Documents</a>
-            <a href="/admin/redteam">Red-Team</a>
-            <a href="/admin/audit">Audit</a>
+            {% if user.role.value == "super_admin" %}
+            <a href="/admin/dashboard">Overview</a>
+            <a href="/admin/security-dashboard">SOC</a>
+            <a href="/admin/audit">Logs</a>
+            <a href="/admin/compare">Comparison</a>
+            <a href="/admin/documents">Document Security</a>
+            <a href="/admin/redteam">Red Team</a>
             {% endif %}
             </div>
             <button class="nav-action" type="button" data-logout>Sign out</button>
         {% else %}
             <div class="nav-links">
             <a href="/#technology">Platform</a>
-            <a href="/#portals">Portals</a>
-            <a href="/#features">Pipeline</a>
+            <a href="/#features">Protection</a>
             <a href="/#demo">Operations</a>
+            <a href="/#interactive-demo">Evaluation</a>
             </div>
             <a class="nav-action" href="/login"><span>Launch console</span><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a>
         {% endif %}

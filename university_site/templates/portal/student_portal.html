@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="portal-app site-container">
+    {% include 'portal/student_sidebar.html' %}
+    <div class="portal-main">
+        <div class="portal-topline">
+            <div><span>Student Portal</span><h1>{% if section == 'dashboard' %}Welcome, {{ student.first_name }}{% elif section == 'course_detail' %}Course Detail{% else %}{{ section|title }}{% endif %}</h1></div>
+            <form method="post" action="/portal/student/logout"><button type="submit">Logout</button></form>
+        </div>
+        <div class="demo-ribbon compact">Synthetic student record — academic demonstration only</div>
+
+        {% if section == 'dashboard' %}
+        <div class="student-summary">
+            <div><span>Registration No.</span><strong>{{ student.registration_number }}</strong></div>
+            <div><span>Program</span><strong>{{ student.program.name }}</strong></div>
+            <div><span>Semester</span><strong>{{ student.current_semester }}</strong></div>
+            <div><span>Status</span><strong>{{ student.enrollment_status }}</strong></div>
+        </div>
+        <div class="dashboard-grid">
+            <article><h2>Current Credit Hours</h2><strong>{{ student.current_credit_hours }}</strong><a href="/portal/student/courses">View courses</a></article>
+            <article><h2>Attendance</h2><strong>{{ student.attendance_percentage }}%</strong><a href="/portal/student/attendance">View course attendance</a></article>
+            <article><h2>Current CGPA</h2><strong>{{ '%.2f'|format(student.cgpa) }}</strong><a href="/portal/student/results">View results</a></article>
+            <article><h2>Fee Status</h2><strong class="{% if student.fee_status == 'Paid' %}status-paid{% else %}status-due{% endif %}">{{ student.fee_status }}</strong><a href="/portal/student/fees">View fee account</a></article>
+        </div>
+        <div class="portal-two-column portal-dashboard-sections">
+            <section class="portal-panel"><h2>Upcoming Classes</h2>{% for row in timetable %}<p><strong>{{ row.day }} {{ row.start_time }}</strong><span>{{ row.enrollment.course.course_title }} — Room {{ row.room }}</span></p>{% endfor %}</section>
+            <section class="portal-panel"><h2>Current Notices</h2>{% for notice in notices %}<p><strong>{{ notice.published_at.strftime('%d %b %Y') }}</strong><span>{{ notice.title }}</span></p>{% endfor %}</section>
+            <section class="portal-panel"><h2>Recent Academic Results</h2>{% for result in results %}<p><strong>{{ result.enrollment.course.course_code }}</strong><span>{{ result.grade }} — {{ result.marks|round(1) }} marks</span></p>{% endfor %}</section>
+            <section class="portal-panel"><h2>Academic Standing</h2><p><strong>{{ student.academic_status }}</strong><span>{{ student.credit_hours_completed }} credit hours completed</span></p><p><strong>Advisor</strong><span>{{ student.advisor }}</span></p></section>
+        </div>
+
+        {% elif section == 'profile' %}
+        <section class="portal-panel section-panel">
+            <h2>Personal and Academic Profile</h2>
+            <dl class="profile-grid">
+                <dt>Student ID</dt><dd>{{ student.student_id }}</dd><dt>Registration Number</dt><dd>{{ student.registration_number }}</dd>
+                <dt>Full Name</dt><dd>{{ student.full_name }}</dd><dt>Gender</dt><dd>{{ student.gender }}</dd>
+                <dt>Date of Birth</dt><dd>{{ student.date_of_birth.strftime('%d %B %Y') }}</dd><dt>Demo Identifier</dt><dd>{{ student.demo_identifier }}</dd>
+                <dt>Institutional Email</dt><dd>{{ student.institutional_email }}</dd><dt>Demo Phone</dt><dd>{{ student.demo_phone }}</dd>
+                <dt>Emergency Contact</dt><dd>{{ student.emergency_contact }}</dd><dt>Current Address</dt><dd>{{ student.current_address }}</dd>
+                <dt>Permanent Address</dt><dd>{{ student.permanent_address }}</dd><dt>Province / District</dt><dd>{{ student.province }} / {{ student.district }}</dd>
+                <dt>Faculty</dt><dd>{{ student.department.faculty.name }}</dd><dt>Department</dt><dd>{{ student.department.name }}</dd>
+                <dt>Program</dt><dd>{{ student.program.name }}</dd><dt>Batch</dt><dd>{{ student.batch }}</dd>
+                <dt>Semester / Section</dt><dd>{{ student.current_semester }} / {{ student.section }}</dd><dt>Shift</dt><dd>{{ student.shift }}</dd>
+                <dt>Academic Advisor</dt><dd>{{ student.advisor }}</dd><dt>Enrollment</dt><dd>{{ student.enrollment_status }}</dd>
+                <dt>Scholarship</dt><dd>{{ student.scholarship_status }}</dd><dt>Library</dt><dd>{{ student.library_status }}</dd>
+                <dt>Hostel</dt><dd>{{ student.hostel_status }}</dd><dt>Transport</dt><dd>{{ student.transport_status }}</dd>
+            </dl>
+        </section>
+
+        {% elif section == 'courses' %}
+        <section class="portal-panel section-panel">
+            <div class="panel-heading"><h2>Current-Semester Courses</h2><form class="inline-search"><label class="sr-only" for="course-search">Search courses</label><input id="course-search" name="q" value="{{ query }}" placeholder="Course code or title"><button>Search</button></form></div>
+            {% if courses %}<div class="table-scroll"><table class="portal-table"><thead><tr><th>Code</th><th>Course</th><th>Credits</th><th>Teacher</th><th>Department</th><th>Classroom / Schedule</th><th>Status</th><th>Action</th></tr></thead><tbody>
+                {% for item in courses %}<tr><td>{{ item.course.course_code }}</td><td>{{ item.course.course_title }}</td><td>{{ item.course.credit_hours }}</td><td>{{ item.course.teacher.full_name }}</td><td>{{ item.course.department.name }}</td><td>See timetable</td><td>{{ item.enrollment_status }}</td><td><a href="/portal/student/courses/{{ item.course.course_code }}">View Details</a></td></tr>{% endfor %}
+            </tbody></table></div>{% else %}<p class="context-empty">No current courses match your search.</p>{% endif %}
+        </section>
+
+        {% elif section == 'course_detail' %}
+        <section class="portal-panel section-panel detail-card">
+            <a class="back-link" href="/portal/student/courses">← Back to Courses</a>
+            <h2>{{ enrollment.course.course_code }} — {{ enrollment.course.course_title }}</h2>
+            <dl class="profile-grid"><dt>Credit Hours</dt><dd>{{ enrollment.course.credit_hours }}</dd><dt>Teacher</dt><dd>{{ enrollment.course.teacher.full_name }}</dd><dt>Department</dt><dd>{{ enrollment.course.department.name }}</dd><dt>Semester</dt><dd>{{ enrollment.semester_number }}</dd><dt>Enrollment Status</dt><dd>{{ enrollment.enrollment_status }}</dd><dt>Course Purpose</dt><dd>Develop discipline-specific knowledge and applied academic skills through lectures, guided practice, and assessed coursework.</dd></dl>
+        </section>
+
+        {% elif section == 'attendance' %}
+        <section class="portal-panel section-panel"><h2>Course-Specific Attendance</h2><div class="table-scroll"><table class="portal-table"><thead><tr><th>Course</th><th>Total Classes</th><th>Present</th><th>Absent</th><th>Late</th><th>Excused</th><th>Attendance %</th><th>Status</th></tr></thead><tbody>
+            {% for row in attendance %}<tr><td>{{ row.enrollment.course.course_code }} — {{ row.enrollment.course.course_title }}</td><td>{{ row.total_classes }}</td><td>{{ row.present }}</td><td>{{ row.absent }}</td><td>{{ row.late }}</td><td>{{ row.excused }}</td><td>{{ row.percentage }}%</td><td><span class="status-badge">{{ row.status }}</span></td></tr>{% endfor %}
+        </tbody></table></div></section>
+
+        {% elif section == 'results' %}
+        <section class="portal-panel section-panel">
+            <div class="panel-heading"><h2>Semester Results</h2><form class="inline-search"><label class="sr-only" for="result-search">Search results</label><input id="result-search" name="q" value="{{ query }}" placeholder="Course, code, or grade"><button>Search</button></form></div>
+            {% if results %}{% for semester_number, rows in results|dictsort(reverse=true) %}<section class="semester-result"><h3>Semester {{ semester_number }}</h3><div class="table-scroll"><table class="portal-table"><thead><tr><th>Course Code</th><th>Course</th><th>Credit Hours</th><th>Marks</th><th>Grade</th><th>Grade Points</th><th>Status</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.enrollment.course.course_code }}</td><td>{{ row.enrollment.course.course_title }}</td><td>{{ row.enrollment.course.credit_hours }}</td><td>{{ row.marks|round(1) }}</td><td>{{ row.grade }}</td><td>{{ row.grade_points }}</td><td>{{ row.examination_status }}</td></tr>{% endfor %}</tbody></table></div><div class="semester-summary"><span>Semester GPA <strong>{{ summaries[semester_number].gpa }}</strong></span><span>Cumulative CGPA <strong>{{ student.cgpa }}</strong></span><span>Credits Attempted <strong>{{ summaries[semester_number].attempted }}</strong></span><span>Credits Earned <strong>{{ summaries[semester_number].earned }}</strong></span></div></section>{% endfor %}{% else %}<p class="context-empty">No result records match your search.</p>{% endif %}
+        </section>
+
+        {% elif section == 'fees' %}
+        <section class="portal-panel section-panel"><h2>Semester Fee Account</h2><div class="table-scroll"><table class="portal-table"><thead><tr><th>Semester</th><th>Category</th><th>Tuition</th><th>Admission</th><th>Lab</th><th>Library</th><th>Transport</th><th>Hostel</th><th>Waiver</th><th>Paid</th><th>Outstanding</th><th>Due Date</th><th>Status</th><th>Receipt</th></tr></thead><tbody>
+            {% for row in fees %}<tr><td>{{ row.semester_number }}</td><td>{{ row.category }}</td><td>{{ '{:,}'.format(row.tuition) }}</td><td>{{ '{:,}'.format(row.admission_fee) }}</td><td>{{ '{:,}'.format(row.lab_fee) }}</td><td>{{ '{:,}'.format(row.library_fee) }}</td><td>{{ '{:,}'.format(row.transport_fee) }}</td><td>{{ '{:,}'.format(row.hostel_fee) }}</td><td>{{ '{:,}'.format(row.scholarship_waiver) }}</td><td>{{ '{:,}'.format(row.paid_amount) }}</td><td>{{ '{:,}'.format(row.outstanding_amount) }}</td><td>{{ row.due_date.strftime('%d %b %Y') }}</td><td>{{ row.payment_status }}</td><td><a href="/portal/student/fees/{{ row.id }}/receipt">Download</a></td></tr>{% endfor %}
+        </tbody></table></div><p class="table-note">Local demo receipts are not valid for payment or official verification.</p></section>
+
+        {% elif section == 'timetable' %}
+        <section class="portal-panel section-panel"><h2>Weekly Timetable</h2><div class="table-scroll"><table class="portal-table timetable-table"><thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Teacher</th><th>Room / Lab</th></tr></thead><tbody>{% for row in timetable %}<tr><td>{{ row.day }}</td><td>{{ row.start_time }}–{{ row.end_time }}</td><td>{{ row.enrollment.course.course_code }} — {{ row.enrollment.course.course_title }}</td><td>{{ row.enrollment.course.teacher.full_name }}</td><td>{{ row.room }}</td></tr>{% endfor %}</tbody></table></div></section>
+
+        {% elif section == 'notices' %}
+        <section class="portal-panel section-panel"><div class="panel-heading"><h2>Student Notices</h2><form class="inline-search"><label class="sr-only" for="notice-search">Search notices</label><input id="notice-search" name="q" value="{{ query }}" placeholder="Search your notices"><button>Search</button></form></div>{% if notices %}<div class="record-list">{% for notice in notices %}<article><div><span class="record-meta">{{ notice.scope.replace('_', ' ') }} · {{ notice.published_at.strftime('%d %b %Y') }}</span><h3>{{ notice.title }}</h3><p>{{ notice.body }}</p></div></article>{% endfor %}</div>{% else %}<p class="context-empty">No student notices match your search.</p>{% endif %}</section>
+
+        {% elif section == 'documents' %}
+        <section class="portal-panel section-panel"><div class="panel-heading"><h2>Student Documents</h2><form class="inline-search"><label class="sr-only" for="document-search">Search documents</label><input id="document-search" name="q" value="{{ query }}" placeholder="Search your documents"><button>Search</button></form></div>{% if documents %}<div class="document-grid">{% for document in documents %}<article><span>{{ document.document_type }}</span><h3>{{ document.title }}</h3><p>Reference: {{ document.reference_number }}</p><p>Issued: {{ document.issued_at.strftime('%d %b %Y') }}</p><a class="portal-action small" href="/portal/student/documents/{{ document.id }}/download">Download Demo Copy</a></article>{% endfor %}</div>{% else %}<p class="context-empty">No student documents match your search.</p>{% endif %}</section>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

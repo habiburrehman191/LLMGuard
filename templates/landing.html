@@ -20,7 +20,7 @@
                 <p>A zero-trust AI firewall that inspects prompts, retrieved context, tool calls, and model output before sensitive data can escape.</p>
                 <div class="ndo-hero-actions">
                     <a class="llmg-cyber-button primary-button" href="/login?role=admin">Launch Security Console</a>
-                    <a class="llmg-cyber-button secondary-button" href="/login?role=student">Run Protected Demo</a>
+                    <a class="llmg-cyber-button secondary-button" href="#features">Explore Protection Pipeline</a>
                 </div>
                 <div class="ndo-trust-row" aria-label="Platform assurances">
                     <span><b>01</b> Prompt Firewall Active</span>
@@ -60,25 +60,25 @@
                     <h3>RAG Poisoning Control</h3>
                     <p>Metadata filters keep cross-role chunks outside the model context.</p>
                     <div class="ndo-vault-stack">
-                        <span>Student <b>isolated</b></span>
-                        <span>Employee <b>isolated</b></span>
-                        <span>Admin <b>isolated</b></span>
+                        <span>Public <b>isolated</b></span>
+                        <span>Authenticated <b>isolated</b></span>
+                        <span>Administrative <b>isolated</b></span>
                     </div>
                     <span class="am-status-badge protected-badge">Context contained</span>
                 </article>
                 <article class="ndo-bento-card feature-card product-card">
                     <div class="ndo-card-top"><span class="card-icon"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg></span><span>IDENTITY PLANE</span></div>
                     <h3>Role-Based Isolation</h3>
-                    <p>Portal, role, ownership, and classification stay attached to each authorized record and chunk.</p>
+                    <p>Application, role, ownership, and classification stay attached to each authorized record and chunk.</p>
                     <div class="ndo-boundary-preview" aria-label="Identity boundary layers">
-                        <span>Role</span><i></i><span>Portal</span><i></i><span>Record</span>
+                        <span>Role</span><i></i><span>Application</span><i></i><span>Record</span>
                     </div>
                     <span class="am-status-badge protected-badge">Scope enforced</span>
                 </article>
                 <article class="ndo-bento-card feature-card product-card">
                     <div class="ndo-card-top"><span class="card-icon"><svg><use href="/static/llmguard-icons.svg#tool"></use></svg></span><span>EXECUTION</span></div>
                     <h3>Tool-Call Authorization</h3>
-                    <p>Every simulated action is checked against role, ownership, portal, and classification.</p>
+                    <p>Every simulated action is checked against role, ownership, application scope, and classification.</p>
                     <span class="am-status-badge danger-badge">Secret tools denied</span>
                 </article>
                 <article class="ndo-bento-card feature-card product-card">
@@ -96,36 +96,9 @@
             </div>
         </section>
 
-        <section class="ndo-section product-section" id="portals">
-            <header class="ndo-section-header split">
-                <div><span class="llmg-section-label">[02] Role-Aware Portals</span><h2 class="section-title"><span class="highlight">Role-Isolated Workspaces</span></h2></div>
-                <p>Each identity sees a product built for its job, while the gateway enforces an immutable data boundary beneath it.</p>
-            </header>
-            <div class="ndo-portal-grid">
-                <a class="ndo-portal-card portal-card product-card student" href="/login?role=student">
-                    <div class="ndo-portal-number">01</div><span class="card-icon portal-icon"><svg><use href="/static/llmguard-icons.svg#student"></use></svg></span>
-                    <span>STUDENT SCOPE</span><h3>Student Workspace</h3>
-                    <p>Own synthetic records, public policies, protected assistance, and controlled uploads.</p>
-                    <b>Open workspace <i>→</i></b>
-                </a>
-                <a class="ndo-portal-card portal-card product-card employee" href="/login?role=employee">
-                    <div class="ndo-portal-number">02</div><span class="card-icon portal-icon"><svg><use href="/static/llmguard-icons.svg#employee"></use></svg></span>
-                    <span>EMPLOYEE SCOPE</span><h3>Employee Workspace</h3>
-                    <p>Staff data, internal documents, role-isolated RAG, and auditable AI assistance.</p>
-                    <b>Open workspace <i>→</i></b>
-                </a>
-                <a class="ndo-portal-card portal-card product-card admin" href="/login?role=admin">
-                    <div class="ndo-portal-number">03</div><span class="card-icon portal-icon"><svg><use href="/static/llmguard-icons.svg#admin"></use></svg></span>
-                    <span>GLOBAL SYNTHETIC SCOPE</span><h3>Super Admin Command Center</h3>
-                    <p>SOC telemetry, comparisons, document governance, red-team replay, and audit evidence.</p>
-                    <b>Open command center <i>→</i></b>
-                </a>
-            </div>
-        </section>
-
         <section class="ndo-section ndo-pipeline-section product-section" id="features">
             <header class="ndo-section-header">
-                <span class="llmg-section-label">[03] Zero-Trust AI Pipeline</span>
+                <span class="llmg-section-label">[02] Zero-Trust AI Pipeline</span>
                 <h2 class="section-title"><span class="highlight">Zero-Trust AI Pipeline</span></h2>
                 <p>A request advances only when each policy stage produces enough evidence to continue.</p>
             </header>
@@ -151,7 +124,7 @@
 
         <section class="ndo-section product-section" id="demo">
             <header class="ndo-section-header split">
-                <div><span class="llmg-section-label">[04] Live SOC Operations</span><h2 class="section-title"><span class="highlight">Live SOC Operations</span></h2></div>
+                <div><span class="llmg-section-label">[03] Live SOC Operations</span><h2 class="section-title"><span class="highlight">Live SOC Operations</span></h2></div>
                 <p>Operational views surface decisions, evidence, model-call status, and affected data boundaries without making raw logs the product.</p>
             </header>
             <div class="ndo-ops-grid">
@@ -175,7 +148,7 @@
 
         <section class="ndo-section ndo-product-demo product-section" id="interactive-demo" data-product-demo>
             <header class="ndo-section-header">
-                <span class="llmg-section-label">[05] Policy Outcome Simulator</span>
+                <span class="llmg-section-label">[04] Policy Outcome Simulator</span>
                 <h2 class="section-title"><span class="highlight">Policy Outcome Simulator</span></h2>
                 <p>Explore representative synthetic scenarios. These previews explain the expected control path and do not fabricate live execution results.</p>
             </header>
@@ -220,11 +193,11 @@
 
         <section class="ndo-section ndo-demo-flow product-section">
             <header class="ndo-section-header">
-                <span class="llmg-section-label">[06] Demo Flow</span>
+                <span class="llmg-section-label">[05] Demo Flow</span>
                 <h2 class="section-title"><span class="highlight">Controlled Evidence Flow</span></h2>
             </header>
             <ol>
-                <li><span class="flow-step-marker"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg><b>01</b></span><div><strong>Sign in</strong><small>Select a synthetic portal identity.</small></div></li>
+                <li><span class="flow-step-marker"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg><b>01</b></span><div><strong>Sign in</strong><small>Use an authorized synthetic test identity.</small></div></li>
                 <li><span class="flow-step-marker"><svg><use href="/static/llmguard-icons.svg#brain"></use></svg><b>02</b></span><div><strong>Ask</strong><small>Submit a safe prompt or controlled attack.</small></div></li>
                 <li><span class="flow-step-marker"><svg><use href="/static/llmguard-icons.svg#database"></use></svg><b>03</b></span><div><strong>Retrieve</strong><small>Filter context by role and classification.</small></div></li>
                 <li><span class="flow-step-marker"><svg><use href="/static/llmguard-icons.svg#firewall"></use></svg><b>04</b></span><div><strong>Inspect</strong><small>Evaluate intent, context, tools, and output.</small></div></li>
@@ -240,7 +213,7 @@
         <p class="ndo-footer-description">Zero-trust controls for prompts, retrieval, tools, and model output.</p>
         <div class="ndo-footer-meta">
             <span><i></i> Protected by default</span>
-            <p>Controlled university AI security testbed. Synthetic data only.</p>
+            <p>Controlled AI security testbed. Synthetic data only.</p>
         </div>
     </footer>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>

@@ -1,0 +1,58 @@
+{% if not admissions_shell %}
+<section class="institution-links" aria-label="University information links">
+    <div class="site-container institution-link-grid">
+        {% set links = [
+            ('history.png', 'ABOUT UOH', '/university/about'),
+            ('vision.png', 'VISION & MISSION', '/university/about'),
+            ('graduates.png', 'SOCIAL WORK', '/university/about'),
+            ('transport.png', 'UOH TRANSPORT', '/university/admissions/facilities'),
+            ('hostels.png', 'UOH HOSTELS', '/university/admissions/facilities')
+        ] %}
+        {% for icon, label, href in links %}
+        <a href="{{ href }}">
+            <span class="round-icon"><img src="{{ url_for('university_static', path='university/images/' + icon) }}" alt=""></span>
+            <strong>{{ label }}</strong>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+<footer class="site-footer">
+    <div class="site-container footer-grid">
+        <section>
+            <h2>Quick Links</h2>
+            <ul>
+                <li><a href="/university/information/fact-sheet">Fact Sheet</a></li>
+                <li><a href="/university/information/it-services">IT Services</a></li>
+                <li><a href="/university/about">About UOH</a></li>
+                <li><a href="/university/information/annual-report">Annual Report</a></li>
+                <li><a href="/university/information/anti-harassment">Anti-Harassment</a></li>
+            </ul>
+        </section>
+        <section>
+            <h2>Important Links</h2>
+            <ul>
+                <li><a href="/university/information/annual-report">UOH Spotlight</a></li>
+                <li><a href="/university/about">Core Objectives</a></li>
+                <li><a href="/university/information/planning-development">Planning &amp; Development</a></li>
+                <li><a href="/university/information/career-development">Career Development Center</a></li>
+                <li><a href="/university/information/central-research-lab">Central Research Laboratory</a></li>
+            </ul>
+        </section>
+        <section>
+            <h2>Address</h2>
+            <p>The University of Haripur<br>Hattar Road, Haripur<br>Khyber Pakhtunkhwa, Pakistan</p>
+            <p>Registrar Office: +92-995-920602<br>Examinations: +92-995-920638</p>
+        </section>
+        <section class="demo-footer-note">
+            <h2>Academic Demo</h2>
+            <p>This local portal is an academic demonstration. Portal records and accounts are synthetic and are not connected to UoH authentication.</p>
+            <div class="footer-social">
+                <img src="{{ url_for('university_static', path='university/images/social/facebook.png') }}" alt="Facebook">
+                <img src="{{ url_for('university_static', path='university/images/social/youtube.png') }}" alt="YouTube">
+                <img src="{{ url_for('university_static', path='university/images/social/linkedin.png') }}" alt="LinkedIn">
+            </div>
+        </section>
+    </div>
+    <div class="copyright">Copyright © 2025-2026. All Rights Reserved :: The University of Haripur — Local Academic Demo</div>
+</footer>

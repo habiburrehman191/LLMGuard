@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="portal-landing site-container">
+    <div class="demo-ribbon">Academic Demo Environment — local synthetic authentication only</div>
+    <h1>UOH Student and Employee Portals</h1>
+    <div class="portal-choice-grid portal-entry-grid">
+        <article class="portal-entry-card">
+            <a href="/portal/employee/login"><img src="{{ url_for('university_static', path='university/images/employee-portal.png') }}" alt="Employee Information Portal"></a>
+            <h2>Employee Portal</h2>
+            <p>Access employment information, assignments, attendance, policies, departmental resources, and authorized controlled institutional records.</p>
+            <a class="portal-action" href="/portal/employee/login">Employee Login</a>
+        </article>
+        <article class="portal-entry-card">
+            <a href="/portal/student/login"><img src="{{ url_for('university_static', path='university/images/student-portal.png') }}" alt="Student Information Portal"></a>
+            <h2>Student Portal</h2>
+            <p>Access personal academic records, courses, attendance, results, fees, timetable, notices, and student documents.</p>
+            <a class="portal-action" href="/portal/student/login">Student Login</a>
+        </article>
+    </div>
+</section>
+{% endblock %}

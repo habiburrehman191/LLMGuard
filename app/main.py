@@ -10,22 +10,16 @@ from app.auth import router as auth_router
 from app.ai.gateway import process_ai_request
 from app.database import get_db, init_database
 from app.db import init_db
-from app.demo_routes import router as demo_router
 from app.frontend import router as frontend_router
 from app.portals.admin import router as admin_portal_router
-from app.portals.employee import router as employee_portal_router
-from app.portals.student import router as student_portal_router
 from app.schemas import AskRequest, AskResponse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
-app.include_router(student_portal_router)
-app.include_router(employee_portal_router)
 app.include_router(admin_portal_router)
 app.include_router(frontend_router)
-app.include_router(demo_router)
 app.include_router(auth_router)
 
 

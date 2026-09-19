@@ -14,6 +14,7 @@ from app.ai.gateway import process_ai_request
 from app.auth import get_current_user
 from app.config import get_settings
 from app.database import get_db
+from app.db import fetch_dashboard_metrics
 from app.models import (
     AIInteraction,
     AuditLog,
@@ -36,7 +37,6 @@ from app.portals.common import (
     ask_portal_ai,
     create_document_record,
     log_ai_interaction,
-    render_context,
     require_portal,
     templates,
 )
@@ -77,25 +77,14 @@ class AdminDocumentUploadRequest(BaseModel):
 def admin_dashboard(
     request: Request,
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     require_portal(user, PortalScope.admin)
-    records = accessible_records(db, user)
-    interactions = db.scalars(
-        select(AIInteraction).order_by(AIInteraction.created_at.desc()).limit(8)
-    ).all()
-    record_summary = {
-        "student": sum(record.portal_scope == PortalScope.student for record in records),
-        "employee": sum(record.portal_scope == PortalScope.employee for record in records),
-        "admin": sum(record.portal_scope == PortalScope.admin for record in records),
+    metrics = fetch_dashboard_metrics(limit=8)
+    context = {
+        **_admin_ui_context(user),
+        "metrics": metrics,
+        "recent_security_events": metrics["recent_logs"],
     }
-    context = render_context(
-        user,
-        PortalScope.admin,
-        records,
-        recent_interactions=interactions,
-    )
-    context["record_summary"] = record_summary
     return templates.TemplateResponse(
         request=request,
         name="admin_dashboard.html",

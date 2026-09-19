@@ -18,7 +18,7 @@
             <article><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#warning"></use></svg><span>Critical failures</span><strong>Not run</strong></article>
         </section>
         <section class="attack-category-grid" aria-label="Attack categories">
-            <article><span>01</span><strong>Privilege Escalation</strong><small>Cross-portal role bypass</small></article>
+            <article><span>01</span><strong>Privilege Escalation</strong><small>Cross-application role bypass</small></article>
             <article><span>02</span><strong>Indirect Injection</strong><small>Poisoned document context</small></article>
             <article><span>03</span><strong>Tool Misuse</strong><small>Unauthorized execution</small></article>
             <article><span>04</span><strong>Output Leakage</strong><small>DLP and canary tests</small></article>
@@ -29,7 +29,7 @@
         </section>
         <p class="form-message" id="redteam-message" role="status"></p>
         <section class="workspace-card">
-            <div class="section-heading"><div><span class="section-kicker">Attack inventory</span><h2>University red-team cases</h2></div><span class="count-badge">{{ cases|length }}</span></div>
+            <div class="section-heading"><div><span class="section-kicker">Attack inventory</span><h2>Synthetic security test cases</h2></div><span class="count-badge">{{ cases|length }}</span></div>
             <div class="responsive-table">
                 <table><thead><tr><th>Case</th><th>Attack type</th><th>Severity</th><th>Vulnerable result</th><th>Protected result</th><th>Expected action</th><th>Status</th></tr></thead>
                 <tbody>

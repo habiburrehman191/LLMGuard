@@ -38,35 +38,41 @@ class ProductFrontendTests(unittest.TestCase):
         self.assertIn("LLMGuard", response.text)
         self.assertIn("Zero-Trust AI Firewall", response.text)
         self.assertIn("Unified AI Policy Plane", response.text)
-        self.assertIn("Role-Isolated Workspaces", response.text)
         self.assertIn("Zero-Trust AI Pipeline", response.text)
         self.assertIn("Live SOC Operations", response.text)
         self.assertIn("Policy Outcome Simulator", response.text)
         self.assertIn("Controlled Evidence Flow", response.text)
         self.assertIn("AI FIREWALL PLATFORM", response.text)
-        self.assertIn("[03] Zero-Trust AI Pipeline", response.text)
+        self.assertIn("[02] Zero-Trust AI Pipeline", response.text)
         self.assertIn("Live Risk", response.text)
         self.assertIn("data-nav-toggle", response.text)
         self.assertIn('class="nav-links"', response.text)
         self.assertIn('class="product-nav-inner"', response.text)
         self.assertIn('class="hero-title"', response.text)
-        self.assertIn("Student Workspace", response.text)
+        self.assertNotIn("Student Workspace", response.text)
+        self.assertNotIn("Employee Workspace", response.text)
         self.assertIn("Compare Lab", response.text)
         self.assertIn('id="NeuralDefenseSpline"', response.text)
-        self.assertIn("[05] Policy Outcome Simulator", response.text)
+        self.assertIn("[04] Policy Outcome Simulator", response.text)
         self.assertIn('role="tab"', response.text)
         self.assertIn("Context Scan", response.text)
         self.assertIn("Qwen Skipped When Blocked", response.text)
-        self.assertEqual(6, response.text.count('class="section-title"'))
+        self.assertEqual(5, response.text.count('class="section-title"'))
         self.assertEqual(6, response.text.count('class="flow-step-marker"'))
         self.assertIn('class="ndo-footer-description"', response.text)
 
     def test_login_page_renders(self) -> None:
         response = self.client.get("/login")
+        script = self.client.get("/static/product.js")
         self.assertEqual(200, response.status_code)
         self.assertIn("Secure access to LLMGuard", response.text)
-        self.assertIn("student1", response.text)
-        self.assertIn("admin1", response.text)
+        self.assertIn("Administrator sign in", response.text)
+        self.assertNotIn("Student Portal", response.text)
+        self.assertNotIn("Employee Portal", response.text)
+        self.assertIn('payload.role !== "super_admin"', script.text)
+        self.assertIn('window.location.href = "/admin/dashboard"', script.text)
+        self.assertNotIn('"/student/dashboard"', script.text)
+        self.assertNotIn('"/employee/dashboard"', script.text)
 
     def test_product_static_assets_are_served(self) -> None:
         for path in (
@@ -98,26 +104,22 @@ class ProductFrontendTests(unittest.TestCase):
         self.assertIn('.product-nav nav.mobile-open', stylesheet.text)
         self.assertIn('.llmg-nav .nav-menu-toggle', stylesheet.text)
 
-    def test_student_dashboard_renders_and_is_isolated(self) -> None:
+    def test_student_dashboard_is_not_exposed_by_llmguard(self) -> None:
         self._login("student1", "Student@123")
         response = self.client.get("/student/dashboard")
-        self.assertEqual(200, response.status_code)
-        self.assertIn("Student Portal AI Workspace", response.text)
-        self.assertEqual(403, self.client.get("/employee/dashboard").status_code)
+        self.assertEqual(404, response.status_code)
         self.assertEqual(403, self.client.get("/admin/dashboard").status_code)
 
-    def test_employee_dashboard_renders_and_is_isolated(self) -> None:
+    def test_employee_dashboard_is_not_exposed_by_llmguard(self) -> None:
         self._login("employee1", "Employee@123")
         response = self.client.get("/employee/dashboard")
-        self.assertEqual(200, response.status_code)
-        self.assertIn("Employee Portal AI Workspace", response.text)
-        self.assertEqual(403, self.client.get("/student/dashboard").status_code)
+        self.assertEqual(404, response.status_code)
         self.assertEqual(403, self.client.get("/admin/dashboard").status_code)
 
     def test_admin_product_pages_render(self) -> None:
         self._login("admin1", "Admin@123")
         expectations = {
-            "/admin/dashboard": "Super Admin Command Center",
+            "/admin/dashboard": "LLMGuard AI Security Dashboard",
             "/admin/compare": "Protected vs Vulnerable Compare Lab",
             "/admin/documents": "Controlled Document Manager",
             "/admin/redteam": "Red-Team Attack Replay Lab",
@@ -129,7 +131,13 @@ class ProductFrontendTests(unittest.TestCase):
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
                 self.assertIn("Protected Mode", response.text)
-                self.assertIn("/static/portal.css?v=22", response.text)
+                self.assertIn("/static/portal.css?v=23", response.text)
+
+        dashboard = self.client.get("/admin/dashboard")
+        self.assertIn("Protected Applications", dashboard.text)
+        self.assertIn("No external applications have been migrated", dashboard.text)
+        self.assertNotIn("Student records", dashboard.text)
+        self.assertNotIn("Employee records", dashboard.text)
 
     def test_security_dashboard_renders(self) -> None:
         self._login("admin1", "Admin@123")
@@ -205,7 +213,7 @@ class ProductFrontendTests(unittest.TestCase):
             )
             self.assertEqual(200, login.status_code)
             expectations = {
-                "/admin/dashboard": "No gateway interactions recorded yet.",
+                "/admin/dashboard": "Protected Applications",
                 "/admin/documents": "No controlled documents have been ingested.",
                 "/admin/redteam": "No red-team cases are stored in the database.",
                 "/admin/audit": "No AI interactions.",

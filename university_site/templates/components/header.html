@@ -1,0 +1,66 @@
+{% if admissions_shell %}
+<header class="admissions-header">
+    <div class="admissions-utility">
+        <div class="site-container utility-inner">
+            <div>
+                <a href="/university/admissions">Admission Policy</a><span>|</span>
+                <a href="/university/admissions">FAQs</a><span>|</span>
+                <a href="/university/admissions/how-to-apply">How To Apply</a><span>|</span>
+                <a href="/portal/student/login">Apply Online</a>
+            </div>
+            <div class="admissions-social" aria-label="Social links">
+                <img src="{{ url_for('university_static', path='university/images/social/facebook.png') }}" alt="Facebook">
+                <img src="{{ url_for('university_static', path='university/images/social/youtube.png') }}" alt="YouTube">
+                <img src="{{ url_for('university_static', path='university/images/social/linkedin.png') }}" alt="LinkedIn">
+            </div>
+        </div>
+    </div>
+    <div class="admissions-brand">
+        <div class="site-container admissions-brand-inner">
+            <a href="/university/admissions" aria-label="Admissions home">
+                <img src="{{ url_for('university_static', path='university/images/logo-admissions-2026.png') }}" alt="Admissions Fall 2026, The University of Haripur">
+            </a>
+            <strong>Last date to apply for Online<br>Admissions is 1st September 2026</strong>
+        </div>
+    </div>
+</header>
+{% else %}
+<header class="public-header">
+    <div class="utility-bar">
+        <div class="site-container utility-inner">
+            <button class="utility-toggle" type="button" aria-expanded="false" aria-controls="utility-links">☰</button>
+            <div id="utility-links" class="utility-links">
+                <a href="/university/contact">Email</a><span>|</span>
+                <a href="/university/information/faculty-profile">Faculty Profile</a><span>|</span>
+                <a href="/university/information/alumni">Alumni Portal</a><span>|</span>
+                <a href="/university/information/ptis">PTIS</a><span>|</span>
+                <a href="/university/admissions">Admissions</a><span>|</span>
+                <a href="/university/contact">Contact Us</a>
+            </div>
+            <div class="social-links" aria-label="Social links">
+                <a href="/search" aria-label="Search the public university site"><img src="{{ url_for('university_static', path='university/images/social/search.png') }}" alt="Search"></a>
+                <img src="{{ url_for('university_static', path='university/images/social/facebook.png') }}" alt="Facebook">
+                <img src="{{ url_for('university_static', path='university/images/social/youtube.png') }}" alt="YouTube">
+                <img src="{{ url_for('university_static', path='university/images/social/linkedin.png') }}" alt="LinkedIn">
+            </div>
+        </div>
+    </div>
+    <div class="brand-bar">
+        <div class="site-container brand-inner">
+            <a class="university-logo" href="/">
+                <img src="{{ url_for('university_static', path='university/images/logo.png') }}" alt="The University of Haripur — Restoring Hope; Building Community">
+            </a>
+            <div class="header-quick-links">
+                <a href="/university/information/downloads"><img src="{{ url_for('university_static', path='university/images/downloads.png') }}" alt="">Downloads</a>
+                <a href="/university/information/online-results"><img src="{{ url_for('university_static', path='university/images/results.png') }}" alt="">Online Results</a>
+                <a href="/university/information/jobs-careers"><img src="{{ url_for('university_static', path='university/images/jobs.png') }}" alt="">Jobs &amp; Careers</a>
+                <a href="/portal"><img src="{{ url_for('university_static', path='university/images/degree.png') }}" alt="">Student &amp; Employee Portals</a>
+                <a href="/university/information/tenders"><img src="{{ url_for('university_static', path='university/images/downloads.png') }}" alt="">Tenders</a>
+                <a href="/university/information/central-library"><img src="{{ url_for('university_static', path='university/images/jobs.png') }}" alt="">Central Library</a>
+                <a href="/university/information/semester-rules"><img src="{{ url_for('university_static', path='university/images/results.png') }}" alt="">Semester Rules</a>
+                <a href="/university/information/statutes"><img src="{{ url_for('university_static', path='university/images/downloads.png') }}" alt="">UoH Statutes 2016</a>
+            </div>
+        </div>
+    </div>
+</header>
+{% endif %}

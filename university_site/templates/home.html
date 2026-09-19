@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero-slider" aria-label="University highlights">
+    <div class="slides">
+        {% set slides = [
+            ('syndicate-2026.jpg', '40th Meeting of the Syndicate Held at The University of Haripur'),
+            ('finance-committee.jpg', '19th Meeting of the Finance and Planning Committee'),
+            ('plantation.jpg', 'Tree Plantation Inauguration Ceremony'),
+            ('meeting.jpg', 'Academic and Research Leadership Meeting'),
+            ('hec-test.jpg', 'Higher Education Commission Test at UoH')
+        ] %}
+        {% for image, label in slides %}
+        <article class="slide{% if loop.first %} active{% endif %}" data-slide>
+            <img src="{{ url_for('university_static', path='university/images/banners/' + image) }}" alt="{{ label }}">
+        </article>
+        {% endfor %}
+    </div>
+    <button class="slide-arrow previous" type="button" data-slider-prev aria-label="Previous slide">‹</button>
+    <button class="slide-arrow next" type="button" data-slider-next aria-label="Next slide">›</button>
+</section>
+<div class="announcement-strip"><span>New</span> <a href="/university/admissions">Admissions open for BS/BS 5th Semester/Diploma/MS/M.Phil/M.Sc (Hons)/Ph.D Programs Phase II (Admissions Fall 2026)</a></div>
+
+<section class="home-tiles site-container" aria-label="Popular university links">
+    {% set tiles = [
+        ('gallery.png','UOH Gallery','/university/about'),
+        ('maps.png','Maps of Haripur','/university/contact'),
+        ('portal-tile.png','UOH Portals','/portal'),
+        ('tenders.png','UOH Tenders','/university/academics'),
+        ('daycare.png','Day Care Center','/university/admissions/facilities'),
+        ('drc.png','DRC-UOH','/university/admissions/facilities')
+    ] %}
+    {% for image, label, href in tiles %}
+    <a class="home-tile" href="{{ href }}"><img src="{{ url_for('university_static', path='university/images/' + image) }}" alt=""><h2>{{ label }}</h2></a>
+    {% endfor %}
+</section>
+
+<section class="site-container home-columns">
+    <article class="vc-message">
+        <h2>Vice Chancellor's Message</h2>
+        <img src="{{ url_for('university_static', path='university/images/vice-chancellor.jpg') }}" alt="Vice Chancellor Prof. Dr. Abid Farid">
+        <p>The long-term growth and sustainable development of nations depends largely on the professional performance of human resources. Their capacities must be continuously built and upgraded through an inclusive, vibrant, dynamic and competitive higher education system.</p>
+        <a class="text-link" href="/university/about">View More</a>
+    </article>
+    <article class="important-news">
+        <h2>Important News &amp; Announcements</h2>
+        {% for item in home_news %}<p><span>New</span><a href="/university/academics">{{ item }}</a></p>{% endfor %}
+        <a class="text-link" href="/university/academics">(View All)</a>
+    </article>
+</section>
+
+<section class="site-container recent-news">
+    <h2>Recent News &amp; Events</h2>
+    <div class="news-list">
+        {% for item in recent_news %}<a href="/university/academics"><time>2026</time><span>{{ item }}</span></a>{% endfor %}
+    </div>
+</section>
+
+<section class="site-container milestone-band" aria-label="University statistics">
+    {% set stats = [('departments.png','27','DEPARTMENTS'),('programs.png','144','PROGRAMS'),('faculty.png','335','FACULTY'),('students.png','10200','STUDENTS')] %}
+    {% for icon, value, label in stats %}
+    <div><img src="{{ url_for('university_static', path='university/images/milestones/' + icon) }}" alt=""><strong>{{ value }}</strong><span>{{ label }}</span></div>
+    {% endfor %}
+</section>
+
+<blockquote class="education-quote site-container">“The collapse of education is the collapse of the nation.”</blockquote>
+
+<div class="announcement-modal" data-announcement-modal role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+    <div class="announcement-card">
+        <button type="button" data-announcement-close aria-label="Close admissions announcement">Close</button>
+        <h2 id="announcement-title">UOH Admissions Fall 2026</h2>
+        <p>Click on below links for Admissions Fall 2026.</p>
+        <a class="urgent" href="/university/admissions"><span>New</span> Admissions announced for BS/BS 5th Semester/Diploma/MS/M.Phil/M.Sc (Hons)/Ph.D Programs Phase II</a>
+        <a class="urgent" href="/university/admissions/schedule"><span>New</span> Merit Lists for BS/BS 5th Semester/Diploma Programs Phase I</a>
+        <a href="/university/admissions/facilities"><span>New</span> Hostel Facility is available for Female Students within University premises.</a>
+        <a href="/university/admissions/facilities"><span>New</span> Transport Facility is available for different cities and routes.</a>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('university_static', path='university/js/slider.js') }}" defer></script>{% endblock %}

@@ -2,13 +2,17 @@
 
 LLMGuard is a local RAG security demo with a prompt firewall, retrieved-content firewall, semantic detection, trained ML classifier, FAISS retrieval, dashboard logging, document upload/RAG ingestion support, and Qwen3 1.7B as the official local Ollama model.
 
-## Education Demo Setup
+## Runtime Boundary
 
-Phase 5 adds a fictional university digital twin at:
+LLMGuard runs on `http://127.0.0.1:8000` and exposes only product, security,
+evaluation, authentication, and administration routes. The standalone University
+application runs on `http://127.0.0.1:8001`.
 
-```powershell
-http://127.0.0.1:8000/demo/university
-```
+Legacy fictional-university route modules and test data remain in the repository
+for controlled regression coverage, but `/student/*`, `/employee/*`, and
+`/demo/*` are not mounted by the LLMGuard process.
+
+## Legacy Education Demo Assets
 
 The demo uses only synthetic Northbridge University data. Sensitive-looking examples are marked:
 
@@ -28,7 +32,7 @@ Load the education templates into the existing document corpus and rebuild the F
 
 The script copies public and restricted synthetic templates into `docs/clean/education_demo`, copies the poisoned prompt-injection example into `docs/poisoned/education_demo`, rebuilds the existing semantic index, then prints total documents and chunks.
 
-## Run The Demo
+## Run LLMGuard
 
 Start the FastAPI app with the existing Qwen3 1.7B Ollama setup:
 
@@ -39,15 +43,16 @@ Start the FastAPI app with the existing Qwen3 1.7B Ollama setup:
 Open:
 
 ```text
-http://127.0.0.1:8000/demo/university
+http://127.0.0.1:8000/
 ```
 
 ## Protected Vs Unprotected
 
-The page compares:
-
-- Unprotected AI: `POST /demo/ask-unprotected`, a safe synthetic baseline that simulates what an assistant without LLMGuard might reveal.
-- LLMGuard Protected: `POST /ask`, the real LLMGuard pipeline with retrieval, prompt/content firewalling, ML classifier, tool-call firewall metadata, Qwen call/skipped status, logs, and dashboard telemetry.
+The active comparison workspace is `/admin/compare`. `POST /ask` remains the
+real LLMGuard pipeline with retrieval, prompt/content firewalling, ML
+classification, tool-call firewall metadata, Qwen call/skipped status, logs,
+and dashboard telemetry. The legacy `/demo/ask-unprotected` route is preserved
+in source but is not exposed on port 8000.
 
 Expected scenarios:
 
@@ -62,13 +67,10 @@ Expected scenarios:
 
 Dashboard demo counters appear under `/admin/security-dashboard` alongside the existing audit trail.
 
-## UOH-Inspired Portal Security Demo
+## Legacy UOH-Inspired Security Assets
 
-Phase 5 also includes a UOH-inspired academic portal demo at:
-
-```powershell
-http://127.0.0.1:8000/demo/uoh
-```
+The earlier `/demo/uoh` route is no longer mounted by LLMGuard. The standalone
+University application is available at `http://127.0.0.1:8001`.
 
 Disclaimer shown on the page:
 
@@ -76,7 +78,7 @@ Disclaimer shown on the page:
 Academic security demo only — not an official University of Haripur website. All private records are synthetic demo data.
 ```
 
-This interface is inspired by common public university admissions portals, but it does not copy the University of Haripur website, logo, branding, HTML, CSS, images, or private portal. Restricted records use synthetic demo data only and start with:
+This isolated academic demonstration locally recreates the referenced public University of Haripur layout and reuses the public logo asset solely for the requested local UI study. It does not connect to the real university portal, authentication, or private data. Restricted records use synthetic demo data only and start with:
 
 ```text
 SYNTHETIC DEMO DATA — NOT REAL UNIVERSITY DATA
@@ -94,9 +96,11 @@ The loader copies public-style documents into `docs/clean/uoh_demo`, copies the 
 
 ### Test Scenarios
 
-The `/demo/uoh` attack lab includes safe admissions and portal-help prompts plus controlled synthetic attacks for direct prompt injection, role impersonation, synthetic student portal data exfiltration, admin token extraction, indirect retrieved-document injection, restricted tool misuse, encoded instructions, multilingual injection, and policy conflict attacks.
-
-Protected mode calls the existing `/ask` endpoint and shows label, action, risk score, threat source, reason or matched detector, tool-call metadata, and whether Qwen3 1.7B was called or skipped. Unprotected mode calls `/demo/ask-unprotected` and simulates a risky baseline with synthetic data only.
+The preserved direct tests cover safe admissions and portal-help prompts plus
+controlled synthetic attacks for prompt injection, role impersonation, data
+exfiltration, restricted tool misuse, encoded instructions, multilingual
+injection, and policy conflicts. These legacy modules are not HTTP routes on
+port 8000.
 
 ## Role-Based University Data Firewall
 
@@ -139,7 +143,9 @@ Run access-control evaluation:
 .\.venv\Scripts\python.exe scripts\evaluate_university_access_control.py
 ```
 
-Live Phase 6 demo scenarios are available in `/demo/uoh`: student tries admin portal, student requests all exam records, public user requests budgets/contracts, teacher asks for private student records, finance admin asks budget summary, exam controller asks exam records, super admin asks admin notes, prompt injection to override role, indirect role override, and `admin_secret_lookup` misuse.
+Phase 6 scenarios remain available through the evaluation scripts and direct
+security tests; they are not exposed through a University demo route on port
+8000.
 
 ## Zero-Trust Architecture
 
@@ -220,12 +226,12 @@ admin1 / Admin@123 / role=super_admin
 Login example:
 
 ```powershell
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/auth/login -ContentType "application/json" -Body '{"username":"student1","password":"Student@123"}'
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/auth/login -ContentType "application/json" -Body '{"username":"admin1","password":"Admin@123"}'
 ```
 
 This foundation does not allow arbitrary OS file access and does not contain real student, employee, admin, university, credential, or portal data.
 
-## Multi-Portal Web Architecture
+## Legacy Multi-Portal Modules
 
 Seed the database first:
 
@@ -233,19 +239,11 @@ Seed the database first:
 .\.venv\Scripts\python.exe scripts\seed_testbed.py
 ```
 
-Then log in with `/auth/login` and use the returned bearer token for portal routes:
+The student and employee route modules are retained for later migration history
+and regression work, but are not mounted by `app.main`. Active LLMGuard admin
+routes include:
 
 ```text
-GET  /student/dashboard
-GET  /student/records
-POST /student/ai/ask
-POST /student/documents/upload
-
-GET  /employee/dashboard
-GET  /employee/records
-POST /employee/ai/ask
-POST /employee/documents/upload
-
 GET  /admin/dashboard
 GET  /admin/all-records
 POST /admin/ai/ask
@@ -254,7 +252,9 @@ GET  /admin/security/events
 GET  /admin/redteam/cases
 ```
 
-Portal boundaries are strict: `student1` can access only `/student/*`, `employee1` can access only `/employee/*`, and `admin1` can access all portal modules except `restricted_secret` data. The legacy LLMGuard security dashboard is available at `/admin/security-dashboard`.
+The LLMGuard security dashboard remains available at
+`/admin/security-dashboard`. Student and employee business portals are served
+only by the standalone University application on port 8001.
 
 ## Role-Scoped RAG File Processing
 
@@ -355,16 +355,13 @@ Run the live gateway tests:
 
 ## Phase 9 Enterprise Product Shell
 
-The FastAPI template UI now presents LLMGuard as a role-isolated university AI
-security testbed instead of a single chatbot console.
+The FastAPI template UI presents LLMGuard as a standalone AI security product.
 
 Product routes:
 
 ```text
 GET /                         Product landing page
 GET /login                    Local testbed sign-in
-GET /student/dashboard        Student workspace
-GET /employee/dashboard       Employee workspace
 GET /admin/dashboard          Super admin control plane
 GET /admin/compare            Protected vs vulnerable comparison
 GET /admin/documents          Controlled RAG document manager
@@ -373,26 +370,24 @@ GET /admin/redteam            Red-team case workspace
 GET /admin/audit              Investigation and audit views
 ```
 
-The browser login uses the same local seed accounts and RBAC rules as bearer
-authentication:
+The browser login is the LLMGuard security-administrator console:
 
 ```text
-student1  / Student@123
-employee1 / Employee@123
 admin1    / Admin@123
 ```
 
-Each portal includes the live AI Gateway response metadata: action, label, risk
-score, threat source, blocked stage, Qwen call status, sources, tool decisions,
-output firewall action, sanitization state, and human-readable reasons.
+The security console includes live AI Gateway response metadata: action, label,
+risk score, threat source, blocked stage, Qwen call status, sources, tool
+decisions, output firewall action, sanitization state, and human-readable
+reasons.
 
-### Portal Workflow
+### Security Console Workflow
 
-1. Open `/login` and select a synthetic seed identity.
-2. Use the role-specific dashboard to inspect allowed and blocked data boundaries.
-3. Ask a safe question or a controlled attack prompt through the shared assistant.
-4. Upload a synthetic TXT, PDF, or DOCX through the portal-scoped upload panel.
-5. Review recent role-scoped interactions without crossing portal boundaries.
+1. Open `/login` and authenticate as the synthetic security administrator.
+2. Use the dashboard and SOC views to inspect enforcement outcomes.
+3. Run controlled comparison or red-team cases.
+4. Manage synthetic documents through the document-security workspace.
+5. Review security events and audit history.
 
 ### Protected vs Vulnerable Comparison
 
@@ -586,8 +581,6 @@ Primary routes remain unchanged:
 ```text
 /                         LLMGuard AI Firewall landing page
 /login                    Secure synthetic identity access
-/student/dashboard        Student workspace
-/employee/dashboard       Employee workspace
 /admin/dashboard          Super Admin command center
 /admin/security-dashboard Live SOC operations
 /admin/compare             Protected/vulnerable proof view
@@ -598,3 +591,29 @@ Primary routes remain unchanged:
 
 The redesign does not alter `app/llmguard/`, AI Gateway decisions, RAG access
 policy, model settings, or vulnerable-mode gating.
+
+### Standalone University Website Demo
+
+An isolated University of Haripur public-site and database-backed synthetic
+Student/Employee Portal is available under `university_site/`. It runs
+independently and does not mount, modify, or replace any LLMGuard route:
+
+```powershell
+.\.venv\Scripts\python.exe -m university_site
+```
+
+Open `http://127.0.0.1:8001`. Deterministic seed/reset instructions, separate
+login routes, local demo accounts, role behavior, and QA commands are in
+`university_site/README.md`. The portal never submits credentials or personal
+information to the production university website.
+
+The isolated module also includes a role-aware University AI Assistant for the
+public site and both authenticated portals. It uses live structured queries,
+an isolated authorization-filtered semantic index, the approved local
+`qwen3:1.7b` model, persistent conversations/sources/feedback, and an
+employee-only analytics view. It reuses read-only LLMGuard inspection
+interfaces without changing LLMGuard routes, detectors, model artifacts, or
+vector-store data. The assistant derives private identity from the signed
+portal session, uses exact fee/course/payroll/policy retrieval, resets entity
+references on New Chat, suppresses sources on denied or unsupported answers,
+and uses the existing local UoH logo and site colors in its accessible widget.
