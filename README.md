@@ -30,6 +30,35 @@ heartbeat becomes stale (default: 90 seconds), and
 (default: 300 seconds). Connectivity does not imply that request protection is
 active; `/api/v1/guard` remains unimplemented.
 
+### Backend Python SDK
+
+The reusable backend-only client lives in `sdk/llmguard_client`. Applications
+must load real credentials from their backend secret store or process
+environment; never place them in browser code. Minimal heartbeat usage:
+
+```python
+from sdk.llmguard_client import LLMGuardClient
+
+client = LLMGuardClient(
+    base_url="http://127.0.0.1:8000",
+    application_id="<registered-application-id>",
+    key_id="<application-key-id>",
+    api_secret="<one-time-api-secret>",
+    environment="development",
+    timeout=5.0,
+)
+
+result = await client.send_heartbeat(
+    application_version="<application-version>",
+    integration_version="<integration-version>",
+    channels=("public",),
+)
+```
+
+`HeartbeatResult` reports success or a safe structured error for timeouts,
+connection failures, rejected requests, and invalid responses. It never
+contains the API secret or the server response body.
+
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and
 `/demo/*` are not mounted by the LLMGuard process.

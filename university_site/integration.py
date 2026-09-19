@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 import os
 
 import httpx
 
+from sdk.llmguard_client import HeartbeatResult, LLMGuardClient
+
 
 @dataclass(frozen=True, slots=True)
 class HeartbeatClientConfig:
-    base_url: str
-    application_id: str
-    key_id: str
-    api_secret: str = field(repr=False)
-    environment: str = "development"
+    sdk_client: LLMGuardClient
     application_version: str | None = None
     integration_version: str = "heartbeat-v1"
     channels: tuple[str, ...] = ("public", "student", "employee")
@@ -28,14 +25,17 @@ def heartbeat_config_from_env() -> HeartbeatClientConfig | None:
         return None
     application_version = os.getenv("UOH_APPLICATION_VERSION", "").strip() or None
     return HeartbeatClientConfig(
-        base_url=os.getenv("UOH_LLMGUARD_BASE_URL", "http://127.0.0.1:8000").rstrip("/"),
-        application_id=os.getenv(
-            "UOH_LLMGUARD_APPLICATION_ID",
-            "university-of-haripur",
-        ).strip(),
-        key_id=key_id,
-        api_secret=api_secret,
-        environment=os.getenv("UOH_LLMGUARD_ENVIRONMENT", "development").strip().lower(),
+        sdk_client=LLMGuardClient(
+            base_url=os.getenv("UOH_LLMGUARD_BASE_URL", "http://127.0.0.1:8000"),
+            application_id=os.getenv(
+                "UOH_LLMGUARD_APPLICATION_ID",
+                "university-of-haripur",
+            ),
+            key_id=key_id,
+            api_secret=api_secret,
+            environment=os.getenv("UOH_LLMGUARD_ENVIRONMENT", "development"),
+            timeout=float(os.getenv("UOH_LLMGUARD_TIMEOUT_SECONDS", "5")),
+        ),
         application_version=application_version,
         integration_version=os.getenv(
             "UOH_LLMGUARD_INTEGRATION_VERSION",
@@ -52,43 +52,16 @@ async def send_heartbeat(
     config: HeartbeatClientConfig,
     *,
     client: httpx.AsyncClient | None = None,
-) -> dict[str, object]:
-    payload = {
-        "application_id": config.application_id,
-        "environment": config.environment,
-        "application_version": config.application_version,
-        "integration_version": config.integration_version,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "channels": list(config.channels),
-    }
-    headers = {
-        "X-LLMGuard-Key-ID": config.key_id,
-        "X-LLMGuard-API-Secret": config.api_secret,
-    }
-    if client is not None:
-        response = await client.post(
-            "/api/v1/integrations/heartbeat",
-            json=payload,
-            headers=headers,
-        )
-    else:
-        async with httpx.AsyncClient(
-            base_url=config.base_url,
-            timeout=5.0,
-        ) as owned_client:
-            response = await owned_client.post(
-                "/api/v1/integrations/heartbeat",
-                json=payload,
-                headers=headers,
-            )
-    response.raise_for_status()
-    return response.json()
+) -> HeartbeatResult:
+    return await config.sdk_client.send_heartbeat(
+        application_version=config.application_version,
+        integration_version=config.integration_version,
+        channels=config.channels,
+        http_client=client,
+    )
 
 
 async def heartbeat_loop(config: HeartbeatClientConfig) -> None:
     while True:
-        try:
-            await send_heartbeat(config)
-        except httpx.HTTPError:
-            pass
+        await send_heartbeat(config)
         await asyncio.sleep(config.interval_seconds)

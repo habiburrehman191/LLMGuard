@@ -33,10 +33,12 @@ Optional settings are `UOH_LLMGUARD_BASE_URL` (default
 `http://127.0.0.1:8000`), `UOH_LLMGUARD_APPLICATION_ID`,
 `UOH_LLMGUARD_ENVIRONMENT`, `UOH_APPLICATION_VERSION`,
 `UOH_LLMGUARD_INTEGRATION_VERSION`, and
-`UOH_LLMGUARD_HEARTBEAT_INTERVAL_SECONDS`. The API secret stays in the
-backend process environment and is never rendered into University HTML or
-JavaScript. This heartbeat reports connectivity only; chatbot traffic is not
-routed through LLMGuard.
+`UOH_LLMGUARD_HEARTBEAT_INTERVAL_SECONDS`. HTTP timeout is configured with
+`UOH_LLMGUARD_TIMEOUT_SECONDS` (default: 5 seconds). The backend uses the
+generic `sdk/llmguard_client` package. The API secret stays in the backend
+process environment and is never rendered into University HTML or JavaScript.
+This heartbeat reports connectivity only; chatbot traffic is not routed
+through LLMGuard.
 
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.
