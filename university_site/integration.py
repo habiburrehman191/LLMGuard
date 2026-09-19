@@ -9,6 +9,10 @@ import httpx
 from sdk.llmguard_client import HeartbeatResult, LLMGuardClient
 
 
+class LLMGuardIntegrationConfigurationError(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class HeartbeatClientConfig:
     sdk_client: LLMGuardClient
@@ -18,14 +22,17 @@ class HeartbeatClientConfig:
     interval_seconds: int = 30
 
 
-def heartbeat_config_from_env() -> HeartbeatClientConfig | None:
+def llmguard_client_from_env() -> LLMGuardClient | None:
     key_id = os.getenv("UOH_LLMGUARD_KEY_ID", "").strip()
     api_secret = os.getenv("UOH_LLMGUARD_API_SECRET", "").strip()
-    if not key_id or not api_secret:
+    if not key_id and not api_secret:
         return None
-    application_version = os.getenv("UOH_APPLICATION_VERSION", "").strip() or None
-    return HeartbeatClientConfig(
-        sdk_client=LLMGuardClient(
+    if not key_id or not api_secret:
+        raise LLMGuardIntegrationConfigurationError(
+            "LLMGuard integration credentials are incomplete."
+        )
+    try:
+        return LLMGuardClient(
             base_url=os.getenv("UOH_LLMGUARD_BASE_URL", "http://127.0.0.1:8000"),
             application_id=os.getenv(
                 "UOH_LLMGUARD_APPLICATION_ID",
@@ -35,7 +42,23 @@ def heartbeat_config_from_env() -> HeartbeatClientConfig | None:
             api_secret=api_secret,
             environment=os.getenv("UOH_LLMGUARD_ENVIRONMENT", "development"),
             timeout=float(os.getenv("UOH_LLMGUARD_TIMEOUT_SECONDS", "5")),
-        ),
+        )
+    except (TypeError, ValueError) as exc:
+        raise LLMGuardIntegrationConfigurationError(
+            "LLMGuard integration configuration is invalid."
+        ) from exc
+
+
+def heartbeat_config_from_env() -> HeartbeatClientConfig | None:
+    try:
+        sdk_client = llmguard_client_from_env()
+    except LLMGuardIntegrationConfigurationError:
+        return None
+    if sdk_client is None:
+        return None
+    application_version = os.getenv("UOH_APPLICATION_VERSION", "").strip() or None
+    return HeartbeatClientConfig(
+        sdk_client=sdk_client,
         application_version=application_version,
         integration_version=os.getenv(
             "UOH_LLMGUARD_INTEGRATION_VERSION",

@@ -28,6 +28,7 @@ PUBLIC_PRIVATE_PATTERNS = (
 )
 
 STUDENT_EMPLOYEE_PATTERNS = (
+    r"\b(?:another|other)\s+student(?:'s)?\s+(?:cgpa|grade|attendance|result|fee|record|information)\b",
     r"\b(?:employee|staff)\s+(?:attendance|leave|payroll|salary|private|confidential|record)",
     r"\b(?:hr|finance|security|examination)\s+(?:records?|reports?|incidents?|payroll|files?)",
     r"\b(?:internal|controlled|confidential|restricted)\s+(?:university\s+|institutional\s+)?(?:records?|reports?|incidents?|polic(?:y|ies))",

@@ -18,7 +18,7 @@ From the repository root:
 
 Open `http://127.0.0.1:8001`.
 
-### Optional LLMGuard connectivity heartbeat
+### Optional LLMGuard backend integration
 
 The University backend can report connectivity to LLMGuard on port 8000 when
 an application credential has been created by an LLMGuard administrator. The
@@ -37,8 +37,26 @@ Optional settings are `UOH_LLMGUARD_BASE_URL` (default
 `UOH_LLMGUARD_TIMEOUT_SECONDS` (default: 5 seconds). The backend uses the
 generic `sdk/llmguard_client` package. The API secret stays in the backend
 process environment and is never rendered into University HTML or JavaScript.
-This heartbeat reports connectivity only; chatbot traffic is not routed
-through LLMGuard.
+When both credentials are absent, the University application keeps its
+standalone compatibility behavior. When credentials are configured, the
+backend sends every Public, Student, and Employee chatbot prompt to the
+LLMGuard input firewall before opening a University database session or
+running retrieval, structured-data tools, or the main language model. A
+restricted prompt receives a generic response without detector details. A
+timeout, connection error, rejected request, or other inspection failure also
+fails closed; the University processing path is not executed. Supplying only
+one of the two credential variables is treated as a configuration failure for
+chat requests, not as standalone mode.
+
+The channel is fixed by the backend route. Student and Employee identities
+come only from the signed portal session; prompt content and request JSON
+cannot select an identity or role. Each chatbot request receives one request
+ID which is sent to LLMGuard and retained by the downstream University request
+flow. Input inspection remains separate from University authorization: an
+input that LLMGuard allows can still be rejected by portal RBAC.
+
+This phase applies input inspection only. Context and output inspection are
+not sent through the integration API.
 
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.

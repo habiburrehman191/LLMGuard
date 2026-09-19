@@ -28,7 +28,7 @@ from it. `LLMGUARD_HEARTBEAT_TIMEOUT_SECONDS` controls when an accepted
 heartbeat becomes stale (default: 90 seconds), and
 `LLMGUARD_HEARTBEAT_MAX_SKEW_SECONDS` controls accepted client timestamp skew
 (default: 300 seconds). Connectivity does not imply that request protection is
-active; `/api/v1/guard` remains unimplemented.
+active by itself.
 
 ### Backend Python SDK
 
@@ -86,8 +86,18 @@ not create a second telemetry row.
 
 Only application ID, channel, request ID, classification, risk score, action,
 and timestamp are stored in guard telemetry. Input content and
-`security_context` are not stored there. University chatbot traffic remains
-disconnected from this API in Phase 6A.
+`security_context` are not stored there.
+
+The standalone University backend uses this API for Public, Student, and
+Employee chatbot input when both integration credential environment variables
+are configured. Inspection happens before its database, retrieval,
+structured-data tools, and main-model boundaries. Restricted inputs receive a
+generic response; configured integration failures fail closed. With both
+credentials absent, the University keeps its documented standalone behavior.
+Channel and portal identity are derived from the backend route and signed
+session rather than prompt or browser-supplied identity fields. University
+RBAC remains a separate, later authorization check after an input is allowed.
+Context and output are not routed through the API in Phase 6B.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

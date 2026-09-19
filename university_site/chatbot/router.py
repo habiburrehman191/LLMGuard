@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+from functools import partial
+
+from anyio import from_thread
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from urllib.parse import urlsplit
+from uuid import uuid4
 
+from ..auth import SESSION_COOKIE, read_session
 from ..database import SessionLocal
 from ..models import ChatConversation, ChatMessage
 from .context import PUBLIC_CHAT_COOKIE, resolve_identity
+from .input_firewall import (
+    GENERIC_BLOCKED_MESSAGE,
+    GENERIC_FAILURE_MESSAGE,
+    inspect_chat_input,
+)
 from .schemas import ChatRequest, ConversationRequest, FeedbackRequest
 from .service import (
     ask,
@@ -69,14 +79,92 @@ def _validate_context(portal_context: str) -> None:
         raise HTTPException(status_code=404, detail="Unknown assistant context.")
 
 
+def _trusted_security_context(
+    request: Request,
+    portal_context: str,
+) -> dict[str, object]:
+    if portal_context == "public":
+        return {"role": "public", "authentication": "anonymous"}
+
+    session_payload = read_session(request.cookies.get(SESSION_COOKIE))
+    if not session_payload:
+        raise HTTPException(
+            status_code=401,
+            detail=f"{portal_context.title()} Portal authentication is required.",
+        )
+    if (
+        session_payload.get("portal") != portal_context
+        or session_payload.get("role") != portal_context
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="This session is not authorized for the requested assistant.",
+        )
+    return {
+        "actor_ref": f"{portal_context}:{int(session_payload['user_id'])}",
+        "role": portal_context,
+        "authentication": "signed_session",
+    }
+
+
+def _preflight_response(
+    *,
+    portal_context: str,
+    request_id: str,
+    inspection_failed: bool,
+) -> JSONResponse:
+    unavailable = inspection_failed
+    return _response(
+        {
+            "conversation_id": None,
+            "message_id": None,
+            "answer": GENERIC_FAILURE_MESSAGE if unavailable else GENERIC_BLOCKED_MESSAGE,
+            "status": "unavailable" if unavailable else "access_restricted",
+            "status_label": (
+                "Assistant temporarily unavailable" if unavailable else "Access Restricted"
+            ),
+            "sources": [],
+            "portal_context": portal_context,
+            "model_called": False,
+            "request_id": request_id,
+        }
+    )
+
+
 @router.post("/api/university/chat/{portal_context}")
 def chat(portal_context: str, payload: ChatRequest, request: Request) -> JSONResponse:
     _validate_context(portal_context)
+    security_context = _trusted_security_context(request, portal_context)
+    request_id = uuid4().hex
+    preflight = from_thread.run(
+        partial(
+            inspect_chat_input,
+            request_id=request_id,
+            channel=portal_context,
+            content=payload.question,
+            security_context=security_context,
+        )
+    )
+    if not preflight.allowed:
+        return _preflight_response(
+            portal_context=portal_context,
+            request_id=request_id,
+            inspection_failed=preflight.inspection_failed,
+        )
+
     with SessionLocal() as session:
         identity, public_token = resolve_identity(request, session, portal_context)
         current_page, page_title = _authoritative_page(request, identity.portal_context)
         try:
-            result = ask(session, identity, payload.question, payload.conversation_id, current_page, page_title)
+            result = ask(
+                session,
+                identity,
+                payload.question,
+                payload.conversation_id,
+                current_page,
+                page_title,
+                request_id=request_id,
+            )
         except PermissionError as exc:
             raise HTTPException(status_code=403, detail=str(exc)) from exc
     return _response(result, public_token)

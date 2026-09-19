@@ -190,6 +190,8 @@ def ask(
     conversation_id: int | None,
     current_page: str,
     page_title: str,
+    *,
+    request_id: str,
 ) -> dict[str, object]:
     started = perf_counter()
     conversation = _conversation(session, identity, conversation_id)
@@ -215,7 +217,13 @@ def ask(
     if restriction:
         latency = int((perf_counter() - started) * 1000)
         message = _store_assistant(session, conversation, restriction, "restricted", "access_restricted", "blocked", "security", False, latency, [])
-        return response_payload(conversation, message, identity.portal_context, [])
+        return response_payload(
+            conversation,
+            message,
+            identity.portal_context,
+            [],
+            request_id=request_id,
+        )
 
     bundle = retrieve(session, identity, question, history + [f"User: {question}"], current_page)
     bundle.sources = _authorized_sources(bundle.sources, identity)
@@ -255,14 +263,27 @@ def ask(
         _authorized_sources(bundle.sources, identity) if status == "supported" else [],
     )
     LOGGER.info(
-        "chat conversation=%s portal=%s owner=%s retrieval=%s sources=%s status=%s latency_ms=%s",
-        conversation.id, identity.portal_context, identity.owner_ref, bundle.retrieval_type,
+        "chat request=%s conversation=%s portal=%s owner=%s retrieval=%s sources=%s status=%s latency_ms=%s",
+        request_id, conversation.id, identity.portal_context, identity.owner_ref, bundle.retrieval_type,
         [item.source_id for item in bundle.sources], status, latency,
     )
-    return response_payload(conversation, message, identity.portal_context, _authorized_sources(bundle.sources, identity) if status == "supported" else [])
+    return response_payload(
+        conversation,
+        message,
+        identity.portal_context,
+        _authorized_sources(bundle.sources, identity) if status == "supported" else [],
+        request_id=request_id,
+    )
 
 
-def response_payload(conversation: ChatConversation, message: ChatMessage, portal_context: str, sources: list[SourceReference]) -> dict[str, object]:
+def response_payload(
+    conversation: ChatConversation,
+    message: ChatMessage,
+    portal_context: str,
+    sources: list[SourceReference],
+    *,
+    request_id: str,
+) -> dict[str, object]:
     labels = {
         "supported": "Verified from University Records",
         "insufficient_data": "Information Not Found",
@@ -284,6 +305,7 @@ def response_payload(conversation: ChatConversation, message: ChatMessage, porta
         ],
         "portal_context": portal_context,
         "model_called": message.model_called,
+        "request_id": request_id,
     }
 
 
