@@ -69,10 +69,26 @@
 
         <section id="protected-applications" class="workspace-card protected-applications-panel" aria-labelledby="protected-applications-title">
             <div class="protected-applications-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
-            <div>
-                <span class="section-kicker">Applications</span>
-                <h2 id="protected-applications-title">Protected Applications</h2>
-                <p>No external applications have been migrated to the LLMGuard V2 integration architecture yet.</p>
+            <div class="protected-applications-content">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Applications</span>
+                        <h2 id="protected-applications-title">Protected Applications</h2>
+                    </div>
+                    <a class="secondary-button dashboard-text-link" href="/admin/applications">Open registry</a>
+                </div>
+                {% for application in applications %}
+                <article class="dashboard-application-row">
+                    <div>
+                        <strong>{{ application.name }}</strong>
+                        <small>{{ application.organization.name }} · {{ application.environment|title }}</small>
+                    </div>
+                    <span class="application-status">{{ application.status|replace("_", " ")|title }}</span>
+                    <code>{{ application.application_id }}</code>
+                </article>
+                {% else %}
+                <p>No external applications are registered.</p>
+                {% endfor %}
             </div>
         </section>
         </div>

@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
+from app.application_registry import bootstrap_default_application
 from app.auth import router as auth_router
 from app.ai.gateway import process_ai_request
 from app.database import get_db, init_database
@@ -26,6 +27,7 @@ app.include_router(auth_router)
 @app.on_event("startup")
 def startup_event():
     init_db()
+    bootstrap_default_application()
     init_database()
 
 

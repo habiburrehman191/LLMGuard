@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Applications | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+</head>
+<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
+    {% include "components/product_nav.html" %}
+    <main class="product-page">
+      <div class="portal-shell">
+        {% include "components/admin_sidebar.html" %}
+        <div class="portal-main">
+            <header class="page-header">
+                <div>
+                    <span class="am-section-label">[02] APPLICATION REGISTRY</span>
+                    <h1 class="am-gradient-title">Protected Applications</h1>
+                    <p>Registered external AI applications and their approved integration channels.</p>
+                </div>
+                {% include "components/security_badges.html" %}
+            </header>
+
+            <section class="registry-notice" aria-label="Registry status">
+                <svg class="am-inline-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#database"></use></svg>
+                <p>Registration records identity and intended channels only. It does not indicate an active connection, heartbeat, or protection status.</p>
+            </section>
+
+            <section class="application-registry-grid" aria-label="Registered applications">
+                {% for application in applications %}
+                <article class="workspace-card application-registry-card">
+                    <div class="application-card-heading">
+                        <div>
+                            <span class="section-kicker">{{ application.organization.name }}</span>
+                            <h2>{{ application.name }}</h2>
+                        </div>
+                        <span class="application-status">{{ application.status|replace("_", " ")|title }}</span>
+                    </div>
+                    <dl class="application-details">
+                        <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
+                        <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
+                        <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
+                        <div><dt>Registered</dt><dd>{{ application.created_at }}</dd></div>
+                    </dl>
+                    <div class="application-channel-section">
+                        <span class="section-kicker">Registered channels</span>
+                        <div class="application-channel-list">
+                            {% for channel in application.channels %}
+                            <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}">{{ channel.channel }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </article>
+                {% else %}
+                <article class="workspace-card registry-empty-state">
+                    <h2>No applications registered</h2>
+                    <p>The registry contains no external AI applications.</p>
+                </article>
+                {% endfor %}
+            </section>
+        </div>
+      </div>
+    </main>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

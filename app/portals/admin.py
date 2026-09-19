@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.gateway import process_ai_request
+from app.application_registry import list_applications
 from app.auth import get_current_user
 from app.config import get_settings
 from app.database import get_db
@@ -80,15 +81,33 @@ def admin_dashboard(
 ) -> HTMLResponse:
     require_portal(user, PortalScope.admin)
     metrics = fetch_dashboard_metrics(limit=8)
+    applications = list_applications()
     context = {
         **_admin_ui_context(user),
         "metrics": metrics,
         "recent_security_events": metrics["recent_logs"],
+        "applications": applications,
     }
     return templates.TemplateResponse(
         request=request,
         name="admin_dashboard.html",
         context=context,
+    )
+
+
+@router.get("/applications", response_class=HTMLResponse)
+def applications_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    require_portal(user, PortalScope.admin)
+    return templates.TemplateResponse(
+        request=request,
+        name="applications.html",
+        context={
+            **_admin_ui_context(user),
+            "applications": list_applications(),
+        },
     )
 
 

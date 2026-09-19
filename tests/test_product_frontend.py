@@ -8,15 +8,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.application_registry import bootstrap_default_application
 from app.auth import seed_development_users
 from app.config import reset_settings_cache
 from app.database import Base, SessionLocal, get_db, init_database
+from app.db import init_db
 from scripts.seed_testbed import seed_portal_records
 
 
 class ProductFrontendTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        init_db()
+        bootstrap_default_application()
         init_database()
         with SessionLocal() as db:
             seed_development_users(db)
@@ -120,6 +124,7 @@ class ProductFrontendTests(unittest.TestCase):
         self._login("admin1", "Admin@123")
         expectations = {
             "/admin/dashboard": "LLMGuard AI Security Dashboard",
+            "/admin/applications": "Protected Applications",
             "/admin/compare": "Protected vs Vulnerable Compare Lab",
             "/admin/documents": "Controlled Document Manager",
             "/admin/redteam": "Red-Team Attack Replay Lab",
@@ -135,7 +140,9 @@ class ProductFrontendTests(unittest.TestCase):
 
         dashboard = self.client.get("/admin/dashboard")
         self.assertIn("Protected Applications", dashboard.text)
-        self.assertIn("No external applications have been migrated", dashboard.text)
+        self.assertIn("University of Haripur AI System", dashboard.text)
+        self.assertIn("Integration Pending", dashboard.text)
+        self.assertIn("university-of-haripur", dashboard.text)
         self.assertNotIn("Student records", dashboard.text)
         self.assertNotIn("Employee records", dashboard.text)
 
@@ -213,7 +220,8 @@ class ProductFrontendTests(unittest.TestCase):
             )
             self.assertEqual(200, login.status_code)
             expectations = {
-                "/admin/dashboard": "Protected Applications",
+                "/admin/dashboard": "University of Haripur AI System",
+                "/admin/applications": "Integration Pending",
                 "/admin/documents": "No controlled documents have been ingested.",
                 "/admin/redteam": "No red-team cases are stored in the database.",
                 "/admin/audit": "No AI interactions.",

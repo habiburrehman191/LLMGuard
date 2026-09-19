@@ -80,6 +80,46 @@ def init_db() -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS organizations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL UNIQUE,
+            organization_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL,
+            environment TEXT NOT NULL,
+            status TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (organization_id) REFERENCES organizations(id),
+            UNIQUE (organization_id, slug, environment)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_channels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, channel)
+        )
+        """
+    )
 
     existing_columns = {
         row[1]

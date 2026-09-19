@@ -8,6 +8,12 @@ LLMGuard runs on `http://127.0.0.1:8000` and exposes only product, security,
 evaluation, authentication, and administration routes. The standalone University
 application runs on `http://127.0.0.1:8001`.
 
+LLMGuard owns an external-application registry in `logs/llmguard.db`. The
+authenticated `/admin/applications` page lists registered application identity,
+organization, environment, integration status, and channels. Registration is
+not evidence of an active connection or protection state; credentials,
+heartbeat, and the security-decision API are intentionally not implemented yet.
+
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and
 `/demo/*` are not mounted by the LLMGuard process.
