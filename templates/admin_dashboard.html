@@ -77,13 +77,15 @@
                     </div>
                     <a class="secondary-button dashboard-text-link" href="/admin/applications">Open registry</a>
                 </div>
-                {% for application in applications %}
+                {% for integration in application_integrations %}
+                {% set application = integration.application %}
                 <article class="dashboard-application-row">
                     <div>
                         <strong>{{ application.name }}</strong>
-                        <small>{{ application.organization.name }} · {{ application.environment|title }}</small>
+                        <small>{{ application.organization.name }} · {{ application.environment|title }} · Last heartbeat: {{ integration.last_heartbeat_at or "none" }}</small>
+                        <small>App version: {{ integration.application_version or "not reported" }} · Integration: {{ integration.integration_version or "not reported" }} · Channels: {{ integration.reported_channels|join(", ") if integration.reported_channels else "not reported" }}</small>
                     </div>
-                    <span class="application-status">{{ application.status|replace("_", " ")|title }}</span>
+                    <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
                     <code>{{ application.application_id }}</code>
                 </article>
                 {% else %}

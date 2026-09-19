@@ -257,7 +257,8 @@
 .dashboard-application-row div { display: grid; gap: 5px; }
 .dashboard-application-row small { color: var(--muted-2); }
 .dashboard-application-row code { color: var(--muted); overflow-wrap: anywhere; }
-.application-status {
+.application-status,
+.integration-state {
     display: inline-flex;
     align-items: center;
     width: fit-content;
@@ -270,6 +271,9 @@
     letter-spacing: .05em;
     text-transform: uppercase;
 }
+.integration-state.state-connected { color: #86efac; border-color: rgba(34, 197, 94, .36); background: var(--green-soft); }
+.integration-state.state-disconnected { color: #fca5a5; border-color: rgba(239, 68, 68, .4); background: var(--red-soft); }
+.integration-state.state-integration_pending { color: #fcd34d; border-color: rgba(245, 158, 11, .4); background: rgba(120, 53, 15, .16); }
 .registry-notice {
     display: flex;
     align-items: center;
@@ -301,11 +305,14 @@
     font: 750 .82rem "Fira Code", monospace;
 }
 .application-channel.disabled { color: var(--muted-2); border-color: var(--line); background: var(--surface-2); text-decoration: line-through; }
+.integration-empty-value { margin: 0; color: var(--muted-2); }
 .registry-empty-state { text-align: center; }
 .registry-empty-state p { color: var(--muted); }
 .application-summary-card,
+.integration-health-card,
 .credential-management-card { display: grid; gap: 22px; }
 .application-summary-card .section-heading,
+.integration-health-card .section-heading,
 .credential-management-card .section-heading { align-items: center; margin-bottom: 0; }
 .credential-management-card .section-heading p { max-width: 680px; margin: 7px 0 0; color: var(--muted); line-height: 1.6; }
 .credential-management-card form { margin: 0; }

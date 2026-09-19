@@ -18,6 +18,26 @@ From the repository root:
 
 Open `http://127.0.0.1:8001`.
 
+### Optional LLMGuard connectivity heartbeat
+
+The University backend can report connectivity to LLMGuard on port 8000 when
+an application credential has been created by an LLMGuard administrator. The
+client is disabled unless both credential environment variables are present:
+
+```powershell
+$env:UOH_LLMGUARD_KEY_ID = "<key ID>"
+$env:UOH_LLMGUARD_API_SECRET = "<one-time API secret>"
+```
+
+Optional settings are `UOH_LLMGUARD_BASE_URL` (default
+`http://127.0.0.1:8000`), `UOH_LLMGUARD_APPLICATION_ID`,
+`UOH_LLMGUARD_ENVIRONMENT`, `UOH_APPLICATION_VERSION`,
+`UOH_LLMGUARD_INTEGRATION_VERSION`, and
+`UOH_LLMGUARD_HEARTBEAT_INTERVAL_SECONDS`. The API secret stays in the
+backend process environment and is never rendered into University HTML or
+JavaScript. This heartbeat reports connectivity only; chatbot traffic is not
+routed through LLMGuard.
+
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.
 Application startup seeds it when missing or when the seed version changes.

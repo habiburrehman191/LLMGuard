@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, quote_plus
@@ -31,6 +32,7 @@ from .data import (
     SCHOLARSHIPS,
 )
 from .database import SessionLocal
+from .integration import heartbeat_config_from_env, heartbeat_loop
 from .models import Course, Department, Employee, Enrollment, Faculty, FeeRecord, LeaveRequest, Notice, Policy, Program, Student
 from .repository import (
     ACADEMIC_EMPLOYEE_ROLES,
@@ -78,6 +80,27 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="university_static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 app.include_router(chatbot_router)
+
+
+@app.on_event("startup")
+async def start_llmguard_heartbeat() -> None:
+    config = heartbeat_config_from_env()
+    if config is not None:
+        app.state.llmguard_heartbeat_task = asyncio.create_task(heartbeat_loop(config))
+
+
+@app.on_event("shutdown")
+async def stop_llmguard_heartbeat() -> None:
+    task = getattr(app.state, "llmguard_heartbeat_task", None)
+    if task is None:
+        return
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+    finally:
+        del app.state.llmguard_heartbeat_task
 
 
 def render(request: Request, template: str, status_code: int = 200, **context: object) -> HTMLResponse:

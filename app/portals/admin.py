@@ -21,6 +21,7 @@ from app.auth import get_current_user
 from app.config import get_settings
 from app.database import get_db
 from app.db import fetch_dashboard_metrics
+from app.integration_health import integration_status_for, integration_statuses_for
 from app.models import (
     AIInteraction,
     AuditLog,
@@ -86,12 +87,12 @@ def admin_dashboard(
 ) -> HTMLResponse:
     require_portal(user, PortalScope.admin)
     metrics = fetch_dashboard_metrics(limit=8)
-    applications = list_applications()
+    application_integrations = integration_statuses_for(list_applications())
     context = {
         **_admin_ui_context(user),
         "metrics": metrics,
         "recent_security_events": metrics["recent_logs"],
-        "applications": applications,
+        "application_integrations": application_integrations,
     }
     return templates.TemplateResponse(
         request=request,
@@ -111,7 +112,7 @@ def applications_page(
         name="applications.html",
         context={
             **_admin_ui_context(user),
-            "applications": list_applications(),
+            "application_integrations": integration_statuses_for(list_applications()),
         },
     )
 
@@ -143,6 +144,7 @@ def create_application_credential(
         context={
             **_admin_ui_context(user),
             "application": application,
+            "integration": integration_status_for(application),
             "credentials": list_credentials(application_id),
             "created_credential": created_credential,
         },
@@ -529,6 +531,7 @@ def _render_application_detail(
         context={
             **_admin_ui_context(user),
             "application": application,
+            "integration": integration_status_for(application),
             "credentials": list_credentials(application_id),
             "created_credential": None,
         },

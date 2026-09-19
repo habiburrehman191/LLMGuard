@@ -11,16 +11,24 @@ application runs on `http://127.0.0.1:8001`.
 LLMGuard owns an external-application registry in `logs/llmguard.db`. The
 authenticated `/admin/applications` page lists registered application identity,
 organization, environment, integration status, and channels. Registration is
-not evidence of an active connection or protection state; credentials,
-heartbeat, and the security-decision API are intentionally separate concerns.
+not evidence of an active connection or protection state.
 
 An authenticated application detail page at
 `/admin/applications/{application_id}` manages per-application API credentials.
 Credential secrets are cryptographically generated, stored only as SHA-256
 hashes, and displayed once in a non-cacheable creation response. Normal views
-show only the key ID and lifecycle metadata. These credentials are not accepted
-by a security-decision API yet; heartbeat and `/api/v1/guard` remain
-unimplemented.
+show only the key ID and lifecycle metadata.
+
+Registered applications can report backend connectivity to
+`POST /api/v1/integrations/heartbeat` using the application ID in the request
+body and the key ID and API secret in the `X-LLMGuard-Key-ID` and
+`X-LLMGuard-API-Secret` headers. LLMGuard stores only the latest accepted
+heartbeat and derives `INTEGRATION_PENDING`, `CONNECTED`, or `DISCONNECTED`
+from it. `LLMGUARD_HEARTBEAT_TIMEOUT_SECONDS` controls when an accepted
+heartbeat becomes stale (default: 90 seconds), and
+`LLMGUARD_HEARTBEAT_MAX_SKEW_SECONDS` controls accepted client timestamp skew
+(default: 300 seconds). Connectivity does not imply that request protection is
+active; `/api/v1/guard` remains unimplemented.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

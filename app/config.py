@@ -54,6 +54,8 @@ class Settings:
     redteam_mode: bool
     app_env: str
     spline_scene_url: str
+    heartbeat_timeout_seconds: int
+    heartbeat_max_skew_seconds: int
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -162,6 +164,14 @@ def get_settings() -> Settings:
         redteam_mode=_bool_from_env("REDTEAM_MODE", False),
         app_env=os.getenv("APP_ENV", "local").strip().lower(),
         spline_scene_url=os.getenv("LLMGUARD_SPLINE_SCENE_URL", "").strip(),
+        heartbeat_timeout_seconds=max(
+            1,
+            int(os.getenv("LLMGUARD_HEARTBEAT_TIMEOUT_SECONDS", "90")),
+        ),
+        heartbeat_max_skew_seconds=max(
+            1,
+            int(os.getenv("LLMGUARD_HEARTBEAT_MAX_SKEW_SECONDS", "300")),
+        ),
     )
 
 

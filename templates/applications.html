@@ -28,20 +28,25 @@
             </section>
 
             <section class="application-registry-grid" aria-label="Registered applications">
-                {% for application in applications %}
+                {% for integration in application_integrations %}
+                {% set application = integration.application %}
                 <article class="workspace-card application-registry-card">
                     <div class="application-card-heading">
                         <div>
                             <span class="section-kicker">{{ application.organization.name }}</span>
                             <h2>{{ application.name }}</h2>
                         </div>
-                        <span class="application-status">{{ application.status|replace("_", " ")|title }}</span>
+                        <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
                     </div>
                     <dl class="application-details">
                         <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
                         <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
                         <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
-                        <div><dt>Registered</dt><dd>{{ application.created_at }}</dd></div>
+                        <div><dt>Registration status</dt><dd>{{ application.status|replace("_", " ")|title }}</dd></div>
+                        <div><dt>Last heartbeat</dt><dd>{{ integration.last_heartbeat_at or "No valid heartbeat" }}</dd></div>
+                        <div><dt>Application version</dt><dd>{{ integration.application_version or "Not reported" }}</dd></div>
+                        <div><dt>Integration version</dt><dd>{{ integration.integration_version or "Not reported" }}</dd></div>
+                        <div><dt>Heartbeat environment</dt><dd>{{ integration.heartbeat_environment|title if integration.heartbeat_environment else "Not reported" }}</dd></div>
                     </dl>
                     <div class="application-channel-section">
                         <span class="section-kicker">Registered channels</span>
@@ -50,6 +55,18 @@
                             <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}">{{ channel.channel }}</span>
                             {% endfor %}
                         </div>
+                    </div>
+                    <div class="application-channel-section">
+                        <span class="section-kicker">Heartbeat-reported channels</span>
+                        {% if integration.reported_channels %}
+                        <div class="application-channel-list">
+                            {% for channel in integration.reported_channels %}
+                            <span class="application-channel">{{ channel }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="integration-empty-value">No channels reported yet.</p>
+                        {% endif %}
                     </div>
                     <a class="secondary-button dashboard-text-link" href="/admin/applications/{{ application.application_id }}">Manage application credentials</a>
                 </article>

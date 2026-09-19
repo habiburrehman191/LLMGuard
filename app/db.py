@@ -142,6 +142,21 @@ def init_db() -> None:
         ON api_credentials (application_id, status)
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS integration_health (
+            application_id TEXT PRIMARY KEY,
+            last_heartbeat_at TIMESTAMP NOT NULL,
+            application_version TEXT,
+            integration_version TEXT,
+            environment TEXT NOT NULL,
+            reported_status TEXT NOT NULL,
+            channels TEXT NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
 
     existing_columns = {
         row[1]
