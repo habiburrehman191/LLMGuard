@@ -72,6 +72,17 @@ inspection failure returns only a generic safe message. When both credentials
 are absent, the previous local input, context, output, and generation behavior
 remain in use.
 
+Immediately before Qwen invocation, all three chatbot channels use one trusted
+prompt builder. It places the static security policy and backend-owned channel
+instructions in the model's system message, while the current query,
+conversation history, and already authorized evidence (context-inspected when
+protection is enabled) are placed in explicitly delimited data sections in the
+user message. Untrusted
+values are JSON serialized with delimiter-forming characters escaped, so user
+or retrieved text cannot close a data section or become a system instruction.
+The builder performs no authorization; University RBAC and LLMGuard context
+inspection remain authoritative before this boundary.
+
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.
 Application startup seeds it when missing or when the seed version changes.

@@ -312,8 +312,15 @@ def ask(
             bundle.sources = list(context_preflight.sources)
             bundle.context = _context_from_sources(bundle.sources)
             try:
-                page_context = f"Current local page: {page_title} ({current_page}).\n" if page_title else ""
-                answer = generate_answer(identity.portal_context, question, page_context + bundle.context, _model_history(history, identity))
+                # Only evidence rebuilt from approved or sanitized sources crosses
+                # the trusted prompt-construction boundary. Page context has already
+                # served its backend retrieval purpose and is not appended afterward.
+                answer = generate_answer(
+                    identity.portal_context,
+                    question,
+                    bundle.context,
+                    _model_history(history, identity),
+                )
                 model_called = True
                 output_preflight = from_thread.run(
                     partial(
