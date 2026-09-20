@@ -1,5 +1,22 @@
 import re
 
+
+_SECRET_EXTRACTION_VERB = re.compile(
+    r"\b(?:return|reveal|show|print|give|display|dump|list|provide|expose|extract|send|enumerate)\b",
+    flags=re.IGNORECASE,
+)
+_SECRET_EXTRACTION_TARGET = re.compile(
+    r"\b(?:password\s+hash(?:es)?|database\s+credentials?|api\s+(?:keys?|credentials?)|"
+    r"access\s+tokens?|private\s+(?:encryption\s+)?keys?|signing\s+secrets?|"
+    r"environment\s+variables?)\b|\.env\b",
+    flags=re.IGNORECASE,
+)
+_SECURITY_GUIDANCE = re.compile(
+    r"\b(?:how\s+to|what\s+is|explain|guidance|best\s+practices?|documentation|"
+    r"rotat(?:e|ing|ion)|reset|recover|policy)\b",
+    flags=re.IGNORECASE,
+)
+
 DANGEROUS_PATTERNS = [
     "ignore previous instructions",
     "ignore previous rules",
@@ -67,6 +84,15 @@ SUSPICIOUS_PATTERNS = [
 def rule_based_check(text: str):
     lowered = text.lower()
 
+    if _requests_secret_extraction(text):
+        return {
+            "blocked": True,
+            "reason": "Detected a request to extract credential or secret artifacts",
+            "risk_score": 0.98,
+            "matched_pattern": "credential_or_secret_extraction",
+            "label": "malicious",
+        }
+
     for pattern in DANGEROUS_PATTERNS:
         if pattern in lowered:
             return {
@@ -94,6 +120,16 @@ def rule_based_check(text: str):
         "matched_pattern": None,
         "label": "safe",
     }
+
+
+def _requests_secret_extraction(text: str) -> bool:
+    if _SECURITY_GUIDANCE.search(text):
+        return False
+    verb = _SECRET_EXTRACTION_VERB.search(text)
+    target = _SECRET_EXTRACTION_TARGET.search(text)
+    if verb is None or target is None:
+        return False
+    return abs(verb.start() - target.start()) <= 240
 
 
 def sanitize_text(text: str):
