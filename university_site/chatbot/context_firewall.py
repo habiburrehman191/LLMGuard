@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Any
+from typing import Any, Mapping
 
 from ..integration import (
     LLMGuardIntegrationConfigurationError,
@@ -25,6 +25,7 @@ async def inspect_chat_context(
     request_id: str,
     channel: str,
     sources: list[SourceReference],
+    security_context: Mapping[str, Any] | None = None,
 ) -> ChatContextPreflight:
     try:
         client = llmguard_client_from_env()
@@ -45,6 +46,7 @@ async def inspect_chat_context(
             request_id=request_id,
             channel=channel,
             chunks=chunks,
+            security_context=security_context,
         )
     except Exception:
         return _failed(request_id, configured=True)

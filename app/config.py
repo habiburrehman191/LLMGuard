@@ -56,6 +56,7 @@ class Settings:
     spline_scene_url: str
     heartbeat_timeout_seconds: int
     heartbeat_max_skew_seconds: int
+    session_hash_secret: str
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -171,6 +172,10 @@ def get_settings() -> Settings:
         heartbeat_max_skew_seconds=max(
             1,
             int(os.getenv("LLMGUARD_HEARTBEAT_MAX_SKEW_SECONDS", "300")),
+        ),
+        session_hash_secret=(
+            os.getenv("LLMGUARD_SESSION_HASH_SECRET", "").strip()
+            or "local-llmguard-session-correlation-only-change-before-shared-deployment"
         ),
     )
 

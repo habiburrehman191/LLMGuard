@@ -147,6 +147,7 @@ class LLMGuardClient:
         request_id: str,
         channel: str,
         chunks: Sequence[Mapping[str, Any]],
+        security_context: Mapping[str, Any] | None = None,
         http_client: httpx.AsyncClient | None = None,
     ) -> ContextInspectionResult:
         payload = {
@@ -156,6 +157,10 @@ class LLMGuardClient:
             "stage": "context",
             "chunks": _normalize_context_chunks(chunks),
         }
+        if security_context is not None:
+            if not isinstance(security_context, Mapping):
+                raise ValueError("security_context must be a mapping")
+            payload["security_context"] = dict(security_context)
         response_data, error = await self._post_json(
             GUARD_PATH,
             payload,
@@ -256,6 +261,7 @@ class LLMGuardClient:
         mime_type: str,
         text: str,
         metadata: Mapping[str, Any] | None = None,
+        security_context: Mapping[str, Any] | None = None,
         http_client: httpx.AsyncClient | None = None,
     ) -> DocumentInspectionResult:
         payload: dict[str, Any] = {
@@ -271,6 +277,10 @@ class LLMGuardClient:
             if not isinstance(metadata, Mapping):
                 raise ValueError("metadata must be a mapping")
             payload["metadata"] = dict(metadata)
+        if security_context is not None:
+            if not isinstance(security_context, Mapping):
+                raise ValueError("security_context must be a mapping")
+            payload["security_context"] = dict(security_context)
 
         response_data, error = await self._post_json(
             INGESTION_INSPECT_PATH,

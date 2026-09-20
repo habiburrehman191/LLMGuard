@@ -315,6 +315,67 @@ def init_db() -> None:
         ON guard_bypass_events (application_id, created_at)
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            session_hash TEXT NOT NULL,
+            first_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_seen TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            request_count INTEGER NOT NULL DEFAULT 0,
+            suspicious_event_count INTEGER NOT NULL DEFAULT 0,
+            malicious_event_count INTEGER NOT NULL DEFAULT 0,
+            latest_risk_score REAL CHECK (
+                latest_risk_score IS NULL OR
+                (latest_risk_score >= 0 AND latest_risk_score <= 1)
+            ),
+            max_risk_score REAL CHECK (
+                max_risk_score IS NULL OR
+                (max_risk_score >= 0 AND max_risk_score <= 1)
+            ),
+            risk_state TEXT NOT NULL DEFAULT 'SAFE'
+                CHECK (risk_state IN ('SAFE', 'SUSPICIOUS', 'MALICIOUS')),
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, channel, session_hash)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_sessions_application_last_seen
+        ON security_sessions (application_id, last_seen)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_session_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            security_session_id INTEGER NOT NULL,
+            request_id TEXT NOT NULL,
+            stage TEXT NOT NULL CHECK (
+                stage IN ('input', 'context', 'output', 'ingestion')
+            ),
+            classification TEXT NOT NULL CHECK (
+                classification IN ('safe', 'suspicious', 'malicious')
+            ),
+            risk_score REAL CHECK (
+                risk_score IS NULL OR (risk_score >= 0 AND risk_score <= 1)
+            ),
+            action TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (security_session_id) REFERENCES security_sessions(id),
+            UNIQUE (security_session_id, request_id, stage)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_session_events_trace
+        ON security_session_events (security_session_id, request_id, created_at)
+        """
+    )
 
     existing_columns = {
         row[1]

@@ -255,6 +255,13 @@ class UniversityOutputFirewallEnforcementTests(unittest.TestCase):
                 self.assertEqual(request_id, output_call.kwargs["request_id"])
                 self.assertEqual(request_id, body["request_id"])
                 self.assertEqual(channel, output_call.kwargs["channel"])
+                session_ids = (
+                    input_call.kwargs["security_context"]["session_id"],
+                    context_call.kwargs["security_context"]["session_id"],
+                    output_call.kwargs["security_context"]["session_id"],
+                )
+                self.assertTrue(all(session_ids))
+                self.assertEqual(1, len(set(session_ids)))
                 self.assertEqual(
                     f"Benign generated {channel} answer.",
                     output_call.kwargs["content"],

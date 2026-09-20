@@ -55,6 +55,13 @@ ID which is sent to LLMGuard and retained by the downstream University request
 flow. Input inspection remains separate from University authorization: an
 input that LLMGuard allows can still be rejected by portal RBAC.
 
+For multi-turn correlation, the backend derives an opaque session reference
+from the validated signed Student/Employee cookie or the server-generated,
+signed Public assistant token. The raw authentication cookie is never sent to
+LLMGuard. The same backend-derived reference accompanies input, context, and
+output inspection; LLMGuard applies its own keyed hash before persistence.
+Prompt text and browser-supplied role/user fields cannot select this reference.
+
 For responses that require the main language model, the University first
 applies its own authorization and retrieval rules. Only the resulting
 authorized evidence is sent to `inspect_context()` with the same request ID.

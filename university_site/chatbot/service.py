@@ -119,13 +119,22 @@ def _output_security_context(
         "student": "student",
         "employee": "super_admin",
     }[identity.portal_context]
-    return {
+    context: dict[str, object] = {
         "user_role": role,
         "actor_ref": identity.owner_ref,
         "allowed_classifications": sorted(
             {item.classification for item in bundle.sources}
         ),
     }
+    if identity.session_ref:
+        context["session_id"] = identity.session_ref
+    return context
+
+
+def _session_security_context(identity: ChatIdentity) -> dict[str, object]:
+    if not identity.session_ref:
+        return {}
+    return {"session_id": identity.session_ref}
 
 
 def _authorized_source(item: SourceReference, identity: ChatIdentity) -> bool:
@@ -286,6 +295,7 @@ def ask(
                 request_id=request_id,
                 channel=identity.portal_context,
                 sources=bundle.sources,
+                security_context=_session_security_context(identity),
             )
         )
         standalone_blocked = (

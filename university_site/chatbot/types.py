@@ -12,6 +12,7 @@ class ChatIdentity:
     user_id: int | None = None
     student: Student | None = None
     employee: Employee | None = None
+    session_ref: str | None = None
 
 
 @dataclass(frozen=True)

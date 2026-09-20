@@ -25,6 +25,7 @@ from app.ingestion_telemetry import (
     record_ingestion_inspection,
 )
 from app.protection_control import ensure_protection_config
+from app.session_risk import record_session_risk_event
 
 
 router = APIRouter(prefix="/api/v1/ingestion", tags=["application-security"])
@@ -54,6 +55,7 @@ class IngestionInspectionRequest(BaseModel):
     mime_type: str = Field(min_length=1, max_length=100)
     text: str = Field(min_length=1, max_length=MAX_DOCUMENT_TEXT_BYTES)
     metadata: dict[str, JsonValue] | None = None
+    security_context: dict[str, JsonValue] | None = None
 
     @field_validator("application_id", "request_id", "source_id")
     @classmethod
@@ -111,6 +113,23 @@ class IngestionInspectionRequest(BaseModel):
         if len(encoded.encode("utf-8")) > MAX_METADATA_BYTES:
             raise ValueError(
                 f"metadata must not exceed {MAX_METADATA_BYTES} bytes"
+            )
+        return value
+
+    @field_validator("security_context")
+    @classmethod
+    def bound_security_context(
+        cls,
+        value: dict[str, JsonValue] | None,
+    ) -> dict[str, JsonValue] | None:
+        if value is None:
+            return None
+        if len(value) > 32:
+            raise ValueError("security_context may contain at most 32 fields")
+        encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        if len(encoded.encode("utf-8")) > MAX_METADATA_BYTES:
+            raise ValueError(
+                f"security_context must not exceed {MAX_METADATA_BYTES} bytes"
             )
         return value
 
@@ -226,6 +245,22 @@ def _record_and_respond(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ingestion request ID has already been used for this application.",
         ) from None
+
+    if classification != "bypassed":
+        try:
+            record_session_risk_event(
+                application_id=payload.application_id,
+                channel=payload.channel,
+                request_id=payload.request_id,
+                stage="ingestion",
+                classification=classification,
+                risk_score=risk_score,
+                action=action,
+                security_context=payload.security_context,
+            )
+        except Exception:
+            # Session tracking is observational and must not alter inspection.
+            pass
 
     response = IngestionInspectionResponse(
         request_id=payload.request_id,

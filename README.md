@@ -72,7 +72,7 @@ result = await client.inspect_input(
     request_id="<application-generated-request-id>",
     channel="public",
     content="<content-to-inspect>",
-    security_context={"actor_ref": "<opaque-reference>"},
+    security_context={"session_id": "<backend-derived-session-reference>"},
 )
 ```
 
@@ -94,6 +94,7 @@ result = await client.inspect_context(
             "metadata": {"format": "policy"},
         },
     ),
+    security_context={"session_id": "<same-backend-session-reference>"},
 )
 ```
 
@@ -137,6 +138,21 @@ decision. Input/output content, `security_context`, context text, context
 metadata, and sanitized content are not stored in these telemetry tables. A
 request ID may be used once per application at each stage, allowing one logical
 request to correlate input, context, and output decisions.
+
+When an authenticated backend supplies `security_context.session_id`, LLMGuard
+uses a server-keyed HMAC to store only an application/channel-scoped session
+digest. One shared session-risk service correlates real input, context, and
+output outcomes by session digest and request ID. Ingestion is included only
+when its backend explicitly supplies session context. Aggregate storage tracks
+first/last seen timestamps, unique request count, suspicious/malicious event
+counts, latest/max reported risk score, and cumulative `SAFE`, `SUSPICIOUS`, or
+`MALICIOUS` state. Event evidence contains only request ID, stage,
+classification, risk score, action, and timestamp—never prompts, retrieved
+context, generated output, or application identity records. Phase 12A state is
+observational and does not alter per-request firewall decisions. Bypassed
+requests do not create detector evidence. Configure a private
+`LLMGUARD_SESSION_HASH_SECRET` outside source control for shared deployments;
+the built-in value is for local development only.
 
 ### Security normalization
 

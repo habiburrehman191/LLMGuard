@@ -39,6 +39,7 @@ from app.protection_control import (
     record_guard_stage_failure,
     record_guard_stage_success,
 )
+from app.session_risk import record_session_risk_event
 
 
 router = APIRouter(prefix="/api/v1", tags=["application-security"])
@@ -46,6 +47,17 @@ router = APIRouter(prefix="/api/v1", tags=["application-security"])
 MAX_CONTEXT_CHUNKS = 32
 MAX_CONTEXT_CHUNK_BYTES = 16_000
 MAX_TOTAL_CONTEXT_BYTES = 64_000
+
+
+def _validate_security_context(
+    value: dict[str, JsonValue],
+) -> dict[str, JsonValue]:
+    if len(value) > 32:
+        raise ValueError("security_context may contain at most 32 fields")
+    encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    if len(encoded.encode("utf-8")) > 8_192:
+        raise ValueError("security_context must not exceed 8192 bytes")
+    return value
 
 
 class GuardRequestBase(BaseModel):
@@ -83,12 +95,7 @@ class ContentGuardRequestBase(GuardRequestBase):
         cls,
         value: dict[str, JsonValue],
     ) -> dict[str, JsonValue]:
-        if len(value) > 32:
-            raise ValueError("security_context may contain at most 32 fields")
-        encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-        if len(encoded.encode("utf-8")) > 8_192:
-            raise ValueError("security_context must not exceed 8192 bytes")
-        return value
+        return _validate_security_context(value)
 
 
 class InputGuardRequest(ContentGuardRequestBase):
@@ -144,10 +151,19 @@ class ContextChunk(BaseModel):
 
 class ContextGuardRequest(GuardRequestBase):
     stage: Literal["context"]
+    security_context: dict[str, JsonValue] = Field(default_factory=dict)
     chunks: list[ContextChunk] = Field(
         min_length=1,
         max_length=MAX_CONTEXT_CHUNKS,
     )
+
+    @field_validator("security_context")
+    @classmethod
+    def bound_security_context(
+        cls,
+        value: dict[str, JsonValue],
+    ) -> dict[str, JsonValue]:
+        return _validate_security_context(value)
 
     @model_validator(mode="after")
     def bound_total_context(self) -> "ContextGuardRequest":
@@ -340,6 +356,13 @@ def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:
             detail="Request ID has already been used for this application.",
         ) from None
 
+    _track_session_risk(
+        payload,
+        classification=decision.classification,
+        risk_score=decision.risk_score,
+        action=decision.action,
+    )
+
     return InputGuardResponse(
         request_id=payload.request_id,
         stage="input",
@@ -383,6 +406,13 @@ def _inspect_context(payload: ContextGuardRequest) -> JSONResponse:
             status_code=status.HTTP_409_CONFLICT,
             detail="Context request ID has already been used for this application.",
         ) from None
+
+    _track_session_risk(
+        payload,
+        classification=decision.classification,
+        risk_score=decision.risk_score,
+        action=decision.action,
+    )
 
     response = ContextGuardResponse(
         request_id=payload.request_id,
@@ -430,6 +460,13 @@ def _inspect_output(payload: OutputGuardRequest) -> JSONResponse:
             detail="Output request ID has already been used for this application.",
         ) from None
 
+    _track_session_risk(
+        payload,
+        classification=decision.classification,
+        risk_score=decision.risk_score,
+        action=decision.action,
+    )
+
     response = OutputGuardResponse(
         request_id=payload.request_id,
         stage="output",
@@ -443,3 +480,26 @@ def _inspect_output(payload: OutputGuardRequest) -> JSONResponse:
         sanitized_content=decision.sanitized_content,
     )
     return JSONResponse(response.model_dump(mode="json", exclude_none=True))
+
+
+def _track_session_risk(
+    payload: GuardRequestBase,
+    *,
+    classification: str,
+    risk_score: float,
+    action: str,
+) -> None:
+    try:
+        record_session_risk_event(
+            application_id=payload.application_id,
+            channel=payload.channel,
+            request_id=payload.request_id,
+            stage=payload.stage,
+            classification=classification,
+            risk_score=risk_score,
+            action=action,
+            security_context=getattr(payload, "security_context", None),
+        )
+    except Exception:
+        # Phase 12A tracking is observational and must not alter guard decisions.
+        pass

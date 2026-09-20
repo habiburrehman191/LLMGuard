@@ -12,7 +12,12 @@ from uuid import uuid4
 from ..auth import SESSION_COOKIE, read_session
 from ..database import SessionLocal
 from ..models import ChatConversation, ChatMessage
-from .context import PUBLIC_CHAT_COOKIE, resolve_identity
+from .context import (
+    PUBLIC_CHAT_COOKIE,
+    authenticated_session_reference,
+    ensure_public_chat_identity,
+    resolve_identity,
+)
 from .input_firewall import (
     GENERIC_BLOCKED_MESSAGE,
     GENERIC_FAILURE_MESSAGE,
@@ -84,10 +89,16 @@ def _trusted_security_context(
     portal_context: str,
 ) -> dict[str, object]:
     if portal_context == "public":
-        return {"role": "public", "authentication": "anonymous"}
+        public_id, _ = ensure_public_chat_identity(request)
+        return {
+            "role": "public",
+            "authentication": "anonymous",
+            "session_id": f"public:{public_id}",
+        }
 
-    session_payload = read_session(request.cookies.get(SESSION_COOKIE))
-    if not session_payload:
+    session_token = request.cookies.get(SESSION_COOKIE)
+    session_payload = read_session(session_token)
+    if not session_token or not session_payload:
         raise HTTPException(
             status_code=401,
             detail=f"{portal_context.title()} Portal authentication is required.",
@@ -104,6 +115,9 @@ def _trusted_security_context(
         "actor_ref": f"{portal_context}:{int(session_payload['user_id'])}",
         "role": portal_context,
         "authentication": "signed_session",
+        "session_id": (
+            f"{portal_context}:{authenticated_session_reference(session_token)}"
+        ),
     }
 
 
@@ -112,6 +126,7 @@ def _preflight_response(
     portal_context: str,
     request_id: str,
     inspection_failed: bool,
+    public_token: str | None = None,
 ) -> JSONResponse:
     unavailable = inspection_failed
     return _response(
@@ -127,7 +142,8 @@ def _preflight_response(
             "portal_context": portal_context,
             "model_called": False,
             "request_id": request_id,
-        }
+        },
+        public_token,
     )
 
 
@@ -135,6 +151,7 @@ def _preflight_response(
 def chat(portal_context: str, payload: ChatRequest, request: Request) -> JSONResponse:
     _validate_context(portal_context)
     security_context = _trusted_security_context(request, portal_context)
+    pending_public_token = getattr(request.state, "public_chat_token", None)
     request_id = uuid4().hex
     preflight = from_thread.run(
         partial(
@@ -150,10 +167,16 @@ def chat(portal_context: str, payload: ChatRequest, request: Request) -> JSONRes
             portal_context=portal_context,
             request_id=request_id,
             inspection_failed=preflight.inspection_failed,
+            public_token=pending_public_token,
         )
 
     with SessionLocal() as session:
-        identity, public_token = resolve_identity(request, session, portal_context)
+        identity, resolved_public_token = resolve_identity(
+            request,
+            session,
+            portal_context,
+        )
+        public_token = pending_public_token or resolved_public_token
         current_page, page_title = _authoritative_page(request, identity.portal_context)
         ask_options: dict[str, object] = {"request_id": request_id}
         if preflight.protection_bypassed:

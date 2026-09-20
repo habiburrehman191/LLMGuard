@@ -37,16 +37,34 @@ def read_public_token(token: str | None) -> str | None:
     return None
 
 
+def ensure_public_chat_identity(request: Request) -> tuple[str, str | None]:
+    existing_id = getattr(request.state, "public_chat_owner_id", None)
+    if isinstance(existing_id, str):
+        return existing_id, getattr(request.state, "public_chat_token", None)
+
+    public_id = read_public_token(request.cookies.get(PUBLIC_CHAT_COOKIE))
+    new_token = None
+    if public_id is None:
+        public_id = secrets.token_hex(16)
+        new_token = create_public_token(public_id)
+    request.state.public_chat_owner_id = public_id
+    request.state.public_chat_token = new_token
+    return public_id, new_token
+
+
+def authenticated_session_reference(token: str) -> str:
+    """Return an opaque backend-derived reference without forwarding the cookie."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 def resolve_identity(request: Request, session: Session, portal_context: str) -> tuple[ChatIdentity, str | None]:
     if portal_context == "public":
-        public_id = read_public_token(request.cookies.get(PUBLIC_CHAT_COOKIE))
-        new_token = None
-        if public_id is None:
-            public_id = secrets.token_hex(16)
-            new_token = create_public_token(public_id)
-        return ChatIdentity("public", f"public:{public_id}"), new_token
+        public_id, new_token = ensure_public_chat_identity(request)
+        owner_ref = f"public:{public_id}"
+        return ChatIdentity("public", owner_ref, session_ref=owner_ref), new_token
 
-    payload = read_session(request.cookies.get(SESSION_COOKIE))
+    session_token = request.cookies.get(SESSION_COOKIE)
+    payload = read_session(session_token)
     if not payload:
         raise HTTPException(status_code=401, detail=f"{portal_context.title()} Portal authentication is required.")
     if payload.get("portal") != portal_context or payload.get("role") != portal_context:
@@ -57,10 +75,30 @@ def resolve_identity(request: Request, session: Session, portal_context: str) ->
         student = get_student(session, user_id, username)
         if student is None:
             raise HTTPException(status_code=401, detail="Student Portal session is no longer valid.")
-        return ChatIdentity("student", f"student:{student.id}", student.id, student=student), None
+        return ChatIdentity(
+            "student",
+            f"student:{student.id}",
+            student.id,
+            student=student,
+            session_ref=(
+                f"student:{authenticated_session_reference(session_token)}"
+                if session_token
+                else None
+            ),
+        ), None
     if portal_context == "employee":
         employee = get_employee(session, user_id, username)
         if employee is None:
             raise HTTPException(status_code=401, detail="Employee Portal session is no longer valid.")
-        return ChatIdentity("employee", f"employee:{employee.id}", employee.id, employee=employee), None
+        return ChatIdentity(
+            "employee",
+            f"employee:{employee.id}",
+            employee.id,
+            employee=employee,
+            session_ref=(
+                f"employee:{authenticated_session_reference(session_token)}"
+                if session_token
+                else None
+            ),
+        ), None
     raise HTTPException(status_code=404, detail="Unknown assistant context.")

@@ -234,6 +234,7 @@ class LLMGuardClientTests(unittest.TestCase):
                             "metadata": {"format": "policy"},
                         },
                     ),
+                    security_context={"session_id": "opaque-session-reference"},
                     http_client=http_client,
                 )
 
@@ -253,7 +254,10 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertEqual("context", body["stage"])
         self.assertEqual("document-1", body["chunks"][0]["source_id"])
         self.assertEqual("chunk-1", body["chunks"][0]["chunk_id"])
-        self.assertNotIn("security_context", body)
+        self.assertEqual(
+            {"session_id": "opaque-session-reference"},
+            body["security_context"],
+        )
         self.assertNotIn(self.secret, json.dumps(body))
 
     def test_inspect_context_error_does_not_expose_secret_or_response_body(self) -> None:
@@ -566,6 +570,7 @@ class LLMGuardClientTests(unittest.TestCase):
                     mime_type="text/plain",
                     text=unsafe,
                     metadata={"category": "admissions"},
+                    security_context={"session_id": "ingestion-session"},
                     http_client=http_client,
                 )
 
@@ -585,6 +590,10 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertEqual("text/plain", body["mime_type"])
         self.assertEqual(unsafe, body["text"])
         self.assertEqual({"category": "admissions"}, body["metadata"])
+        self.assertEqual(
+            {"session_id": "ingestion-session"},
+            body["security_context"],
+        )
         self.assertNotIn(self.secret, json.dumps(body))
         self.assertNotIn(self.secret, repr(result))
 
