@@ -103,6 +103,25 @@ when the existing firewall chooses `sanitize` and the sanitizer actually
 changes content. Quarantined context is restricted without returning a
 sanitized continuation.
 
+Phase 8A accepts bounded generated content with `stage="output"` and reuses the
+existing output firewall and DLP implementation for synthetic credential,
+system-prompt, sensitive-classification, and canary leakage. University
+responses are not connected to this API yet.
+
+```python
+result = await client.inspect_output(
+    request_id="<same-application-request-id>",
+    channel="public",
+    content="<generated-output>",
+    security_context={"user_role": "public"},
+)
+```
+
+Output content and `security_context` use the same 16,000-character,
+32-field, and 8,192-byte bounds as input inspection. `sanitized_content` is
+returned only for an existing `sanitize` action that actually changes the
+content. Blocked or quarantined output never includes a continuation.
+
 The response includes the existing classification, risk score, action, and
 reasons. `decision` is `allow` for existing `allow`/`log` actions and
 `restrict` for `sanitize`/`quarantine`/`block`. Severity is a presentation
@@ -114,10 +133,11 @@ stage returns HTTP 409 and does not create a second telemetry row.
 
 Input telemetry stores only application ID, channel, request ID,
 classification, risk score, action, and timestamp. Context telemetry adds the
-decision and bounded source/chunk identifiers. Input content,
-`security_context`, context text, and context metadata are not stored in these
-telemetry tables. A request ID may be used once per application at each stage,
-allowing one logical request to correlate input and context decisions.
+decision and bounded source/chunk identifiers. Output telemetry adds only the
+decision. Input/output content, `security_context`, context text, context
+metadata, and sanitized content are not stored in these telemetry tables. A
+request ID may be used once per application at each stage, allowing one logical
+request to correlate input, context, and output decisions.
 
 The standalone University backend uses this API for Public, Student, and
 Employee chatbot input when both integration credential environment variables

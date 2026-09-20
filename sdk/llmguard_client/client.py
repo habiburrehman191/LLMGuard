@@ -12,6 +12,7 @@ from .models import (
     HeartbeatResult,
     InputInspectionResult,
     LLMGuardClientError,
+    OutputInspectionResult,
 )
 
 
@@ -190,6 +191,59 @@ class LLMGuardClient:
             ),
         )
 
+    async def inspect_output(
+        self,
+        *,
+        request_id: str,
+        channel: str,
+        content: str,
+        security_context: Mapping[str, Any],
+        http_client: httpx.AsyncClient | None = None,
+    ) -> OutputInspectionResult:
+        payload = {
+            "application_id": self.application_id,
+            "request_id": _required_text(request_id, "request_id"),
+            "channel": _required_text(channel, "channel").lower(),
+            "stage": "output",
+            "content": _required_content(content),
+            "security_context": dict(security_context),
+        }
+        response_data, error = await self._post_json(
+            GUARD_PATH,
+            payload,
+            operation="output inspection",
+            http_client=http_client,
+        )
+        if error is not None:
+            return OutputInspectionResult(ok=False, error=error)
+
+        if not _is_valid_output_response(
+            response_data,
+            payload["request_id"],
+            original_content=payload["content"],
+        ):
+            return OutputInspectionResult(
+                ok=False,
+                error=LLMGuardClientError(
+                    code=ClientErrorCode.INVALID_RESPONSE,
+                    message="LLMGuard returned an invalid output inspection response.",
+                ),
+            )
+
+        return OutputInspectionResult(
+            ok=True,
+            request_id=response_data["request_id"],
+            stage=response_data["stage"],
+            decision=response_data["decision"],
+            classification=response_data["classification"],
+            threat_type=response_data.get("threat_type"),
+            severity=response_data["severity"],
+            risk_score=float(response_data["risk_score"]),
+            action=response_data["action"],
+            reasons=tuple(response_data["reasons"]),
+            sanitized_content=response_data.get("sanitized_content"),
+        )
+
     async def _post_json(
         self,
         path: str,
@@ -300,6 +354,27 @@ def _is_valid_context_response(value: Any, request_id: str) -> bool:
         and isinstance(sanitized_chunks, list)
         and bool(sanitized_chunks)
         and all(_is_valid_context_chunk(chunk) for chunk in sanitized_chunks)
+    )
+
+
+def _is_valid_output_response(
+    value: Any,
+    request_id: str,
+    *,
+    original_content: str,
+) -> bool:
+    if not _is_valid_inspection_response(value, request_id, stage="output"):
+        return False
+    if not isinstance(value, Mapping):
+        return False
+    sanitized_content = value.get("sanitized_content")
+    if sanitized_content is None:
+        return True
+    return (
+        value.get("action") == "sanitize"
+        and isinstance(sanitized_content, str)
+        and bool(sanitized_content.strip())
+        and sanitized_content != original_content
     )
 
 

@@ -62,3 +62,19 @@ class ContextInspectionResult:
     reasons: tuple[str, ...] = ()
     sanitized_chunks: tuple[dict[str, Any], ...] | None = None
     error: LLMGuardClientError | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class OutputInspectionResult:
+    ok: bool
+    request_id: str | None = None
+    stage: str | None = None
+    decision: str | None = None
+    classification: str | None = None
+    threat_type: str | None = None
+    severity: str | None = None
+    risk_score: float | None = None
+    action: str | None = None
+    reasons: tuple[str, ...] = ()
+    sanitized_content: str | None = None
+    error: LLMGuardClientError | None = None

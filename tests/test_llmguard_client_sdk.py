@@ -344,6 +344,130 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(ClientErrorCode.INVALID_RESPONSE, result.error.code)
 
+    def test_inspect_output_sends_authenticated_output_contract(self) -> None:
+        captured: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            captured["request"] = request
+            captured["body"] = json.loads(request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "sdk-output-001",
+                    "stage": "output",
+                    "decision": "restrict",
+                    "classification": "suspicious",
+                    "threat_type": "output",
+                    "severity": "medium",
+                    "risk_score": 0.55,
+                    "action": "sanitize",
+                    "reasons": ["DLP matched credentials: 'password'."],
+                    "sanitized_content": "[REDACTED SENSITIVE VALUE].",
+                },
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_output(
+                    request_id="sdk-output-001",
+                    channel="employee",
+                    content="Password reset instructions.",
+                    security_context={"user_role": "employee"},
+                    http_client=http_client,
+                )
+
+        result = run(exercise())
+        request = captured["request"]
+        body = captured["body"]
+        self.assertTrue(result.ok)
+        self.assertEqual("output", result.stage)
+        self.assertEqual("sanitize", result.action)
+        self.assertEqual("[REDACTED SENSITIVE VALUE].", result.sanitized_content)
+        self.assertEqual("/api/v1/guard", request.url.path)
+        self.assertEqual(self.secret, request.headers["X-LLMGuard-API-Secret"])
+        self.assertEqual("synthetic-key-id", request.headers["X-LLMGuard-Key-ID"])
+        self.assertEqual("generic-test-application", body["application_id"])
+        self.assertEqual("sdk-output-001", body["request_id"])
+        self.assertEqual("employee", body["channel"])
+        self.assertEqual("output", body["stage"])
+        self.assertEqual("Password reset instructions.", body["content"])
+        self.assertEqual({"user_role": "employee"}, body["security_context"])
+        self.assertNotIn(self.secret, json.dumps(body))
+
+    def test_inspect_output_error_does_not_expose_secret_or_response_body(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                401,
+                json={"detail": "server echoed " + self.secret},
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_output(
+                    request_id="sdk-output-error",
+                    channel="public",
+                    content="Inspect this generated output.",
+                    security_context={},
+                    http_client=http_client,
+                )
+
+        stream = io.StringIO()
+        log_handler = logging.StreamHandler(stream)
+        root_logger = logging.getLogger()
+        previous_level = root_logger.level
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(log_handler)
+        try:
+            result = run(exercise())
+        finally:
+            root_logger.removeHandler(log_handler)
+            root_logger.setLevel(previous_level)
+
+        self.assertFalse(result.ok)
+        self.assertEqual(ClientErrorCode.HTTP_ERROR, result.error.code)
+        self.assertEqual(401, result.error.status_code)
+        self.assertNotIn(self.secret, str(result.error))
+        self.assertNotIn(self.secret, repr(result))
+        self.assertNotIn(self.secret, stream.getvalue())
+
+    def test_inspect_output_rejects_unsafe_continuation_for_block(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "sdk-output-invalid",
+                    "stage": "output",
+                    "decision": "restrict",
+                    "classification": "malicious",
+                    "threat_type": "output",
+                    "severity": "high",
+                    "risk_score": 0.99,
+                    "action": "block",
+                    "reasons": ["Output contained a secret."],
+                    "sanitized_content": "Unsafe continuation must not be supplied.",
+                },
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_output(
+                    request_id="sdk-output-invalid",
+                    channel="public",
+                    content="The admin token is synthetic.",
+                    security_context={},
+                    http_client=http_client,
+                )
+
+        result = run(exercise())
+        self.assertFalse(result.ok)
+        self.assertEqual(ClientErrorCode.INVALID_RESPONSE, result.error.code)
+
     def _send(self, handler):
         async def exercise():
             async with httpx.AsyncClient(

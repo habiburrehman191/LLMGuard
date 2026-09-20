@@ -203,6 +203,29 @@ def init_db() -> None:
         ON guard_context_events (application_id, created_at)
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS guard_output_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            request_id TEXT NOT NULL,
+            decision TEXT NOT NULL,
+            classification TEXT NOT NULL,
+            risk_score REAL NOT NULL CHECK (risk_score >= 0 AND risk_score <= 1),
+            action TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, request_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_guard_output_events_application_created
+        ON guard_output_events (application_id, created_at)
+        """
+    )
 
     existing_columns = {
         row[1]

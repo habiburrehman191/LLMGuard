@@ -28,6 +28,11 @@ from app.guard_telemetry import (
     record_guard_decision,
 )
 from app.input_guard import inspect_input_content
+from app.output_guard import inspect_output_content
+from app.output_guard_telemetry import (
+    get_output_guard_decision,
+    record_output_guard_decision,
+)
 
 
 router = APIRouter(prefix="/api/v1", tags=["application-security"])
@@ -53,8 +58,7 @@ class GuardRequestBase(BaseModel):
         return normalized
 
 
-class InputGuardRequest(GuardRequestBase):
-    stage: Literal["input"]
+class ContentGuardRequestBase(GuardRequestBase):
     content: str = Field(min_length=1, max_length=16_000)
     security_context: dict[str, JsonValue]
 
@@ -77,6 +81,14 @@ class InputGuardRequest(GuardRequestBase):
         if len(encoded.encode("utf-8")) > 8_192:
             raise ValueError("security_context must not exceed 8192 bytes")
         return value
+
+
+class InputGuardRequest(ContentGuardRequestBase):
+    stage: Literal["input"]
+
+
+class OutputGuardRequest(ContentGuardRequestBase):
+    stage: Literal["output"]
 
 
 class ContextChunk(BaseModel):
@@ -171,11 +183,24 @@ class ContextGuardResponse(BaseModel):
     sanitized_chunks: list[SanitizedContextChunk] | None = None
 
 
+class OutputGuardResponse(BaseModel):
+    request_id: str
+    stage: Literal["output"]
+    decision: Literal["allow", "restrict"]
+    classification: Literal["safe", "suspicious", "malicious"]
+    threat_type: str | None
+    severity: Literal["none", "low", "medium", "high", "critical"]
+    risk_score: float = Field(ge=0, le=1)
+    action: Literal["allow", "log", "sanitize", "quarantine", "block"]
+    reasons: list[str]
+    sanitized_content: str | None = None
+
+
 GuardRequest = Annotated[
-    InputGuardRequest | ContextGuardRequest,
+    InputGuardRequest | ContextGuardRequest | OutputGuardRequest,
     Field(discriminator="stage"),
 ]
-GuardResponse = InputGuardResponse | ContextGuardResponse
+GuardResponse = InputGuardResponse | ContextGuardResponse | OutputGuardResponse
 
 
 @router.post("/guard", response_model=GuardResponse)
@@ -214,6 +239,8 @@ def inspect_guard(
 
     if isinstance(payload, ContextGuardRequest):
         return _inspect_context(payload)
+    if isinstance(payload, OutputGuardRequest):
+        return _inspect_output(payload)
     return _inspect_input(payload)
 
 
@@ -299,5 +326,47 @@ def _inspect_context(payload: ContextGuardRequest) -> JSONResponse:
             if decision.sanitized_chunks is not None
             else None
         ),
+    )
+    return JSONResponse(response.model_dump(mode="json", exclude_none=True))
+
+
+def _inspect_output(payload: OutputGuardRequest) -> JSONResponse:
+    if (
+        get_output_guard_decision(payload.application_id, payload.request_id)
+        is not None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Output request ID has already been used for this application.",
+        )
+
+    decision = inspect_output_content(payload.content, payload.security_context)
+    try:
+        record_output_guard_decision(
+            application_id=payload.application_id,
+            channel=payload.channel,
+            request_id=payload.request_id,
+            decision=decision.decision,
+            classification=decision.classification,
+            risk_score=decision.risk_score,
+            action=decision.action,
+        )
+    except DuplicateGuardRequestError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Output request ID has already been used for this application.",
+        ) from None
+
+    response = OutputGuardResponse(
+        request_id=payload.request_id,
+        stage="output",
+        decision=decision.decision,
+        classification=decision.classification,
+        threat_type=decision.threat_type,
+        severity=decision.severity,
+        risk_score=decision.risk_score,
+        action=decision.action,
+        reasons=list(decision.reasons),
+        sanitized_content=decision.sanitized_content,
     )
     return JSONResponse(response.model_dump(mode="json", exclude_none=True))

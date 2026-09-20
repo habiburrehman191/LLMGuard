@@ -7,6 +7,7 @@ from .models import (
     HeartbeatResult,
     InputInspectionResult,
     LLMGuardClientError,
+    OutputInspectionResult,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "InputInspectionResult",
     "LLMGuardClient",
     "LLMGuardClientError",
+    "OutputInspectionResult",
 ]
