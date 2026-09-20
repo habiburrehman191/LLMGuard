@@ -226,6 +226,72 @@ def init_db() -> None:
         ON guard_output_events (application_id, created_at)
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_protection (
+            application_id TEXT PRIMARY KEY,
+            protection_enabled INTEGER NOT NULL DEFAULT 1 CHECK (protection_enabled IN (0, 1)),
+            updated_at TIMESTAMP NOT NULL,
+            updated_by TEXT NOT NULL,
+            change_reason TEXT NOT NULL,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_protection_audit (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            old_state INTEGER NOT NULL CHECK (old_state IN (0, 1)),
+            new_state INTEGER NOT NULL CHECK (new_state IN (0, 1)),
+            actor TEXT NOT NULL,
+            timestamp TIMESTAMP NOT NULL,
+            reason TEXT NOT NULL,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_application_protection_audit_application
+        ON application_protection_audit (application_id, timestamp)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_guard_health (
+            application_id TEXT NOT NULL,
+            stage TEXT NOT NULL CHECK (stage IN ('input', 'context', 'output')),
+            last_success_at TIMESTAMP,
+            last_error_at TIMESTAMP,
+            last_error_code TEXT,
+            updated_at TIMESTAMP NOT NULL,
+            PRIMARY KEY (application_id, stage),
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS guard_bypass_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            request_id TEXT NOT NULL,
+            stage TEXT NOT NULL CHECK (stage IN ('input', 'context', 'output')),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, request_id, stage)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_guard_bypass_events_application_created
+        ON guard_bypass_events (application_id, created_at)
+        """
+    )
 
     existing_columns = {
         row[1]

@@ -36,13 +36,16 @@
                             <span class="section-kicker">{{ application.organization.name }}</span>
                             <h2>{{ application.name }}</h2>
                         </div>
-                        <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
+                        <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
                     </div>
                     <dl class="application-details">
                         <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
                         <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
                         <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
                         <div><dt>Registration status</dt><dd>{{ application.status|replace("_", " ")|title }}</dd></div>
+                        <div><dt>Connection state</dt><dd>{{ integration.connection_state|replace("_", " ")|title }}</dd></div>
+                        <div><dt>Protection</dt><dd>{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</dd></div>
+                        <div><dt>Runtime state</dt><dd>{{ integration.runtime_state|replace("_", " ")|title }}</dd></div>
                         <div><dt>Last heartbeat</dt><dd>{{ integration.last_heartbeat_at or "No valid heartbeat" }}</dd></div>
                         <div><dt>Application version</dt><dd>{{ integration.application_version or "Not reported" }}</dd></div>
                         <div><dt>Integration version</dt><dd>{{ integration.integration_version or "Not reported" }}</dd></div>
@@ -68,7 +71,7 @@
                         <p class="integration-empty-value">No channels reported yet.</p>
                         {% endif %}
                     </div>
-                    <a class="secondary-button dashboard-text-link" href="/admin/applications/{{ application.application_id }}">Manage application credentials</a>
+                    <a class="secondary-button dashboard-text-link" href="/admin/applications/{{ application.application_id }}">Manage application</a>
                 </article>
                 {% else %}
                 <article class="workspace-card registry-empty-state">

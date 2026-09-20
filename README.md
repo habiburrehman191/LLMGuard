@@ -121,8 +121,8 @@ Output content and `security_context` use the same 16,000-character,
 returned only for an existing `sanitize` action that actually changes the
 content. Blocked or quarantined output never includes a continuation.
 
-The response includes the existing classification, risk score, action, and
-reasons. `decision` is `allow` for existing `allow`/`log` actions and
+While protection is enabled, the response includes the existing classification,
+risk score, action, and reasons. `decision` is `allow` for existing `allow`/`log` actions and
 `restrict` for `sanitize`/`quarantine`/`block`. Severity is a presentation
 mapping (`safe` → `none`, `suspicious` → `medium`, `malicious` → `high`). The
 current input hybrid result has no stable threat category, so its `threat_type`
@@ -137,6 +137,34 @@ decision. Input/output content, `security_context`, context text, context
 metadata, and sanitized content are not stored in these telemetry tables. A
 request ID may be used once per application at each stage, allowing one logical
 request to correlate input, context, and output decisions.
+
+### Per-application protection control
+
+LLMGuard Super Admins can enable or disable enforcement from
+`/admin/applications/{application_id}`. Disabling requires a reason and every
+state change is stored in the LLMGuard-owned protection audit. The control is
+not exposed by the University application or any browser-supplied chatbot
+field.
+
+When protection is disabled, the authenticated Guard API skips its detectors
+and returns an explicit `decision="bypassed"`,
+`classification="bypassed"`, `action="bypass"`, and `risk_score=null`.
+This is intentionally distinct from a detector `allow`. The University SDK
+continues its normal RBAC, retrieval, and model flow only after validating that
+exact authenticated bypass contract. Configured connection or inspection
+failures continue to fail closed.
+
+Application status separates connection from runtime protection:
+
+- `INTEGRATION_PENDING`: no valid heartbeat has ever been accepted.
+- `DISCONNECTED`: the latest heartbeat is stale.
+- `BYPASSED`: connected while protection is disabled.
+- `DEGRADED`: connected and enabled, but input/context/output availability has
+  not all been verified or a later path error is recorded.
+- `PROTECTED`: connected, enabled, and all three Guard stages have completed
+  successfully after any stage-specific error.
+
+A heartbeat alone never produces `PROTECTED`.
 
 The standalone University backend uses this API for Public, Student, and
 Employee chatbot input, authorized retrieval context, and model-generated

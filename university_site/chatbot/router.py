@@ -155,6 +155,9 @@ def chat(portal_context: str, payload: ChatRequest, request: Request) -> JSONRes
     with SessionLocal() as session:
         identity, public_token = resolve_identity(request, session, portal_context)
         current_page, page_title = _authoritative_page(request, identity.portal_context)
+        ask_options: dict[str, object] = {"request_id": request_id}
+        if preflight.protection_bypassed:
+            ask_options["protection_bypassed"] = True
         try:
             result = ask(
                 session,
@@ -163,7 +166,7 @@ def chat(portal_context: str, payload: ChatRequest, request: Request) -> JSONRes
                 payload.conversation_id,
                 current_page,
                 page_title,
-                request_id=request_id,
+                **ask_options,
             )
         except PermissionError as exc:
             raise HTTPException(status_code=403, detail=str(exc)) from exc

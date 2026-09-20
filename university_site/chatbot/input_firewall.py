@@ -21,6 +21,7 @@ class ChatInputPreflight:
     allowed: bool
     configured: bool
     inspection_failed: bool = False
+    protection_bypassed: bool = False
 
 
 async def inspect_chat_input(
@@ -68,6 +69,18 @@ async def inspect_chat_input(
             allowed=False,
             configured=True,
             inspection_failed=True,
+        )
+
+    if (
+        result.decision == "bypassed"
+        and result.classification == "bypassed"
+        and result.action == "bypass"
+    ):
+        return ChatInputPreflight(
+            request_id=request_id,
+            allowed=True,
+            configured=True,
+            protection_bypassed=True,
         )
 
     allowed = result.decision == "allow" and result.action in {"allow", "log"}

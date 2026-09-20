@@ -47,6 +47,7 @@ from app.portals.common import (
     require_portal,
     templates,
 )
+from app.protection_control import list_protection_audit, set_protection_enabled
 from app.rag.ingestion import InMemoryUpload, ingest_uploaded_file
 from app.rag.retriever import chunk_row_to_metadata
 from app.rag.vector_store import build_index
@@ -78,6 +79,11 @@ class AdminDocumentUploadRequest(BaseModel):
     content_base64: str
     portal_scope: PortalScope
     classification: DataClassification
+
+
+class ProtectionUpdateRequest(BaseModel):
+    protection_enabled: bool
+    reason: str | None = None
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -147,6 +153,7 @@ def create_application_credential(
             "integration": integration_status_for(application),
             "credentials": list_credentials(application_id),
             "created_credential": created_credential,
+            "protection_audit": list_protection_audit(application_id),
         },
         status_code=status.HTTP_201_CREATED,
         headers={"Cache-Control": "no-store"},
@@ -171,6 +178,46 @@ def revoke_application_credential(
     return RedirectResponse(
         url=f"/admin/applications/{application_id}",
         status_code=status.HTTP_303_SEE_OTHER,
+    )
+
+
+@router.post("/applications/{application_id}/protection", response_class=JSONResponse)
+def update_application_protection(
+    application_id: str,
+    payload: ProtectionUpdateRequest,
+    user: User = Depends(get_current_user),
+) -> JSONResponse:
+    require_portal(user, PortalScope.admin)
+    if user.role != UserRole.super_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only a Super Admin may change application protection.",
+        )
+    application = get_application(application_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Application not found.")
+    try:
+        protection = set_protection_enabled(
+            application_id,
+            enabled=payload.protection_enabled,
+            actor=user.username,
+            reason=payload.reason,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    integration = integration_status_for(application)
+    return JSONResponse(
+        {
+            "application_id": application_id,
+            "protection_enabled": protection.protection_enabled,
+            "connection_state": integration.connection_state,
+            "runtime_state": integration.runtime_state,
+            "updated_at": protection.updated_at,
+            "updated_by": protection.updated_by,
+        }
     )
 
 
@@ -534,5 +581,6 @@ def _render_application_detail(
             "integration": integration_status_for(application),
             "credentials": list_credentials(application_id),
             "created_credential": None,
+            "protection_audit": list_protection_audit(application_id),
         },
     )

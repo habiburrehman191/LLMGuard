@@ -134,7 +134,7 @@ class LLMGuardClient:
             classification=response_data["classification"],
             threat_type=response_data["threat_type"],
             severity=response_data["severity"],
-            risk_score=float(response_data["risk_score"]),
+            risk_score=_optional_risk_score(response_data["risk_score"]),
             action=response_data["action"],
             reasons=tuple(response_data["reasons"]),
         )
@@ -181,7 +181,7 @@ class LLMGuardClient:
             classification=response_data["classification"],
             threat_type=response_data.get("threat_type"),
             severity=response_data["severity"],
-            risk_score=float(response_data["risk_score"]),
+            risk_score=_optional_risk_score(response_data["risk_score"]),
             action=response_data["action"],
             reasons=tuple(response_data["reasons"]),
             sanitized_chunks=(
@@ -238,7 +238,7 @@ class LLMGuardClient:
             classification=response_data["classification"],
             threat_type=response_data.get("threat_type"),
             severity=response_data["severity"],
-            risk_score=float(response_data["risk_score"]),
+            risk_score=_optional_risk_score(response_data["risk_score"]),
             action=response_data["action"],
             reasons=tuple(response_data["reasons"]),
             sanitized_content=response_data.get("sanitized_content"),
@@ -389,19 +389,31 @@ def _is_valid_inspection_response(
     risk_score = value.get("risk_score")
     threat_type = value.get("threat_type")
     reasons = value.get("reasons")
-    return (
+    common_valid = (
         value.get("request_id") == request_id
         and value.get("stage") == stage
-        and value.get("decision") in {"allow", "restrict"}
-        and value.get("classification") in {"safe", "suspicious", "malicious"}
         and (threat_type is None or isinstance(threat_type, str))
+        and isinstance(reasons, list)
+        and all(isinstance(reason, str) for reason in reasons)
+    )
+    if not common_valid:
+        return False
+    if value.get("decision") == "bypassed":
+        return (
+            value.get("classification") == "bypassed"
+            and threat_type is None
+            and value.get("severity") == "none"
+            and risk_score is None
+            and value.get("action") == "bypass"
+        )
+    return (
+        value.get("decision") in {"allow", "restrict"}
+        and value.get("classification") in {"safe", "suspicious", "malicious"}
         and value.get("severity") in {"none", "low", "medium", "high", "critical"}
         and isinstance(risk_score, (int, float))
         and not isinstance(risk_score, bool)
         and 0 <= float(risk_score) <= 1
         and value.get("action") in {"allow", "log", "sanitize", "quarantine", "block"}
-        and isinstance(reasons, list)
-        and all(isinstance(reason, str) for reason in reasons)
     )
 
 
@@ -424,6 +436,10 @@ def _required_text(value: str, field_name: str) -> str:
     if not normalized:
         raise ValueError(f"{field_name} must not be empty")
     return normalized
+
+
+def _optional_risk_score(value: Any) -> float | None:
+    return float(value) if value is not None else None
 
 
 def _optional_text(value: str | None) -> str | None:

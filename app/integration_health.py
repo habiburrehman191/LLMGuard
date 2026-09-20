@@ -8,11 +8,20 @@ import sqlite3
 from app.application_registry import ApplicationRecord
 from app.config import get_settings
 from app.db import get_connection
+from app.protection_control import (
+    ProtectionConfigRecord,
+    ensure_protection_config,
+    guard_path_available,
+    list_guard_stage_health,
+)
 
 
 INTEGRATION_PENDING = "INTEGRATION_PENDING"
 CONNECTED = "CONNECTED"
 DISCONNECTED = "DISCONNECTED"
+BYPASSED = "BYPASSED"
+PROTECTED = "PROTECTED"
+DEGRADED = "DEGRADED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,6 +40,11 @@ class IntegrationHealthRecord:
 class ApplicationIntegrationStatus:
     application: ApplicationRecord
     state: str
+    connection_state: str
+    runtime_state: str
+    protection: ProtectionConfigRecord
+    guard_path_available: bool
+    guard_stages: tuple[str, ...]
     last_heartbeat_at: str | None
     application_version: str | None
     integration_version: str | None
@@ -128,11 +142,20 @@ def integration_status_for(
     now: datetime | None = None,
     timeout_seconds: int | None = None,
 ) -> ApplicationIntegrationStatus:
+    protection = ensure_protection_config(application.application_id)
+    stage_health = list_guard_stage_health(application.application_id)
+    available_stages = tuple(item.stage for item in stage_health if item.available)
+    security_path_available = guard_path_available(application.application_id)
     health = get_integration_health(application.application_id)
     if health is None:
         return ApplicationIntegrationStatus(
             application=application,
             state=INTEGRATION_PENDING,
+            connection_state=INTEGRATION_PENDING,
+            runtime_state=INTEGRATION_PENDING,
+            protection=protection,
+            guard_path_available=security_path_available,
+            guard_stages=available_stages,
             last_heartbeat_at=None,
             application_version=None,
             integration_version=None,
@@ -150,10 +173,23 @@ def integration_status_for(
     current_time = _as_utc(now or _utc_now())
     last_heartbeat = _parse_timestamp(health.last_heartbeat_at)
     age_seconds = (current_time - last_heartbeat).total_seconds()
-    state = CONNECTED if age_seconds <= active_timeout else DISCONNECTED
+    connection_state = CONNECTED if age_seconds <= active_timeout else DISCONNECTED
+    if connection_state == DISCONNECTED:
+        runtime_state = DISCONNECTED
+    elif not protection.protection_enabled:
+        runtime_state = BYPASSED
+    elif security_path_available:
+        runtime_state = PROTECTED
+    else:
+        runtime_state = DEGRADED
     return ApplicationIntegrationStatus(
         application=application,
-        state=state,
+        state=connection_state,
+        connection_state=connection_state,
+        runtime_state=runtime_state,
+        protection=protection,
+        guard_path_available=security_path_available,
+        guard_stages=available_stages,
         last_heartbeat_at=health.last_heartbeat_at,
         application_version=health.application_version,
         integration_version=health.integration_version,

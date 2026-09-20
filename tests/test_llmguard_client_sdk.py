@@ -468,6 +468,68 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(ClientErrorCode.INVALID_RESPONSE, result.error.code)
 
+    def test_guard_stages_accept_explicit_bypassed_contract(self) -> None:
+        captured_stages: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            body = json.loads(request.content)
+            captured_stages.append(body["stage"])
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": body["request_id"],
+                    "stage": body["stage"],
+                    "decision": "bypassed",
+                    "classification": "bypassed",
+                    "threat_type": None,
+                    "severity": "none",
+                    "risk_score": None,
+                    "action": "bypass",
+                    "reasons": ["Application protection is disabled by policy."],
+                },
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                input_result = await self.client.inspect_input(
+                    request_id="sdk-bypass-input",
+                    channel="public",
+                    content="Safe input",
+                    security_context={},
+                    http_client=http_client,
+                )
+                context_result = await self.client.inspect_context(
+                    request_id="sdk-bypass-context",
+                    channel="public",
+                    chunks=(
+                        {
+                            "source_id": "policy",
+                            "chunk_id": "policy-1",
+                            "text": "Safe context",
+                        },
+                    ),
+                    http_client=http_client,
+                )
+                output_result = await self.client.inspect_output(
+                    request_id="sdk-bypass-output",
+                    channel="public",
+                    content="Safe output",
+                    security_context={},
+                    http_client=http_client,
+                )
+                return input_result, context_result, output_result
+
+        results = run(exercise())
+        self.assertEqual(["input", "context", "output"], captured_stages)
+        for result in results:
+            self.assertTrue(result.ok)
+            self.assertEqual("bypassed", result.decision)
+            self.assertEqual("bypassed", result.classification)
+            self.assertEqual("bypass", result.action)
+            self.assertIsNone(result.risk_score)
+
     def _send(self, handler):
         async def exercise():
             async with httpx.AsyncClient(

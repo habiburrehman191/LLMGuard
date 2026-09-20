@@ -274,6 +274,20 @@
 .integration-state.state-connected { color: #86efac; border-color: rgba(34, 197, 94, .36); background: var(--green-soft); }
 .integration-state.state-disconnected { color: #fca5a5; border-color: rgba(239, 68, 68, .4); background: var(--red-soft); }
 .integration-state.state-integration_pending { color: #fcd34d; border-color: rgba(245, 158, 11, .4); background: rgba(120, 53, 15, .16); }
+.integration-state.state-protected { color: #86efac; border-color: rgba(34, 197, 94, .42); background: var(--green-soft); }
+.integration-state.state-bypassed { color: #fecaca; border-color: rgba(239, 68, 68, .58); background: rgba(127, 29, 29, .28); }
+.integration-state.state-degraded,
+.integration-state.state-error { color: #fcd34d; border-color: rgba(245, 158, 11, .52); background: rgba(120, 53, 15, .22); }
+.protection-control-card { display: grid; gap: 20px; }
+.protection-control-card.is-bypassed { border-color: rgba(239, 68, 68, .52); box-shadow: inset 0 0 0 1px rgba(239, 68, 68, .1); }
+.protection-state { display: inline-flex; width: fit-content; padding: 7px 10px; border: 1px solid rgba(34, 197, 94, .4); border-radius: 999px; color: #86efac; background: var(--green-soft); font: 750 .75rem "Fira Code", monospace; text-transform: uppercase; }
+.protection-state.disabled { color: #fecaca; border-color: rgba(239, 68, 68, .55); background: rgba(127, 29, 29, .26); }
+.protection-control-form { display: grid; gap: 10px; max-width: 720px; }
+.protection-control-form label { color: var(--text); font-weight: 700; }
+.protection-control-form textarea { min-height: 92px; resize: vertical; padding: 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); background: rgba(5, 10, 22, .9); font: inherit; }
+.protection-control-form textarea:focus { border-color: var(--cyan); outline: 2px solid rgba(34, 211, 238, .18); }
+.protection-control-form button { width: fit-content; }
+.protection-disable-button { color: #fecaca; border-color: rgba(239, 68, 68, .5); }
 .registry-notice {
     display: flex;
     align-items: center;

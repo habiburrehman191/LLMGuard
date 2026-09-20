@@ -52,6 +52,18 @@ async def inspect_chat_context(
     if not result.ok:
         return _failed(request_id, configured=True)
 
+    if (
+        result.decision == "bypassed"
+        and result.classification == "bypassed"
+        and result.action == "bypass"
+    ):
+        return ChatContextPreflight(
+            request_id=request_id,
+            allowed=True,
+            configured=True,
+            sources=tuple(sources),
+        )
+
     if result.decision == "allow" and result.action in {"allow", "log"}:
         return ChatContextPreflight(
             request_id=request_id,

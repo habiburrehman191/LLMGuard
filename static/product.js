@@ -211,3 +211,32 @@ document.querySelectorAll("[data-audit-tab]").forEach((button) => {
         document.querySelectorAll("[data-audit-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.auditPanel === target));
     });
 });
+
+document.querySelectorAll("[data-protection-control]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = form.querySelector("[data-protection-message]");
+        const button = form.querySelector('button[type="submit"]');
+        const reason = form.querySelector('[name="reason"]')?.value.trim() || "";
+        const protectionEnabled = form.dataset.nextEnabled === "true";
+        if (!protectionEnabled && !reason) {
+            message.className = "form-message error";
+            message.textContent = "A reason is required when disabling protection.";
+            return;
+        }
+        button.disabled = true;
+        message.className = "form-message";
+        message.textContent = "Updating application protection...";
+        try {
+            await apiRequest(`/admin/applications/${encodeURIComponent(form.dataset.applicationId)}/protection`, {
+                method: "POST",
+                body: JSON.stringify({protection_enabled: protectionEnabled, reason}),
+            });
+            window.location.reload();
+        } catch (error) {
+            message.className = "form-message error";
+            message.textContent = error.message;
+            button.disabled = false;
+        }
+    });
+});

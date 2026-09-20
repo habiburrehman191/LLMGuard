@@ -222,6 +222,7 @@ def ask(
     page_title: str,
     *,
     request_id: str,
+    protection_bypassed: bool = False,
 ) -> dict[str, object]:
     started = perf_counter()
     conversation = _conversation(session, identity, conversation_id)
@@ -243,7 +244,9 @@ def ask(
         conversation.title = question[:72] + ("…" if len(question) > 72 else "")
     session.flush()
 
-    restriction = access_restriction(identity, question) or inspect_prompt_with_llmguard(question, identity)
+    restriction = access_restriction(identity, question)
+    if restriction is None and not protection_bypassed:
+        restriction = inspect_prompt_with_llmguard(question, identity)
     if restriction:
         latency = int((perf_counter() - started) * 1000)
         message = _store_assistant(session, conversation, restriction, "restricted", "access_restricted", "blocked", "security", False, latency, [])
@@ -268,7 +271,11 @@ def ask(
     model_called = False
     answer = bundle.grounded_answer
     status = bundle.answer_status
-    if answer is not None and _llmguard_context_block(bundle, identity):
+    if (
+        answer is not None
+        and not protection_bypassed
+        and _llmguard_context_block(bundle, identity)
+    ):
         answer = "I couldn't safely use the retrieved university record for this request."
         status = "access_restricted"
         bundle.sources = []

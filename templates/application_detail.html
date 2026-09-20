@@ -19,7 +19,7 @@
                     <h1 class="am-gradient-title">{{ application.name }}</h1>
                     <p>{{ application.organization.name }} · <code>{{ application.application_id }}</code></p>
                 </div>
-                <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
+                <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
             </header>
 
             <section class="workspace-card application-summary-card">
@@ -46,7 +46,7 @@
             <section class="workspace-card integration-health-card">
                 <div class="section-heading">
                     <div><span class="section-kicker">Connectivity</span><h2>Integration health</h2></div>
-                    <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
+                    <span class="integration-state state-{{ integration.connection_state|lower }}">{{ integration.connection_state|replace("_", " ")|title }}</span>
                 </div>
                 <dl class="application-details">
                     <div><dt>Last heartbeat</dt><dd>{{ integration.last_heartbeat_at or "No valid heartbeat" }}</dd></div>
@@ -65,6 +65,61 @@
                     {% else %}
                     <p class="integration-empty-value">No channels have been reported by a valid heartbeat.</p>
                     {% endif %}
+                </div>
+            </section>
+
+            <section class="workspace-card protection-control-card {{ 'is-bypassed' if not integration.protection.protection_enabled else '' }}">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Protection policy</span>
+                        <h2>LLMGuard protection</h2>
+                        <p>This server-side control applies to authenticated input, context, and output inspection. University authorization remains active in either state.</p>
+                    </div>
+                    <span class="protection-state {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}">
+                        {{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}
+                    </span>
+                </div>
+                <dl class="application-details">
+                    <div><dt>Runtime state</dt><dd><span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span></dd></div>
+                    <div><dt>Guard path</dt><dd>{{ 'Input, context, and output verified' if integration.guard_path_available else 'Not fully verified' }}</dd></div>
+                    <div><dt>Last changed</dt><dd>{{ integration.protection.updated_at }}</dd></div>
+                    <div><dt>Changed by</dt><dd>{{ integration.protection.updated_by }}</dd></div>
+                </dl>
+                <form class="protection-control-form" data-protection-control data-application-id="{{ application.application_id }}" data-next-enabled="{{ 'false' if integration.protection.protection_enabled else 'true' }}">
+                    {% if integration.protection.protection_enabled %}
+                    <label for="protection-reason">Reason for disabling <span aria-hidden="true">*</span></label>
+                    <textarea id="protection-reason" name="reason" maxlength="500" required placeholder="Document why detector enforcement must be bypassed."></textarea>
+                    <button class="secondary-button protection-disable-button" type="submit">Disable protection</button>
+                    {% else %}
+                    <label for="protection-reason">Reason for enabling</label>
+                    <textarea id="protection-reason" name="reason" maxlength="500" placeholder="Optional operational note."></textarea>
+                    <button class="primary-button" type="submit">Enable protection</button>
+                    {% endif %}
+                    <p class="form-message" data-protection-message aria-live="polite"></p>
+                </form>
+            </section>
+
+            <section class="workspace-card protection-audit-card">
+                <div class="section-heading">
+                    <div><span class="section-kicker">Audit</span><h2>Protection changes</h2></div>
+                </div>
+                <div class="responsive-table">
+                    <table>
+                        <thead><tr><th>Timestamp</th><th>Old state</th><th>New state</th><th>Actor</th><th>Reason</th></tr></thead>
+                        <tbody>
+                            {% for event in protection_audit %}
+                            <tr>
+                                <td>{{ event.timestamp }}</td>
+                                <td>{{ 'Enabled' if event.old_state else 'Disabled' }}</td>
+                                <td>{{ 'Enabled' if event.new_state else 'Disabled' }}</td>
+                                <td>{{ event.actor }}</td>
+                                <td>{{ event.reason }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="empty-message">No protection changes have been recorded.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </section>
 

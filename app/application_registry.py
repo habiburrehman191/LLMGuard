@@ -154,6 +154,9 @@ def register_application(
     application_record = get_application(application_id.strip())
     if application_record is None:
         raise RuntimeError("Registered application could not be loaded")
+    from app.protection_control import ensure_protection_config
+
+    ensure_protection_config(application_record.application_id, enabled=True)
     return application_record
 
 

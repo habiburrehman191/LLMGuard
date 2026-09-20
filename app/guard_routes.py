@@ -33,6 +33,12 @@ from app.output_guard_telemetry import (
     get_output_guard_decision,
     record_output_guard_decision,
 )
+from app.protection_control import (
+    ensure_protection_config,
+    record_guard_bypass,
+    record_guard_stage_failure,
+    record_guard_stage_success,
+)
 
 
 router = APIRouter(prefix="/api/v1", tags=["application-security"])
@@ -196,11 +202,28 @@ class OutputGuardResponse(BaseModel):
     sanitized_content: str | None = None
 
 
+class BypassedGuardResponse(BaseModel):
+    request_id: str
+    stage: Literal["input", "context", "output"]
+    decision: Literal["bypassed"]
+    classification: Literal["bypassed"]
+    threat_type: None = None
+    severity: Literal["none"] = "none"
+    risk_score: None = None
+    action: Literal["bypass"]
+    reasons: list[str]
+
+
 GuardRequest = Annotated[
     InputGuardRequest | ContextGuardRequest | OutputGuardRequest,
     Field(discriminator="stage"),
 ]
-GuardResponse = InputGuardResponse | ContextGuardResponse | OutputGuardResponse
+GuardResponse = (
+    InputGuardResponse
+    | ContextGuardResponse
+    | OutputGuardResponse
+    | BypassedGuardResponse
+)
 
 
 @router.post("/guard", response_model=GuardResponse)
@@ -237,11 +260,59 @@ def inspect_guard(
             detail="Application channel is not registered or enabled.",
         )
 
-    if isinstance(payload, ContextGuardRequest):
-        return _inspect_context(payload)
-    if isinstance(payload, OutputGuardRequest):
-        return _inspect_output(payload)
-    return _inspect_input(payload)
+    protection = ensure_protection_config(payload.application_id)
+    if not protection.protection_enabled:
+        return _bypass_guard(payload)
+
+    try:
+        if isinstance(payload, ContextGuardRequest):
+            response = _inspect_context(payload)
+        elif isinstance(payload, OutputGuardRequest):
+            response = _inspect_output(payload)
+        else:
+            response = _inspect_input(payload)
+        record_guard_stage_success(payload.application_id, payload.stage)
+        return response
+    except HTTPException:
+        raise
+    except Exception as exc:
+        try:
+            record_guard_stage_failure(
+                payload.application_id,
+                payload.stage,
+                type(exc).__name__,
+            )
+        except Exception:
+            pass
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The LLMGuard security inspection path is unavailable.",
+        ) from None
+
+
+def _bypass_guard(payload: GuardRequestBase) -> JSONResponse:
+    try:
+        record_guard_bypass(
+            application_id=payload.application_id,
+            channel=payload.channel,
+            request_id=payload.request_id,
+            stage=payload.stage,
+        )
+    except DuplicateGuardRequestError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Request ID has already been bypassed for this application stage.",
+        ) from None
+
+    response = BypassedGuardResponse(
+        request_id=payload.request_id,
+        stage=payload.stage,
+        decision="bypassed",
+        classification="bypassed",
+        action="bypass",
+        reasons=["Application protection is disabled by LLMGuard policy."],
+    )
+    return JSONResponse(response.model_dump(mode="json"))
 
 
 def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:

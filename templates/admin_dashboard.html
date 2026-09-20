@@ -82,10 +82,11 @@
                 <article class="dashboard-application-row">
                     <div>
                         <strong>{{ application.name }}</strong>
-                        <small>{{ application.organization.name }} · {{ application.environment|title }} · Last heartbeat: {{ integration.last_heartbeat_at or "none" }}</small>
+                        <small>{{ application.organization.name }} · {{ application.environment|title }} · Connection: {{ integration.connection_state|replace("_", " ")|title }} · Protection: {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}</small>
+                        <small>Last heartbeat: {{ integration.last_heartbeat_at or "none" }}</small>
                         <small>App version: {{ integration.application_version or "not reported" }} · Integration: {{ integration.integration_version or "not reported" }} · Channels: {{ integration.reported_channels|join(", ") if integration.reported_channels else "not reported" }}</small>
                     </div>
-                    <span class="integration-state state-{{ integration.state|lower }}">{{ integration.state|replace("_", " ")|title }}</span>
+                    <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
                     <code>{{ application.application_id }}</code>
                 </article>
                 {% else %}

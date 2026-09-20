@@ -56,6 +56,18 @@ async def inspect_chat_output(
     ):
         return _failed(request_id)
 
+    if (
+        result.decision == "bypassed"
+        and result.classification == "bypassed"
+        and result.action == "bypass"
+    ):
+        return ChatOutputPreflight(
+            request_id=request_id,
+            allowed=True,
+            configured=True,
+            content=content,
+        )
+
     if result.decision == "allow" and result.action in {"allow", "log"}:
         return ChatOutputPreflight(
             request_id=request_id,
