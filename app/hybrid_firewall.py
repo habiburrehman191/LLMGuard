@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from app.config import get_settings
 from app.firewall import sanitize_text, rule_based_check
 from app.ml_firewall import MLFirewallClassifier, ml_check
+from app.security_normalization import normalize_security_text
 from app.semantic_firewall import SemanticFirewall, semantic_check
 
 ACTION_PRIORITY = {
@@ -19,7 +20,10 @@ ACTION_PRIORITY = {
 @dataclass(frozen=True)
 class ChunkAssessment:
     original_text: str
+    inspection_text: str
     sanitized_text: str
+    normalization_applied: bool
+    transformations: tuple[str, ...]
     rule_score: float
     semantic_score: float
     ml_score: float
@@ -151,10 +155,24 @@ class HybridFirewall:
             return "log"
         return "allow"
 
-    def inspect_text(self, text: str) -> ChunkAssessment:
-        rule_result = rule_based_check(text)
-        semantic_result = semantic_check(text, firewall=self.semantic_firewall)
-        ml_result = ml_check(text, classifier=self.ml_classifier)
+    def inspect_text(
+        self,
+        text: str,
+        *,
+        max_content_bytes: int = 128_000,
+    ) -> ChunkAssessment:
+        normalized = normalize_security_text(
+            text,
+            max_input_bytes=max_content_bytes,
+            max_output_bytes=max_content_bytes,
+        )
+        inspection_text = normalized.inspection_content
+        rule_result = rule_based_check(inspection_text)
+        semantic_result = semantic_check(
+            inspection_text,
+            firewall=self.semantic_firewall,
+        )
+        ml_result = ml_check(inspection_text, classifier=self.ml_classifier)
 
         risk_score = self._final_risk_score(
             rule_score=float(rule_result["risk_score"]),
@@ -196,11 +214,14 @@ class HybridFirewall:
 
         sanitized_text = text
         if action in {"sanitize", "block", "quarantine"}:
-            sanitized_text = sanitize_text(text)
+            sanitized_text = sanitize_text(inspection_text)
 
         return ChunkAssessment(
             original_text=text,
+            inspection_text=inspection_text,
             sanitized_text=sanitized_text,
+            normalization_applied=normalized.normalization_applied,
+            transformations=normalized.transformations,
             rule_score=float(rule_result["risk_score"]),
             semantic_score=float(semantic_result["score"]),
             ml_score=float(ml_result["score"]),
@@ -230,6 +251,10 @@ def inspect_with_hybrid_firewall(
     text: str,
     *,
     firewall: HybridFirewall | None = None,
+    max_content_bytes: int = 128_000,
 ) -> ChunkAssessment:
     active_firewall = firewall or get_hybrid_firewall()
-    return active_firewall.inspect_text(text)
+    return active_firewall.inspect_text(
+        text,
+        max_content_bytes=max_content_bytes,
+    )

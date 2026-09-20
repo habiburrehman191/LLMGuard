@@ -16,6 +16,8 @@ class DocumentInspectionDecision:
     action: IngestionAction
     reasons: tuple[str, ...]
     sanitized_text: str | None
+    normalization_applied: bool
+    transformations: tuple[str, ...]
 
 
 def inspect_document_text(
@@ -48,4 +50,10 @@ def inspect_document_text(
         action=action,
         reasons=tuple(decision.reasons),
         sanitized_text=sanitized_text,
+        normalization_applied=bool(
+            decision.metadata.get("normalization_applied")
+        ),
+        transformations=tuple(
+            str(item) for item in decision.metadata.get("transformations", [])
+        ),
     )

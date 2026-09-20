@@ -20,10 +20,15 @@ class InputGuardDecision:
     risk_score: float
     action: str
     reasons: tuple[str, ...]
+    normalization_applied: bool
+    transformations: tuple[str, ...]
 
 
 def inspect_input_content(content: str) -> InputGuardDecision:
-    assessment = inspect_with_hybrid_firewall(content)
+    assessment = inspect_with_hybrid_firewall(
+        content,
+        max_content_bytes=16_000,
+    )
     classification: Classification = assessment.label
     return InputGuardDecision(
         decision=(
@@ -39,4 +44,6 @@ def inspect_input_content(content: str) -> InputGuardDecision:
         risk_score=assessment.risk_score,
         action=assessment.action,
         reasons=tuple(assessment.reasons),
+        normalization_applied=assessment.normalization_applied,
+        transformations=assessment.transformations,
     )

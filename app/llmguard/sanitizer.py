@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import base64
 import re
+
+from app.security_normalization import decode_confident_base64
 
 MALICIOUS_CONTEXT_PATTERNS = (
     r"(?i)ignore (?:all )?(?:previous|prior|developer|system) instructions[^.!?\n]*[.!?]?",
@@ -17,15 +18,7 @@ MALICIOUS_CONTEXT_PATTERNS = (
 
 
 def decode_base64_if_present(text: str) -> list[str]:
-    decoded: list[str] = []
-    for token in re.findall(r"\b[A-Za-z0-9+/]{16,}={0,2}\b", text):
-        try:
-            value = base64.b64decode(token, validate=True).decode("utf-8", errors="ignore").strip()
-        except Exception:
-            continue
-        if value and any(term in value.lower() for term in ("ignore", "bypass", "reveal", "admin", "system")):
-            decoded.append(value)
-    return decoded
+    return list(decode_confident_base64(text))
 
 
 def sanitize_context(text: str) -> str:

@@ -4,6 +4,7 @@ from app.firewall import rule_based_check
 from app.llmguard.intent_classifier import classify_intent
 from app.llmguard.risk_engine import StageSignal, aggregate_signals, signal
 from app.llmguard.semantic_detector import inspect_semantic_intent
+from app.security_normalization import normalize_security_text
 
 PROMPT_ATTACK_PATTERNS = {
     "role_impersonation": (
@@ -95,12 +96,14 @@ def _category_signal(prompt: str) -> StageSignal:
 
 
 def inspect_prompt(prompt: str, *, user_role: str | None = None) -> StageSignal:
+    normalized = normalize_security_text(prompt)
+    inspection_prompt = normalized.inspection_content
     decision = aggregate_signals(
         [
-            _rule_signal(prompt),
-            _category_signal(prompt),
-            inspect_semantic_intent(prompt),
-            classify_intent(prompt, user_role=user_role),
+            _rule_signal(inspection_prompt),
+            _category_signal(inspection_prompt),
+            inspect_semantic_intent(inspection_prompt),
+            classify_intent(inspection_prompt, user_role=user_role),
         ]
     )
     return signal(
@@ -110,5 +113,9 @@ def inspect_prompt(prompt: str, *, user_role: str | None = None) -> StageSignal:
         score=decision.risk_score,
         reasons=decision.reasons,
         threat_source=decision.threat_source,
-        metadata={"stage_scores": decision.stage_scores},
+        metadata={
+            "stage_scores": decision.stage_scores,
+            "normalization_applied": normalized.normalization_applied,
+            "transformations": list(normalized.transformations),
+        },
     )

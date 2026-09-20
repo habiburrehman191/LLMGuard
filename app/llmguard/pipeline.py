@@ -15,6 +15,19 @@ from app.llmguard.tool_firewall import inspect_tool_call as tool_stage
 from app.models import FirewallEvent, SecurityAction, ThreatLabel, User
 
 
+_TELEMETRY_CONTENT_KEYS = {
+    "chunk_text",
+    "content",
+    "inspection_content",
+    "raw_content",
+    "redacted_text",
+    "sanitized_chunks",
+    "sanitized_content",
+    "sanitized_text",
+    "text",
+}
+
+
 def _enum_action(action: str) -> SecurityAction:
     return SecurityAction(action) if action in SecurityAction._value2member_map_ else SecurityAction.allow
 
@@ -41,9 +54,21 @@ def _log_stage(
             score=stage_signal.score,
             reason="; ".join(stage_signal.reasons)[:4000] or "No reason provided.",
             source=source or stage_signal.threat_source,
-            metadata_json=stage_signal.metadata,
+            metadata_json=_telemetry_safe_metadata(stage_signal.metadata),
         )
     )
+
+
+def _telemetry_safe_metadata(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            str(key): _telemetry_safe_metadata(item)
+            for key, item in value.items()
+            if str(key).lower() not in _TELEMETRY_CONTENT_KEYS
+        }
+    if isinstance(value, (list, tuple)):
+        return [_telemetry_safe_metadata(item) for item in value]
+    return value
 
 
 def _commit_logs(db: Session | None) -> None:

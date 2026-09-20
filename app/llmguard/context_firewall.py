@@ -4,7 +4,8 @@ import re
 from typing import Any
 
 from app.llmguard.risk_engine import StageSignal, aggregate_signals, signal
-from app.llmguard.sanitizer import decode_base64_if_present, sanitize_context
+from app.llmguard.sanitizer import sanitize_context
+from app.security_normalization import normalize_security_text
 
 CONTEXT_PATTERNS = {
     "hidden_instruction": (
@@ -46,8 +47,19 @@ CONTEXT_PATTERNS = {
 }
 
 
-def inspect_context_text(text: str, *, chunk_id: str | None = None) -> StageSignal:
-    lowered = " ".join(text.lower().split())
+def inspect_context_text(
+    text: str,
+    *,
+    chunk_id: str | None = None,
+    max_content_bytes: int = 128_000,
+) -> StageSignal:
+    normalized = normalize_security_text(
+        text,
+        max_input_bytes=max_content_bytes,
+        max_output_bytes=max_content_bytes,
+    )
+    inspection_text = normalized.inspection_content
+    lowered = inspection_text.lower()
     reasons: list[str] = []
     categories: list[str] = []
 
@@ -57,14 +69,13 @@ def inspect_context_text(text: str, *, chunk_id: str | None = None) -> StageSign
             categories.append(category)
             reasons.append(f"Retrieved context matched {category}: '{matched}'.")
 
-    if re.search(r"<!--.*?(ignore|override|bypass|reveal|admin).*?-->", text, flags=re.IGNORECASE | re.DOTALL):
+    if re.search(r"<!--.*?(ignore|override|bypass|reveal|admin).*?-->", inspection_text, flags=re.IGNORECASE | re.DOTALL):
         categories.append("html_comment_instruction")
         reasons.append("Retrieved context contained an HTML comment with hidden instructions.")
 
-    decoded = decode_base64_if_present(text)
-    if decoded:
+    if "base64_decode" in normalized.transformations:
         categories.append("encoded_payload")
-        reasons.append("Retrieved context contained base64-like encoded attack instruction.")
+        reasons.append("Retrieved context contained a confidently decoded attack instruction.")
 
     if not categories:
         return signal(
@@ -73,7 +84,11 @@ def inspect_context_text(text: str, *, chunk_id: str | None = None) -> StageSign
             action="allow",
             score=0.04,
             reasons=["Retrieved context contains no hidden override instructions."],
-            metadata={"chunk_id": chunk_id},
+            metadata={
+                "chunk_id": chunk_id,
+                "normalization_applied": normalized.normalization_applied,
+                "transformations": list(normalized.transformations),
+            },
         )
 
     score = min(0.98, 0.70 + 0.08 * len(set(categories)))
@@ -87,28 +102,38 @@ def inspect_context_text(text: str, *, chunk_id: str | None = None) -> StageSign
         metadata={
             "chunk_id": chunk_id,
             "categories": list(dict.fromkeys(categories)),
-            "decoded_payloads": decoded,
-            "sanitized_text": sanitize_context(text),
+            "sanitized_text": sanitize_context(inspection_text),
+            "normalization_applied": normalized.normalization_applied,
+            "transformations": list(normalized.transformations),
         },
     )
 
 
-def inspect_retrieved_chunks(chunks: list[dict[str, Any]]) -> StageSignal:
+def inspect_retrieved_chunks(
+    chunks: list[dict[str, Any]],
+    *,
+    max_chunk_bytes: int = 128_000,
+) -> StageSignal:
     signals = [
         inspect_context_text(
             str(chunk.get("chunk_text") or chunk.get("text") or ""),
             chunk_id=str(chunk.get("chunk_id") or ""),
+            max_content_bytes=max_chunk_bytes,
         )
         for chunk in chunks
     ]
     decision = aggregate_signals(signals)
-    sanitized_chunks = [
-        {
-            **chunk,
-            "chunk_text": sanitize_context(str(chunk.get("chunk_text") or chunk.get("text") or "")),
-        }
-        for chunk in chunks
-    ]
+    sanitized_chunks = []
+    for chunk, chunk_signal in zip(chunks, signals):
+        raw_text = str(chunk.get("chunk_text") or chunk.get("text") or "")
+        sanitized_chunks.append(
+            {
+                **chunk,
+                "chunk_text": str(
+                    chunk_signal.metadata.get("sanitized_text", raw_text)
+                ),
+            }
+        )
     return signal(
         "retrieved_context_inspection",
         label=decision.label,
@@ -120,5 +145,16 @@ def inspect_retrieved_chunks(chunks: list[dict[str, Any]]) -> StageSignal:
             "checked_chunks": len(chunks),
             "sanitized_chunks": sanitized_chunks,
             "stage_scores": decision.stage_scores,
+            "normalization_applied": any(
+                bool(item.metadata.get("normalization_applied"))
+                for item in signals
+            ),
+            "transformations": list(
+                dict.fromkeys(
+                    transformation
+                    for item in signals
+                    for transformation in item.metadata.get("transformations", [])
+                )
+            ),
         },
     )

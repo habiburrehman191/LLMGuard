@@ -73,6 +73,8 @@ class ContentGuardRequestBase(GuardRequestBase):
     def reject_blank_content(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("Content must not be blank")
+        if len(value.encode("utf-8")) > 16_000:
+            raise ValueError("Content must not exceed 16000 bytes")
         return value
 
     @field_validator("security_context")

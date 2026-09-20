@@ -21,6 +21,8 @@ class ContextGuardDecision:
     action: str
     reasons: tuple[str, ...]
     sanitized_chunks: tuple[dict[str, Any], ...] | None
+    normalization_applied: bool
+    transformations: tuple[str, ...]
 
 
 def inspect_context_chunks(
@@ -37,7 +39,10 @@ def inspect_context_chunks(
         }
         for chunk in chunks
     ]
-    assessment = inspect_retrieved_chunks(detector_chunks)
+    assessment = inspect_retrieved_chunks(
+        detector_chunks,
+        max_chunk_bytes=16_000,
+    )
     classification: Classification = assessment.label
     sanitized_chunks = _actual_sanitized_chunks(
         detector_chunks,
@@ -63,6 +68,13 @@ def inspect_context_chunks(
         action=assessment.action,
         reasons=tuple(assessment.reasons),
         sanitized_chunks=sanitized_chunks,
+        normalization_applied=bool(
+            assessment.metadata.get("normalization_applied")
+        ),
+        transformations=tuple(
+            str(item)
+            for item in assessment.metadata.get("transformations", [])
+        ),
     )
 
 

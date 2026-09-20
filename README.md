@@ -138,6 +138,24 @@ metadata, and sanitized content are not stored in these telemetry tables. A
 request ID may be used once per application at each stage, allowing one logical
 request to correlate input, context, and output decisions.
 
+### Security normalization
+
+Input, retrieved context, and ingestion text pass through one bounded security
+normalizer before their existing detectors run. It applies deterministic NFKC
+Unicode normalization, removes zero-width and directional controls, cleans
+control characters, normalizes whitespace, and safely decodes HTML entities,
+URL encoding, recognized escaped text, and confidently identified Base64
+attack instructions. Decode depth and normalized output are bounded; malformed
+encodings remain safe inputs and no decompression, OCR, or file parsing occurs.
+
+The raw application content remains unchanged and available to the calling
+security boundary. Detectors receive canonical inspection content. Raw text is
+replaced only when an existing sanitizer explicitly returns a sanitize action.
+Internal decisions track whether normalization was applied and the names of
+the transformations, while telemetry excludes raw, normalized, and sanitized
+content fields. Detector models, weights, thresholds, and risk scoring are
+unchanged.
+
 ### Secure pre-index document inspection
 
 `POST /api/v1/ingestion/inspect` authenticates with the same application ID,
