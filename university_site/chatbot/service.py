@@ -15,6 +15,7 @@ from ..models import ChatConversation, ChatFeedback, ChatMessage, ChatSource
 from .context_firewall import inspect_chat_context
 from .input_firewall import GENERIC_BLOCKED_MESSAGE, GENERIC_FAILURE_MESSAGE
 from .llm import LLMUnavailable, generate_answer
+from .output_firewall import inspect_chat_output
 from .retrieval import retrieve
 from .security import access_restriction, inspect_prompt_with_llmguard
 from .types import ChatIdentity, RetrievalBundle, SourceReference
@@ -107,6 +108,24 @@ def _safe_output(answer: str, bundle: RetrievalBundle, identity: ChatIdentity) -
     except Exception:
         pass
     return answer
+
+
+def _output_security_context(
+    bundle: RetrievalBundle,
+    identity: ChatIdentity,
+) -> dict[str, object]:
+    role = {
+        "public": "public_user",
+        "student": "student",
+        "employee": "super_admin",
+    }[identity.portal_context]
+    return {
+        "user_role": role,
+        "actor_ref": identity.owner_ref,
+        "allowed_classifications": sorted(
+            {item.classification for item in bundle.sources}
+        ),
+    }
 
 
 def _authorized_source(item: SourceReference, identity: ChatIdentity) -> bool:
@@ -289,13 +308,43 @@ def ask(
                 page_context = f"Current local page: {page_title} ({current_page}).\n" if page_title else ""
                 answer = generate_answer(identity.portal_context, question, page_context + bundle.context, _model_history(history, identity))
                 model_called = True
-                checked = _safe_output(answer, bundle, identity)
-                if checked is None:
-                    answer = "The generated response was withheld by the university assistant's output safety check."
-                    status = "access_restricted"
+                output_preflight = from_thread.run(
+                    partial(
+                        inspect_chat_output,
+                        request_id=request_id,
+                        channel=identity.portal_context,
+                        content=answer,
+                        security_context=_output_security_context(bundle, identity),
+                    )
+                )
+                if not output_preflight.configured:
+                    checked = _safe_output(answer, bundle, identity)
+                    if checked is None:
+                        answer = GENERIC_BLOCKED_MESSAGE
+                        status = "access_restricted"
+                        bundle.sources = []
+                    else:
+                        answer = checked
+                elif not output_preflight.allowed:
+                    answer = (
+                        GENERIC_FAILURE_MESSAGE
+                        if output_preflight.inspection_failed
+                        else GENERIC_BLOCKED_MESSAGE
+                    )
+                    status = (
+                        "unavailable"
+                        if output_preflight.inspection_failed
+                        else "access_restricted"
+                    )
+                    bundle.sources = []
+                elif output_preflight.content is None:
+                    answer = GENERIC_FAILURE_MESSAGE
+                    status = "unavailable"
                     bundle.sources = []
                 else:
-                    answer = checked
+                    answer = output_preflight.content
+                    if output_preflight.sanitized:
+                        bundle.sources = []
             except LLMUnavailable:
                 answer = "The University AI Assistant is temporarily unavailable. Please try again shortly."
                 status = "unavailable"

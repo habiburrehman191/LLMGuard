@@ -105,8 +105,7 @@ sanitized continuation.
 
 Phase 8A accepts bounded generated content with `stage="output"` and reuses the
 existing output firewall and DLP implementation for synthetic credential,
-system-prompt, sensitive-classification, and canary leakage. University
-responses are not connected to this API yet.
+system-prompt, sensitive-classification, and canary leakage.
 
 ```python
 result = await client.inspect_output(
@@ -140,21 +139,29 @@ request ID may be used once per application at each stage, allowing one logical
 request to correlate input, context, and output decisions.
 
 The standalone University backend uses this API for Public, Student, and
-Employee chatbot input when both integration credential environment variables
-are configured. Inspection happens before its database, retrieval,
-structured-data tools, and main-model boundaries. Restricted inputs receive a
-generic response; configured integration failures fail closed. With both
-credentials absent, the University keeps its documented standalone behavior.
-Channel and portal identity are derived from the backend route and signed
-session rather than prompt or browser-supplied identity fields. University
-RBAC remains a separate, later authorization check after an input is allowed.
-For model-generated answers, Phase 7B sends only University-authorized
-retrieval evidence to the context API using the same request ID as input
-inspection. Allowed evidence continues unchanged; sanitized evidence replaces
-the raw chunks before prompt construction; quarantine, block, missing safe
-continuation, and configured inspection failures stop before Qwen. LLMGuard
-does not decide University record ownership or portal permissions. Output
-inspection is not exposed through this integration API yet.
+Employee chatbot input, authorized retrieval context, and model-generated
+output when both integration credential environment variables are configured.
+Input inspection happens before its database, retrieval, structured-data tools,
+and main-model boundaries. Restricted inputs receive a generic response;
+configured integration failures fail closed. Channel and portal identity are
+derived from the backend route and signed session rather than prompt or
+browser-supplied identity fields. University RBAC remains a separate, later
+authorization check after an input is allowed.
+
+For model-generated answers, only University-authorized retrieval evidence is
+sent to the context API. Allowed evidence continues unchanged; sanitized
+evidence replaces raw chunks before prompt construction; quarantine, block,
+missing safe continuation, and configured inspection failures stop before
+Qwen. After Qwen, the shared response boundary sends generated content to the
+output API with the same request ID used for input and context. Allowed output
+continues unchanged, sanitized output fully replaces the raw answer, and
+blocked/quarantined output or configured inspection failure returns only a
+generic safe response. Sanitized responses omit source links because the API
+does not provide source-level provenance for the rewritten text. Detector
+reasons and scores are never returned to chatbot users. With both credentials
+absent, the University retains its local standalone input, context, and output
+behavior. LLMGuard does not decide University record ownership or portal
+permissions.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and
