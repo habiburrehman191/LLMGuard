@@ -65,9 +65,12 @@ configured integration failure stops before the model runs. Context metadata
 contains only source type, classification, and portal scope; LLMGuard does not
 decide University record ownership or permissions.
 
-When both credentials are absent, the previous local context check and
-standalone generation behavior remain in use. Output inspection is not sent
-through the integration API in this phase.
+After model generation, the University sends the answer to `inspect_output()`
+with the same request ID before returning it. Allowed output continues,
+sanitized output replaces the raw answer, and a blocked response or configured
+inspection failure returns only a generic safe message. When both credentials
+are absent, the previous local input, context, output, and generation behavior
+remain in use.
 
 The SQLite database is created at
 `university_site/demo_data/university_demo.sqlite3` and is ignored by Git.
@@ -178,6 +181,17 @@ Rebuild the idempotent assistant source and vector indexes with:
 ```powershell
 .\.venv\Scripts\python.exe -m university_site.chatbot.indexing
 ```
+
+The rebuild prepares University-owned sources and then calls the generic SDK's
+`inspect_document()` once per source at the shared boundary before any
+`ChatKnowledgeChunk` or vector-index write. `APPROVE` stores the original;
+`SANITIZE` stores and vectorizes only `sanitized_text`; `QUARANTINE` and
+`REJECT` omit the source. A configured connection, authentication, or response
+failure stops before index writes. Authenticated `BYPASSED` continues the
+existing University indexing flow without being recorded as approval. When
+both integration credentials are absent, standalone indexing remains
+available. Application ID, channel, and protection state are derived from
+backend configuration and source scope, never browser fields.
 
 Generated vector files remain under
 `university_site/demo_data/chat_vector_store/` and are ignored by Git. The

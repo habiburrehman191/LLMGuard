@@ -223,6 +223,14 @@ absent, the University retains its local standalone input, context, and output
 behavior. LLMGuard does not decide University record ownership or portal
 permissions.
 
+The University knowledge-index rebuild also uses `inspect_document()` at its
+single prepared-source boundary before writing `ChatKnowledgeChunk` rows or
+building vector indexes. Approved text continues unchanged, sanitized text
+fully replaces the original before persistence, and quarantined or rejected
+sources are omitted. A configured inspection failure stops the rebuild before
+index writes; explicit `BYPASSED` and fully unconfigured standalone mode retain
+the University's existing indexing behavior.
+
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and
 `/demo/*` are not mounted by the LLMGuard process.

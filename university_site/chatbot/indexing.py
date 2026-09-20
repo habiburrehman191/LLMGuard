@@ -19,6 +19,7 @@ from ..data import (
     SCHOLARSHIPS,
 )
 from ..models import ChatKnowledgeChunk, ControlledRecord, Department, Notice, Policy, Program
+from .ingestion_firewall import inspect_sources_before_index
 
 
 STUDENT_POLICY_CATEGORIES = {
@@ -166,13 +167,21 @@ def source_documents(session: Session) -> list[dict[str, object]]:
     return rows
 
 
-def rebuild_knowledge_index(session: Session) -> dict[str, int]:
+def _prepared_documents(session: Session) -> list[dict[str, object]]:
     documents = source_documents(session)
     source_ids = [str(item["source_id"]) for item in documents]
     if len(source_ids) != len(set(source_ids)):
         raise RuntimeError("Duplicate chatbot source IDs were generated.")
+    return inspect_sources_before_index(documents)
+
+
+def _replace_knowledge_index(
+    session: Session,
+    documents: list[dict[str, object]],
+) -> dict[str, int]:
     session.execute(delete(ChatKnowledgeChunk))
-    session.add_all(ChatKnowledgeChunk(**item) for item in documents)
+    if documents:
+        session.add_all(ChatKnowledgeChunk(**item) for item in documents)
     session.commit()
     counts = {"public": 0, "student": 0, "employee": 0}
     for item in documents:
@@ -180,15 +189,19 @@ def rebuild_knowledge_index(session: Session) -> dict[str, int]:
     return counts | {"total": len(documents), "duplicate_source_ids": 0}
 
 
+def rebuild_knowledge_index(session: Session) -> dict[str, int]:
+    return _replace_knowledge_index(session, _prepared_documents(session))
+
+
 def ensure_knowledge_index(session: Session) -> dict[str, int]:
-    expected = source_documents(session)
+    expected = _prepared_documents(session)
     current = {
         item.source_id: item.content_hash
         for item in session.scalars(select(ChatKnowledgeChunk))
     }
     expected_hashes = {str(item["source_id"]): str(item["content_hash"]) for item in expected}
     if current != expected_hashes:
-        return rebuild_knowledge_index(session)
+        return _replace_knowledge_index(session, expected)
     counts = {"public": 0, "student": 0, "employee": 0}
     for item in expected:
         counts[str(item["portal_scope"])] += 1
