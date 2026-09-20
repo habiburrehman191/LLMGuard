@@ -138,6 +138,38 @@ metadata, and sanitized content are not stored in these telemetry tables. A
 request ID may be used once per application at each stage, allowing one logical
 request to correlate input, context, and output decisions.
 
+### Secure pre-index document inspection
+
+`POST /api/v1/ingestion/inspect` authenticates with the same application ID,
+key ID, and API secret as the Guard API. It accepts already-extracted text only;
+it does not upload, extract, store, chunk, or index files. The endpoint reuses
+the existing retrieved-context firewall and sanitizer before an external
+application admits content to RAG.
+
+```python
+result = await client.inspect_document(
+    request_id="<unique-ingestion-request-id>",
+    channel="public",
+    source_id="<application-source-id>",
+    filename="policy.txt",
+    mime_type="text/plain",
+    text="<already-extracted-text>",
+    metadata={"category": "policy"},
+)
+```
+
+Text is limited to 128,000 UTF-8 bytes. Metadata is limited to 32 fields and
+8,192 encoded bytes. Supported text-oriented formats are TXT, Markdown, CSV,
+JSON, XML, and YAML. Results use `APPROVE`, `SANITIZE`, `QUARANTINE`, or
+`REJECT`; `sanitized_text` appears only when the existing sanitizer materially
+changes content. Quarantine and rejection never return a safe-to-index
+continuation. With protection disabled, the endpoint skips inspection and
+returns explicit `BYPASSED` instead of claiming approval.
+
+Ingestion telemetry stores only application ID, channel, source ID, request ID,
+classification, risk score, action, and timestamp. Raw document text,
+filenames, metadata, and sanitized text are not persisted by this API.
+
 ### Per-application protection control
 
 LLMGuard Super Admins can enable or disable enforcement from

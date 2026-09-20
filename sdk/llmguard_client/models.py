@@ -78,3 +78,16 @@ class OutputInspectionResult:
     reasons: tuple[str, ...] = ()
     sanitized_content: str | None = None
     error: LLMGuardClientError | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class DocumentInspectionResult:
+    ok: bool
+    request_id: str | None = None
+    source_id: str | None = None
+    classification: str | None = None
+    risk_score: float | None = None
+    action: str | None = None
+    reasons: tuple[str, ...] = ()
+    sanitized_text: str | None = None
+    error: LLMGuardClientError | None = None

@@ -9,6 +9,7 @@ import httpx
 from .models import (
     ClientErrorCode,
     ContextInspectionResult,
+    DocumentInspectionResult,
     HeartbeatResult,
     InputInspectionResult,
     LLMGuardClientError,
@@ -18,6 +19,7 @@ from .models import (
 
 HEARTBEAT_PATH = "/api/v1/integrations/heartbeat"
 GUARD_PATH = "/api/v1/guard"
+INGESTION_INSPECT_PATH = "/api/v1/ingestion/inspect"
 
 
 class LLMGuardClient:
@@ -244,6 +246,66 @@ class LLMGuardClient:
             sanitized_content=response_data.get("sanitized_content"),
         )
 
+    async def inspect_document(
+        self,
+        *,
+        request_id: str,
+        channel: str,
+        source_id: str,
+        filename: str,
+        mime_type: str,
+        text: str,
+        metadata: Mapping[str, Any] | None = None,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> DocumentInspectionResult:
+        payload: dict[str, Any] = {
+            "application_id": self.application_id,
+            "request_id": _required_text(request_id, "request_id"),
+            "channel": _required_text(channel, "channel").lower(),
+            "source_id": _required_text(source_id, "source_id"),
+            "filename": _required_text(filename, "filename"),
+            "mime_type": _required_text(mime_type, "mime_type").lower(),
+            "text": _required_content(text),
+        }
+        if metadata is not None:
+            if not isinstance(metadata, Mapping):
+                raise ValueError("metadata must be a mapping")
+            payload["metadata"] = dict(metadata)
+
+        response_data, error = await self._post_json(
+            INGESTION_INSPECT_PATH,
+            payload,
+            operation="document inspection",
+            http_client=http_client,
+        )
+        if error is not None:
+            return DocumentInspectionResult(ok=False, error=error)
+
+        if not _is_valid_document_response(
+            response_data,
+            request_id=payload["request_id"],
+            source_id=payload["source_id"],
+            original_text=payload["text"],
+        ):
+            return DocumentInspectionResult(
+                ok=False,
+                error=LLMGuardClientError(
+                    code=ClientErrorCode.INVALID_RESPONSE,
+                    message="LLMGuard returned an invalid document inspection response.",
+                ),
+            )
+
+        return DocumentInspectionResult(
+            ok=True,
+            request_id=response_data["request_id"],
+            source_id=response_data["source_id"],
+            classification=response_data["classification"],
+            risk_score=_optional_risk_score(response_data.get("risk_score")),
+            action=response_data["action"],
+            reasons=tuple(response_data["reasons"]),
+            sanitized_text=response_data.get("sanitized_text"),
+        )
+
     async def _post_json(
         self,
         path: str,
@@ -376,6 +438,50 @@ def _is_valid_output_response(
         and bool(sanitized_content.strip())
         and sanitized_content != original_content
     )
+
+
+def _is_valid_document_response(
+    value: Any,
+    *,
+    request_id: str,
+    source_id: str,
+    original_text: str,
+) -> bool:
+    if not isinstance(value, Mapping):
+        return False
+    reasons = value.get("reasons")
+    risk_score = value.get("risk_score")
+    sanitized_text = value.get("sanitized_text")
+    action = value.get("action")
+    common_valid = (
+        value.get("request_id") == request_id
+        and value.get("source_id") == source_id
+        and isinstance(reasons, list)
+        and all(isinstance(reason, str) for reason in reasons)
+    )
+    if not common_valid:
+        return False
+    if action == "BYPASSED":
+        return (
+            value.get("classification") == "bypassed"
+            and risk_score is None
+            and sanitized_text is None
+        )
+    if (
+        value.get("classification") not in {"safe", "suspicious", "malicious"}
+        or action not in {"APPROVE", "SANITIZE", "QUARANTINE", "REJECT"}
+        or not isinstance(risk_score, (int, float))
+        or isinstance(risk_score, bool)
+        or not 0 <= float(risk_score) <= 1
+    ):
+        return False
+    if action == "SANITIZE":
+        return (
+            isinstance(sanitized_text, str)
+            and bool(sanitized_text.strip())
+            and sanitized_text != original_text
+        )
+    return sanitized_text is None
 
 
 def _is_valid_inspection_response(

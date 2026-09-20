@@ -228,6 +228,29 @@ def init_db() -> None:
     )
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS ingestion_inspection_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            request_id TEXT NOT NULL,
+            classification TEXT NOT NULL,
+            risk_score REAL CHECK (risk_score IS NULL OR (risk_score >= 0 AND risk_score <= 1)),
+            action TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, request_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_ingestion_inspection_application_created
+        ON ingestion_inspection_events (application_id, created_at)
+        """
+    )
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS application_protection (
             application_id TEXT PRIMARY KEY,
             protection_enabled INTEGER NOT NULL DEFAULT 1 CHECK (protection_enabled IN (0, 1)),
