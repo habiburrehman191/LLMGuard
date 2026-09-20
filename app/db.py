@@ -402,6 +402,107 @@ def init_db() -> None:
         )
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_events (
+            event_id TEXT PRIMARY KEY,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            request_id TEXT,
+            session_hash TEXT,
+            stage TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            classification TEXT NOT NULL,
+            severity TEXT NOT NULL CHECK (
+                severity IN ('none', 'low', 'medium', 'high', 'critical')
+            ),
+            risk_score REAL CHECK (
+                risk_score IS NULL OR (risk_score >= 0 AND risk_score <= 1)
+            ),
+            action TEXT NOT NULL,
+            source_id TEXT,
+            chunk_id TEXT,
+            deduplication_key TEXT UNIQUE,
+            created_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_events_application_created
+        ON security_events (application_id, created_at, event_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_events_request_trace
+        ON security_events (application_id, request_id, created_at, event_id)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_incidents (
+            incident_id TEXT PRIMARY KEY,
+            application_id TEXT NOT NULL,
+            status TEXT NOT NULL CHECK (
+                status IN ('OPEN', 'ACKNOWLEDGED', 'RESOLVED')
+            ),
+            severity TEXT NOT NULL CHECK (
+                severity IN ('low', 'medium', 'high', 'critical')
+            ),
+            primary_event_id TEXT NOT NULL,
+            first_seen TIMESTAMP NOT NULL,
+            last_seen TIMESTAMP NOT NULL,
+            event_count INTEGER NOT NULL DEFAULT 1 CHECK (event_count >= 1),
+            category TEXT NOT NULL,
+            summary_code TEXT NOT NULL,
+            correlation_key TEXT NOT NULL UNIQUE,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            FOREIGN KEY (primary_event_id) REFERENCES security_events(event_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_incidents_application_status
+        ON security_incidents (application_id, status, last_seen)
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_incident_events (
+            incident_id TEXT NOT NULL,
+            event_id TEXT NOT NULL UNIQUE,
+            PRIMARY KEY (incident_id, event_id),
+            FOREIGN KEY (incident_id) REFERENCES security_incidents(incident_id),
+            FOREIGN KEY (event_id) REFERENCES security_events(event_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS security_incident_status_audit (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            incident_id TEXT NOT NULL,
+            old_status TEXT NOT NULL CHECK (
+                old_status IN ('OPEN', 'ACKNOWLEDGED', 'RESOLVED')
+            ),
+            new_status TEXT NOT NULL CHECK (
+                new_status IN ('OPEN', 'ACKNOWLEDGED', 'RESOLVED')
+            ),
+            actor TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (incident_id) REFERENCES security_incidents(incident_id)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_security_incident_audit_incident_created
+        ON security_incident_status_audit (incident_id, created_at, id)
+        """
+    )
 
     existing_columns = {
         row[1]

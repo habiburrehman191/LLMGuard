@@ -43,7 +43,12 @@ from app.session_enforcement import (
     evaluate_input_session_policy,
     record_session_enforcement,
 )
-from app.session_risk import SecuritySessionRecord, record_session_risk_event
+from app.session_risk import (
+    SecuritySessionRecord,
+    pseudonymize_session_identifier,
+    record_session_risk_event,
+)
+from app.security_events import record_security_event_safely
 
 
 router = APIRouter(prefix="/api/v1", tags=["application-security"])
@@ -318,6 +323,18 @@ def inspect_guard(
             )
         except Exception:
             pass
+        record_security_event_safely(
+            application_id=payload.application_id,
+            channel=payload.channel,
+            request_id=payload.request_id,
+            session_hash=_session_hash_for(payload),
+            stage=payload.stage,
+            event_type="SECURITY_PATH_FAILURE",
+            classification="error",
+            severity="critical",
+            risk_score=None,
+            action="fail_closed",
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The LLMGuard security inspection path is unavailable.",
@@ -337,6 +354,19 @@ def _bypass_guard(payload: GuardRequestBase) -> JSONResponse:
             status_code=status.HTTP_409_CONFLICT,
             detail="Request ID has already been bypassed for this application stage.",
         ) from None
+
+    record_security_event_safely(
+        application_id=payload.application_id,
+        channel=payload.channel,
+        request_id=payload.request_id,
+        session_hash=_session_hash_for(payload),
+        stage=payload.stage,
+        event_type="PROTECTION_BYPASS",
+        classification="bypassed",
+        severity="none",
+        risk_score=None,
+        action="bypass",
+    )
 
     response = BypassedGuardResponse(
         request_id=payload.request_id,
@@ -378,6 +408,18 @@ def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:
         risk_score=decision.risk_score,
         action=decision.action,
     )
+    record_security_event_safely(
+        application_id=payload.application_id,
+        channel=payload.channel,
+        request_id=payload.request_id,
+        session_hash=(security_session.session_hash if security_session else None),
+        stage="input",
+        event_type="INPUT_FIREWALL",
+        classification=decision.classification,
+        severity=decision.severity,
+        risk_score=decision.risk_score,
+        action=decision.action,
+    )
 
     session_policy = None
     if security_session is not None:
@@ -395,6 +437,18 @@ def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:
                 session=security_session,
                 request_id=payload.request_id,
                 policy_code=policy_code,
+            )
+            record_security_event_safely(
+                application_id=payload.application_id,
+                channel=payload.channel,
+                request_id=payload.request_id,
+                session_hash=security_session.session_hash,
+                stage="input",
+                event_type="SESSION_RESTRICTION",
+                classification="session_risk",
+                severity="high",
+                risk_score=decision.risk_score,
+                action="session_restrict",
             )
             return InputGuardResponse(
                 request_id=payload.request_id,
@@ -458,12 +512,27 @@ def _inspect_context(payload: ContextGuardRequest) -> JSONResponse:
             detail="Context request ID has already been used for this application.",
         ) from None
 
-    _track_session_risk(
+    security_session = _track_session_risk(
         payload,
         classification=decision.classification,
         risk_score=decision.risk_score,
         action=decision.action,
     )
+    for chunk in payload.chunks:
+        record_security_event_safely(
+            application_id=payload.application_id,
+            channel=payload.channel,
+            request_id=payload.request_id,
+            session_hash=(security_session.session_hash if security_session else None),
+            stage="context",
+            event_type="CONTEXT_FIREWALL",
+            classification=decision.classification,
+            severity=decision.severity,
+            risk_score=decision.risk_score,
+            action=decision.action,
+            source_id=chunk.source_id,
+            chunk_id=chunk.chunk_id,
+        )
 
     response = ContextGuardResponse(
         request_id=payload.request_id,
@@ -511,9 +580,21 @@ def _inspect_output(payload: OutputGuardRequest) -> JSONResponse:
             detail="Output request ID has already been used for this application.",
         ) from None
 
-    _track_session_risk(
+    security_session = _track_session_risk(
         payload,
         classification=decision.classification,
+        risk_score=decision.risk_score,
+        action=decision.action,
+    )
+    record_security_event_safely(
+        application_id=payload.application_id,
+        channel=payload.channel,
+        request_id=payload.request_id,
+        session_hash=(security_session.session_hash if security_session else None),
+        stage="output",
+        event_type="OUTPUT_FIREWALL",
+        classification=decision.classification,
+        severity=decision.severity,
         risk_score=decision.risk_score,
         action=decision.action,
     )
@@ -553,4 +634,21 @@ def _track_session_risk(
         )
     except Exception:
         # Phase 12A tracking is observational and must not alter guard decisions.
+        return None
+
+
+def _session_hash_for(payload: GuardRequestBase) -> str | None:
+    context = getattr(payload, "security_context", None)
+    if not isinstance(context, dict):
+        return None
+    session_id = context.get("session_id")
+    if not isinstance(session_id, str) or not session_id.strip():
+        return None
+    try:
+        return pseudonymize_session_identifier(
+            payload.application_id,
+            payload.channel,
+            session_id,
+        )
+    except Exception:
         return None

@@ -167,6 +167,34 @@ detector evidence nor run session enforcement. Configure a private
 `LLMGUARD_SESSION_HASH_SECRET` outside source control for shared deployments;
 the built-in value is for local development only.
 
+### Unified security events and incidents
+
+LLMGuard projects existing input, context, output, ingestion, session-policy,
+protection-bypass, integration-failure, and enabled security-path-failure
+outcomes into one LLMGuard-owned security event stream. This projection never
+re-runs a detector and cannot change a firewall decision. Events contain only
+application/channel identifiers, request ID, an optional HMAC session digest,
+stage/type/classification/severity/risk/action metadata, optional source and
+chunk IDs, and a timestamp. Raw prompts, retrieved text, generated output,
+document text, credentials, and University personal data are excluded.
+
+Incidents are opened only for malicious `BLOCK`, `QUARANTINE`, or `REJECT`
+events, session restrictions, and critical enabled-mode security-path
+failures. Events with the same application and request ID correlate to one
+incident; when no request ID exists, application/channel/session digest is the
+fallback correlation scope. Event deduplication prevents retries from
+inflating incident counts. Incident status progresses from `OPEN` to
+`ACKNOWLEDGED` or `RESOLVED`, with every change recorded in a separate audit
+table. The authenticated Super Admin backend API is available at:
+
+- `GET /admin/api/security-events`
+- `GET /admin/api/security-events/trace/{request_id}?application_id=...`
+- `GET /admin/api/incidents`
+- `GET /admin/api/incidents/{incident_id}`
+- `PATCH /admin/api/incidents/{incident_id}/status`
+
+These are backend foundations only; Phase 13A does not redesign the SOC UI.
+
 ### Security normalization
 
 Input, retrieved context, and ingestion text pass through one bounded security

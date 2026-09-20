@@ -25,7 +25,11 @@ from app.ingestion_telemetry import (
     record_ingestion_inspection,
 )
 from app.protection_control import ensure_protection_config
-from app.session_risk import record_session_risk_event
+from app.session_risk import (
+    pseudonymize_session_identifier,
+    record_session_risk_event,
+)
+from app.security_events import record_security_event_safely
 
 
 router = APIRouter(prefix="/api/v1/ingestion", tags=["application-security"])
@@ -189,6 +193,7 @@ def inspect_ingestion(
             detail="Ingestion request ID has already been used for this application.",
         )
 
+    protection_enabled = False
     try:
         protection = ensure_protection_config(payload.application_id)
         if not protection.protection_enabled:
@@ -199,6 +204,7 @@ def inspect_ingestion(
                 action="BYPASSED",
                 reasons=["Application protection is disabled by LLMGuard policy."],
             )
+        protection_enabled = True
 
         decision = inspect_document_text(
             source_id=payload.source_id,
@@ -215,6 +221,20 @@ def inspect_ingestion(
     except HTTPException:
         raise
     except Exception:
+        if protection_enabled:
+            record_security_event_safely(
+                application_id=payload.application_id,
+                channel=payload.channel,
+                request_id=payload.request_id,
+                session_hash=_session_hash_for(payload),
+                stage="ingestion",
+                event_type="SECURITY_PATH_FAILURE",
+                classification="error",
+                severity="critical",
+                risk_score=None,
+                action="fail_closed",
+                source_id=payload.source_id,
+            )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The LLMGuard ingestion security path is unavailable.",
@@ -246,9 +266,10 @@ def _record_and_respond(
             detail="Ingestion request ID has already been used for this application.",
         ) from None
 
+    security_session = None
     if classification != "bypassed":
         try:
-            record_session_risk_event(
+            security_session = record_session_risk_event(
                 application_id=payload.application_id,
                 channel=payload.channel,
                 request_id=payload.request_id,
@@ -261,6 +282,33 @@ def _record_and_respond(
         except Exception:
             # Session tracking is observational and must not alter inspection.
             pass
+
+    record_security_event_safely(
+        application_id=payload.application_id,
+        channel=payload.channel,
+        request_id=payload.request_id,
+        session_hash=(
+            security_session.session_hash
+            if security_session is not None
+            else _session_hash_for(payload)
+        ),
+        stage="ingestion",
+        event_type=(
+            "PROTECTION_BYPASS"
+            if classification == "bypassed"
+            else "INGESTION_INSPECTION"
+        ),
+        classification=classification,
+        severity={
+            "safe": "none",
+            "suspicious": "medium",
+            "malicious": "high",
+            "bypassed": "none",
+        }[classification],
+        risk_score=risk_score,
+        action=action,
+        source_id=payload.source_id,
+    )
 
     response = IngestionInspectionResponse(
         request_id=payload.request_id,
@@ -275,3 +323,18 @@ def _record_and_respond(
     if sanitized_text is None:
         body.pop("sanitized_text", None)
     return JSONResponse(body)
+
+
+def _session_hash_for(payload: IngestionInspectionRequest) -> str | None:
+    context = payload.security_context or {}
+    session_id = context.get("session_id")
+    if not isinstance(session_id, str) or not session_id.strip():
+        return None
+    try:
+        return pseudonymize_session_identifier(
+            payload.application_id,
+            payload.channel,
+            session_id,
+        )
+    except Exception:
+        return None

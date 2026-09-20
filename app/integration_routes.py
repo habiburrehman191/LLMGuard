@@ -10,6 +10,7 @@ from app.application_credentials import verify_credential
 from app.application_registry import get_application
 from app.config import get_settings
 from app.integration_health import CONNECTED, record_heartbeat
+from app.security_events import record_security_event_safely
 
 
 router = APIRouter(prefix="/api/v1/integrations", tags=["application-integrations"])
@@ -79,12 +80,18 @@ def receive_heartbeat(
         key_id,
         api_secret.get_secret_value(),
     ):
+        _record_integration_failure(
+            payload.application_id,
+            event_type="INTEGRATION_AUTH_FAILURE",
+            severity="high",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid application credential.",
         )
 
     if payload.environment.lower() != application.environment.lower():
+        _record_integration_failure(payload.application_id)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Heartbeat environment does not match the registered application.",
@@ -94,6 +101,7 @@ def receive_heartbeat(
     now = datetime.now(timezone.utc)
     timestamp_skew = abs((now - payload.timestamp).total_seconds())
     if timestamp_skew > settings.heartbeat_max_skew_seconds:
+        _record_integration_failure(payload.application_id)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Heartbeat timestamp is stale or too far in the future.",
@@ -103,6 +111,7 @@ def receive_heartbeat(
         channel.channel for channel in application.channels if channel.enabled
     }
     if set(payload.channels) != registered_channels:
+        _record_integration_failure(payload.application_id)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Heartbeat channels do not match the registered application channels.",
@@ -121,4 +130,24 @@ def receive_heartbeat(
         application_id=payload.application_id,
         integration_state=CONNECTED,
         last_heartbeat_at=health.last_heartbeat_at,
+    )
+
+
+def _record_integration_failure(
+    application_id: str,
+    *,
+    event_type: str = "INTEGRATION_VALIDATION_FAILURE",
+    severity: Literal["medium", "high"] = "medium",
+) -> None:
+    record_security_event_safely(
+        application_id=application_id,
+        channel="integration",
+        request_id=None,
+        session_hash=None,
+        stage="integration",
+        event_type=event_type,
+        classification="suspicious",
+        severity=severity,
+        risk_score=None,
+        action="reject",
     )
