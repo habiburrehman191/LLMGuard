@@ -193,7 +193,21 @@ table. The authenticated Super Admin backend API is available at:
 - `GET /admin/api/incidents/{incident_id}`
 - `PATCH /admin/api/incidents/{incident_id}/status`
 
-These are backend foundations only; Phase 13A does not redesign the SOC UI.
+The Phase 13B SOC console renders these records without copying raw content.
+The overview uses a real 24-hour event window and current open-incident count;
+all tables and breakdowns are derived from persisted rows. `BYPASSED` and
+enabled-mode security-path failures have distinct operational styling, and
+quarantine pages show only request/source/chunk identifiers. Super Admin access
+uses the existing LLMGuard authorization boundary, and incident lifecycle
+changes continue through the audited Phase 13A service.
+
+Authenticated SOC views are available at:
+
+- `GET /admin/security-dashboard` — security overview
+- `GET /admin/soc/events` — filterable unified event stream
+- `GET /admin/soc/incidents` and `/admin/soc/incidents/{incident_id}`
+- `GET /admin/soc/trace?request_id=...&application_id=...`
+- `GET /admin/soc/quarantine` — metadata-only quarantine references
 
 ### Security normalization
 
@@ -885,7 +899,11 @@ Primary routes remain unchanged:
 /                         LLMGuard AI Firewall landing page
 /login                    Secure synthetic identity access
 /admin/dashboard          Super Admin command center
-/admin/security-dashboard Live SOC operations
+/admin/security-dashboard SOC security overview
+/admin/soc/events         Filterable live security events
+/admin/soc/incidents      Incident console and lifecycle
+/admin/soc/trace          Request-stage trace search
+/admin/soc/quarantine     Quarantine metadata only
 /admin/compare             Protected/vulnerable proof view
 /admin/documents           Document security console
 /admin/redteam             Controlled cyber range

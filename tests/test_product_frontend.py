@@ -136,7 +136,7 @@ class ProductFrontendTests(unittest.TestCase):
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
                 self.assertIn("Protected Mode", response.text)
-                self.assertIn("/static/portal.css?v=24", response.text)
+                self.assertIn("/static/portal.css?v=25", response.text)
 
         dashboard = self.client.get("/admin/dashboard")
         self.assertIn("Protected Applications", dashboard.text)
@@ -150,8 +150,10 @@ class ProductFrontendTests(unittest.TestCase):
         self._login("admin1", "Admin@123")
         response = self.client.get("/admin/security-dashboard")
         self.assertEqual(200, response.status_code)
-        self.assertIn("AI Firewall Security Dashboard", response.text)
-        self.assertIn("Unauthorized retrieval", response.text)
+        self.assertIn("Security Overview", response.text)
+        self.assertIn("Live Events", response.text)
+        self.assertIn("Incidents", response.text)
+        self.assertIn("Request Trace", response.text)
 
     def test_student_cannot_access_security_telemetry(self) -> None:
         self._login("student1", "Student@123")

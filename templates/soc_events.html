@@ -1,0 +1,43 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div><span class="am-section-label">[SOC] LIVE EVENTS</span><h1 class="am-gradient-title">Live Security Events</h1><p>Chronological unified firewall outcomes. Content payloads and credentials are never shown here.</p></div>
+    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#audit"></use></svg><div><strong>{{ events|length }} events shown</strong><small>Newest first, maximum 200</small></div></div>
+</header>
+
+<section class="workspace-card soc-filter-panel">
+    <form class="soc-filter-grid" method="get" action="/admin/soc/events">
+        <label>Application<select name="application_id"><option value="">All applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if filters.application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
+        <label>Channel<select name="channel"><option value="">All channels</option>{% for value in ['public', 'student', 'employee'] %}<option value="{{ value }}" {{ 'selected' if filters.channel == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Stage<select name="stage"><option value="">All stages</option>{% for value in ['input', 'context', 'output', 'ingestion', 'integration'] %}<option value="{{ value }}" {{ 'selected' if filters.stage == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Classification<select name="classification"><option value="">All classifications</option>{% for value in ['safe', 'suspicious', 'malicious', 'session_risk', 'bypassed', 'error'] %}<option value="{{ value }}" {{ 'selected' if filters.classification == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Severity<select name="severity"><option value="">All severities</option>{% for value in ['none', 'low', 'medium', 'high', 'critical'] %}<option value="{{ value }}" {{ 'selected' if filters.severity == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Action<select name="action"><option value="">All actions</option>{% for value in ['allow', 'log', 'sanitize', 'quarantine', 'reject', 'block', 'session_restrict', 'bypass', 'fail_closed'] %}<option value="{{ value }}" {{ 'selected' if filters.action == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Event type<input name="event_type" value="{{ filters.event_type }}" placeholder="e.g. INPUT_FIREWALL"></label>
+        <div class="soc-filter-actions"><button class="primary-button" type="submit">Apply filters</button><a class="secondary-button" href="/admin/soc/events">Clear</a></div>
+    </form>
+</section>
+
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="section-heading"><div><span class="section-kicker">Security metadata only</span><h2>Event stream</h2><p>Classification, severity, risk, action, stage, and available session policy codes are shown exactly as stored.</p></div></div>
+    <div class="responsive-table security-table">
+        <table>
+            <thead><tr><th>Time</th><th>Application / Channel</th><th>Stage / Type</th><th>Classification</th><th>Severity</th><th>Risk</th><th>Action</th><th>Request</th></tr></thead>
+            <tbody>
+            {% for event in events %}
+                <tr class="{{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}">
+                    <td><time datetime="{{ event.created_at }}">{{ event.created_at }}</time></td>
+                    <td><strong>{{ event.application_name }}</strong><small>{{ event.channel }} · {{ event.application_id }}</small></td>
+                    <td><strong>{{ event.stage }}</strong><small>{{ event.event_type }}{% if event.policy_code %} · {{ event.policy_code }}{% endif %}</small></td>
+                    <td><span class="status-badge soc-classification-{{ event.classification|lower }}">{{ event.classification }}</span></td>
+                    <td><span class="status-badge soc-severity-{{ event.severity|lower }}">{{ event.severity }}</span></td>
+                    <td>{{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Not recorded" }}</td>
+                    <td><span class="status-badge soc-action-{{ event.action|lower }}">{{ event.action }}</span></td>
+                    <td>{% if event.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ event.application_id|urlencode }}&amp;request_id={{ event.request_id|urlencode }}">{{ event.request_id }}</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
+                </tr>
+            {% else %}<tr><td colspan="8" class="empty-message">No events match the selected filters.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

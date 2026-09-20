@@ -1,0 +1,49 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div><span class="am-section-label">[SOC] INCIDENT DETAIL</span><h1 class="am-gradient-title">{{ incident.summary_code }}</h1><p>Correlated security metadata and audited lifecycle history. No quarantined or generated content is stored here.</p></div>
+    <div class="soc-window-card"><span class="status-badge soc-incident-{{ incident.status|lower }}">{{ incident.status }}</span><div><strong>{{ incident.severity }} severity</strong><small>{{ incident.event_count }} correlated event{{ '' if incident.event_count == 1 else 's' }}</small></div></div>
+</header>
+
+{% if updated_status %}<div class="soc-notice" role="status">Incident status updated to {{ updated_status }}.</div>{% endif %}
+
+<section class="workspace-card soc-incident-summary">
+    <div class="section-heading"><div><span class="section-kicker">Incident metadata</span><h2>{{ incident.incident_id }}</h2></div></div>
+    <dl class="soc-metadata-grid">
+        <div><dt>Application</dt><dd>{{ incident.application_name }}<small>{{ incident.application_id }}</small></dd></div>
+        <div><dt>Category</dt><dd>{{ incident.category }}</dd></div>
+        <div><dt>Primary event</dt><dd>{{ incident.primary_event_id }}</dd></div>
+        <div><dt>First seen</dt><dd>{{ incident.first_seen }}</dd></div>
+        <div><dt>Last seen</dt><dd>{{ incident.last_seen }}</dd></div>
+        <div><dt>Event count</dt><dd>{{ incident.event_count }}</dd></div>
+    </dl>
+    {% if incident.status != 'RESOLVED' %}
+    <div class="soc-lifecycle-actions" aria-label="Incident lifecycle actions">
+        {% if incident.status == 'OPEN' %}<form method="post" action="/admin/soc/incidents/{{ incident.incident_id|urlencode }}/acknowledge"><button class="secondary-button" type="submit">Acknowledge incident</button></form>{% endif %}
+        <form method="post" action="/admin/soc/incidents/{{ incident.incident_id|urlencode }}/resolve"><button class="primary-button" type="submit">Resolve incident</button></form>
+    </div>
+    {% endif %}
+</section>
+
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="section-heading"><div><span class="section-kicker">Correlation</span><h2>Correlated events</h2><p>Only persisted identifiers, classifications, actions, and scores are displayed.</p></div></div>
+    <div class="responsive-table security-table"><table>
+        <thead><tr><th>Time</th><th>Request</th><th>Channel</th><th>Stage / Type</th><th>Classification</th><th>Severity / Risk</th><th>Action</th><th>Source / Chunk</th></tr></thead>
+        <tbody>{% for event in events %}<tr class="{{ 'soc-state-failure' if event.operational_failure else '' }}">
+            <td>{{ event.created_at }}</td>
+            <td>{% if event.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ event.application_id|urlencode }}&amp;request_id={{ event.request_id|urlencode }}">{{ event.request_id }}</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
+            <td>{{ event.channel }}</td><td><strong>{{ event.stage }}</strong><small>{{ event.event_type }}{% if event.policy_code %} · {{ event.policy_code }}{% endif %}</small></td>
+            <td>{{ event.classification }}</td><td>{{ event.severity }}<small>{{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Risk not recorded" }}</small></td>
+            <td>{{ event.action }}</td><td>{{ event.source_id or 'Not recorded' }}<small>{{ event.chunk_id or 'No chunk ID' }}</small></td>
+        </tr>{% else %}<tr><td colspan="8" class="empty-message">No correlated events are available.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</section>
+
+<section class="workspace-card">
+    <div class="section-heading"><div><span class="section-kicker">Audit trail</span><h2>Lifecycle history</h2></div></div>
+    <ol class="soc-audit-list">
+        {% for entry in status_audit %}<li><span>{{ entry.created_at }}</span><strong>{{ entry.old_status }} → {{ entry.new_status }}</strong><small>Actor: {{ entry.actor }}</small></li>
+        {% else %}<li class="empty-message">No lifecycle changes have been recorded.</li>{% endfor %}
+    </ol>
+</section>
+{% endblock %}

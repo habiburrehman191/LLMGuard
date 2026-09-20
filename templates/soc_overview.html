@@ -1,0 +1,82 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div>
+        <span class="am-section-label">[SOC] SECURITY OVERVIEW</span>
+        <h1 class="am-gradient-title">Security Overview</h1>
+        <p>Real unified firewall events and incident state from the last {{ overview.window_hours }} hours. No sample telemetry is added.</p>
+    </div>
+    <div class="soc-window-card">
+        <svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#radar"></use></svg>
+        <div><strong>Persisted event data</strong><small>{{ overview.window_hours }}-hour evidence window</small></div>
+    </div>
+</header>
+
+<form class="soc-compact-filter" method="get" action="/admin/security-dashboard">
+    <label for="overview-application">Application</label>
+    <select id="overview-application" name="application_id">
+        <option value="">All registered applications</option>
+        {% for application in applications %}
+        <option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>
+        {% endfor %}
+    </select>
+    <button class="secondary-button" type="submit">Apply scope</button>
+</form>
+
+<section class="security-kpi-grid soc-kpi-grid" aria-label="Recent security metrics">
+    <article><span>Total recent events</span><strong>{{ overview.total_events }}</strong><small>Last {{ overview.window_hours }} hours</small></article>
+    <article><span>Suspicious</span><strong>{{ overview.suspicious_events }}</strong><small>Classified suspicious</small></article>
+    <article><span>Malicious</span><strong>{{ overview.malicious_events }}</strong><small>Classified malicious</small></article>
+    <article><span>Open incidents</span><strong>{{ overview.open_incidents }}</strong><small>Current lifecycle state</small></article>
+    <article><span>Blocked</span><strong>{{ overview.blocked_events }}</strong><small>Action: block</small></article>
+    <article><span>Quarantined</span><strong>{{ overview.quarantined_events }}</strong><small>Action: quarantine</small></article>
+    <article><span>Session restricted</span><strong>{{ overview.session_restricted_events }}</strong><small>Session policy action</small></article>
+</section>
+
+<section class="soc-analysis-grid">
+    <article class="workspace-card am-glass-card">
+        <div class="section-heading"><div><span class="section-kicker">Application activity</span><h2>Application breakdown</h2></div></div>
+        {% if application_breakdown %}
+        <div class="soc-breakdown-list">
+            {% for row in application_breakdown %}
+            <div><span><strong>{{ row.application_name }}</strong><small>{{ row.application_id }}</small></span><b>{{ row.event_count }}</b></div>
+            {% endfor %}
+        </div>
+        {% else %}<p class="empty-message">No security events were recorded in this evidence window.</p>{% endif %}
+    </article>
+    <article class="workspace-card am-glass-card">
+        <div class="section-heading"><div><span class="section-kicker">Channel activity</span><h2>Application and channel</h2></div></div>
+        {% if channel_breakdown %}
+        <div class="soc-breakdown-list">
+            {% for row in channel_breakdown %}
+            <div><span><strong>{{ row.channel }}</strong><small>{{ row.application_name }}</small></span><b>{{ row.event_count }}</b></div>
+            {% endfor %}
+        </div>
+        {% else %}<p class="empty-message">No channel activity was recorded in this evidence window.</p>{% endif %}
+    </article>
+</section>
+
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="section-heading">
+        <div><span class="section-kicker">Unified event stream</span><h2>Recent security activity</h2></div>
+        <a class="secondary-button" href="/admin/soc/events">Open Live Events</a>
+    </div>
+    <div class="responsive-table security-table">
+        <table>
+            <thead><tr><th>Time</th><th>Application</th><th>Channel</th><th>Stage</th><th>Classification</th><th>Action</th><th>Trace</th></tr></thead>
+            <tbody>
+            {% for event in recent_events %}
+                <tr class="{{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}">
+                    <td><time datetime="{{ event.created_at }}">{{ event.created_at }}</time></td>
+                    <td><strong>{{ event.application_name }}</strong><small>{{ event.application_id }}</small></td>
+                    <td>{{ event.channel }}</td><td>{{ event.stage }}</td>
+                    <td><span class="status-badge soc-classification-{{ event.classification|lower }}">{{ event.classification }}</span></td>
+                    <td><span class="status-badge soc-action-{{ event.action|lower }}">{{ event.action }}</span></td>
+                    <td>{% if event.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ event.application_id|urlencode }}&amp;request_id={{ event.request_id|urlencode }}">Open trace</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
+                </tr>
+            {% else %}<tr><td colspan="7" class="empty-message">No unified security events have been recorded.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

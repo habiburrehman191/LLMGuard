@@ -44,11 +44,26 @@ def _require_incident_operator(user: User) -> None:
 @router.get("/security-events")
 def security_events_api(
     application_id: str | None = None,
+    channel: str | None = None,
+    stage: str | None = None,
+    classification: str | None = None,
+    severity: str | None = None,
+    action: str | None = None,
+    event_type: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
     user: User = Depends(get_current_user),
 ) -> dict[str, object]:
     _require_security_reader(user)
-    events = list_security_events(application_id=application_id, limit=limit)
+    events = list_security_events(
+        application_id=application_id,
+        channel=channel,
+        stage=stage,
+        classification=classification,
+        severity=severity,
+        action=action,
+        event_type=event_type,
+        limit=limit,
+    )
     return {"events": [asdict(event) for event in events]}
 
 
@@ -71,6 +86,8 @@ def security_request_trace_api(
 def incidents_api(
     application_id: str | None = None,
     incident_status: Literal["OPEN", "ACKNOWLEDGED", "RESOLVED"] | None = None,
+    severity: str | None = None,
+    category: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
     user: User = Depends(get_current_user),
 ) -> dict[str, object]:
@@ -78,6 +95,8 @@ def incidents_api(
     incidents = list_incidents(
         application_id=application_id,
         status=incident_status,
+        severity=severity,
+        category=category,
         limit=limit,
     )
     return {"incidents": [asdict(incident) for incident in incidents]}

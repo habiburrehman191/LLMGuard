@@ -1,0 +1,38 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div><span class="am-section-label">[SOC] INCIDENT CONSOLE</span><h1 class="am-gradient-title">Security Incidents</h1><p>Correlated incidents created only by Phase 13A’s documented event rules.</p></div>
+    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#warning"></use></svg><div><strong>{{ incidents|length }} incidents shown</strong><small>Newest activity first</small></div></div>
+</header>
+
+<section class="workspace-card soc-filter-panel">
+    <form class="soc-filter-grid soc-filter-grid-four" method="get" action="/admin/soc/incidents">
+        <label>Application<select name="application_id"><option value="">All applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if filters.application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
+        <label>Status<select name="incident_status"><option value="">All statuses</option>{% for value in ['OPEN', 'ACKNOWLEDGED', 'RESOLVED'] %}<option value="{{ value }}" {{ 'selected' if filters.incident_status == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Severity<select name="severity"><option value="">All severities</option>{% for value in ['low', 'medium', 'high', 'critical'] %}<option value="{{ value }}" {{ 'selected' if filters.severity == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
+        <label>Category<input name="category" value="{{ filters.category }}" placeholder="e.g. MALICIOUS_ACTIVITY"></label>
+        <div class="soc-filter-actions"><button class="primary-button" type="submit">Apply filters</button><a class="secondary-button" href="/admin/soc/incidents">Clear</a></div>
+    </form>
+</section>
+
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="responsive-table security-table">
+        <table>
+            <thead><tr><th>Incident</th><th>Application</th><th>Severity</th><th>Status</th><th>Category</th><th>Events</th><th>First / Last seen</th><th></th></tr></thead>
+            <tbody>
+            {% for incident in incidents %}
+                <tr>
+                    <td><strong>{{ incident.incident_id }}</strong><small>{{ incident.summary_code }}</small></td>
+                    <td><strong>{{ incident.application_name }}</strong><small>{{ incident.application_id }}</small></td>
+                    <td><span class="status-badge soc-severity-{{ incident.severity|lower }}">{{ incident.severity }}</span></td>
+                    <td><span class="status-badge soc-incident-{{ incident.status|lower }}">{{ incident.status }}</span></td>
+                    <td>{{ incident.category }}</td><td>{{ incident.event_count }}</td>
+                    <td><time datetime="{{ incident.first_seen }}">{{ incident.first_seen }}</time><small><time datetime="{{ incident.last_seen }}">{{ incident.last_seen }}</time></small></td>
+                    <td><a class="soc-text-link" href="/admin/soc/incidents/{{ incident.incident_id|urlencode }}">Open detail</a></td>
+                </tr>
+            {% else %}<tr><td colspan="8" class="empty-message">No incidents match the selected filters.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

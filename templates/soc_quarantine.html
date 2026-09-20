@@ -1,0 +1,23 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div><span class="am-section-label">[SOC] QUARANTINE</span><h1 class="am-gradient-title">Quarantine Metadata</h1><p>Safe identifiers for quarantined context or ingestion events. Raw quarantined content is never copied into this view.</p></div>
+    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#lock"></use></svg><div><strong>{{ quarantine_records|length }} records shown</strong><small>Metadata only</small></div></div>
+</header>
+
+<form class="soc-compact-filter" method="get" action="/admin/soc/quarantine">
+    <label for="quarantine-application">Application</label><select id="quarantine-application" name="application_id"><option value="">All registered applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select><button class="secondary-button" type="submit">Apply scope</button>
+</form>
+
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="responsive-table security-table"><table>
+        <thead><tr><th>Time</th><th>Application</th><th>Request</th><th>Source ID</th><th>Chunk ID</th><th>Incident</th></tr></thead>
+        <tbody>{% for row in quarantine_records %}<tr>
+            <td>{{ row.created_at }}</td><td><strong>{{ row.application_name }}</strong><small>{{ row.application_id }}</small></td>
+            <td>{% if row.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ row.application_id|urlencode }}&amp;request_id={{ row.request_id|urlencode }}">{{ row.request_id }}</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
+            <td>{{ row.source_id or 'Not recorded' }}</td><td>{{ row.chunk_id or 'Not recorded' }}</td>
+            <td>{% if row.incident_id %}<a class="soc-text-link" href="/admin/soc/incidents/{{ row.incident_id|urlencode }}">{{ row.incident_id }}</a>{% else %}<span class="soc-muted">No incident linked</span>{% endif %}</td>
+        </tr>{% else %}<tr><td colspan="6" class="empty-message">No quarantine events have been recorded.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</section>
+{% endblock %}

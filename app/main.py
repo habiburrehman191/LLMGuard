@@ -18,6 +18,7 @@ from app.integration_routes import router as integration_router
 from app.portals.admin import router as admin_portal_router
 from app.schemas import AskRequest, AskResponse
 from app.security_event_routes import router as security_event_router
+from app.soc_routes import router as soc_router
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,6 +31,7 @@ app.include_router(integration_router)
 app.include_router(guard_router)
 app.include_router(ingestion_router)
 app.include_router(security_event_router)
+app.include_router(soc_router)
 
 
 @app.on_event("startup")

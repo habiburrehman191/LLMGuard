@@ -1,0 +1,39 @@
+{% extends "soc_base.html" %}
+{% block soc_content %}
+<header class="page-header security-header">
+    <div><span class="am-section-label">[SOC] REQUEST TRACE</span><h1 class="am-gradient-title">Request Trace</h1><p>Follow recorded security stages by request ID without exposing request, context, or response content.</p></div>
+    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#neural"></use></svg><div><strong>Chronological evidence</strong><small>Unified events only</small></div></div>
+</header>
+
+<section class="workspace-card soc-trace-search">
+    <form method="get" action="/admin/soc/trace">
+        <label for="trace-request-id">Request ID<input id="trace-request-id" name="request_id" value="{{ request_id }}" maxlength="200" required placeholder="Enter an exact request ID"></label>
+        <label for="trace-application">Application (optional)<select id="trace-application" name="application_id"><option value="">Search all applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
+        <button class="primary-button" type="submit">Open trace</button>
+    </form>
+</section>
+
+{% if matching_applications|length > 1 and not events %}
+<section class="workspace-card"><div class="section-heading"><div><span class="section-kicker">Application scope required</span><h2>Request ID exists in multiple applications</h2><p>Select the intended application to keep traces isolated.</p></div></div><div class="soc-link-list">{% for app_id in matching_applications %}<a href="/admin/soc/trace?application_id={{ app_id|urlencode }}&amp;request_id={{ request_id|urlencode }}">{{ application_names.get(app_id, app_id) }} <small>{{ app_id }}</small></a>{% endfor %}</div></section>
+{% elif trace_searched and not events %}
+<p class="empty-message soc-page-empty">No security events were recorded for this request ID{% if selected_application_id %} in the selected application{% endif %}.</p>
+{% elif events %}
+<section class="soc-trace-stages" aria-label="Core security stage coverage">
+    {% for stage in stage_summary %}<article class="{{ 'recorded' if stage.recorded else 'missing' }}"><span>0{{ loop.index }}</span><strong>{{ stage.stage }}</strong>{% if stage.recorded %}<small>{{ stage.event_count }} event{{ '' if stage.event_count == 1 else 's' }} recorded</small>{% else %}<small>No event recorded; this stage may not have executed.</small>{% endif %}</article>{% endfor %}
+    {% for stage in other_stages %}<article class="recorded supplemental"><span>+</span><strong>{{ stage }}</strong><small>Additional recorded stage</small></article>{% endfor %}
+</section>
+<section class="workspace-card event-workspace soc-table-card">
+    <div class="section-heading"><div><span class="section-kicker">Request {{ request_id }}</span><h2>Chronological security events</h2></div></div>
+    <div class="responsive-table security-table"><table>
+        <thead><tr><th>Time</th><th>Stage</th><th>Type</th><th>Classification</th><th>Severity</th><th>Risk</th><th>Action</th><th>Safe references</th></tr></thead>
+        <tbody>{% for event in events %}<tr class="{{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}">
+            <td>{{ event.created_at }}</td><td>{{ event.stage }}</td><td>{{ event.event_type }}{% if event.policy_code %}<small>{{ event.policy_code }}</small>{% endif %}</td>
+            <td>{{ event.classification }}</td><td>{{ event.severity }}</td><td>{{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Not recorded" }}</td><td>{{ event.action }}</td>
+            <td>{{ event.source_id or 'No source ID' }}<small>{{ event.chunk_id or 'No chunk ID' }}</small></td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</section>
+{% else %}
+<p class="empty-message soc-page-empty">Enter a request ID to inspect its recorded security trace.</p>
+{% endif %}
+{% endblock %}

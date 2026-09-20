@@ -1,0 +1,7 @@
+<nav class="soc-subnav" aria-label="Security operations">
+    <a class="{{ 'active' if active_soc_page == 'overview' else '' }}" href="/admin/security-dashboard">Security Overview</a>
+    <a class="{{ 'active' if active_soc_page == 'events' else '' }}" href="/admin/soc/events">Live Events</a>
+    <a class="{{ 'active' if active_soc_page == 'incidents' else '' }}" href="/admin/soc/incidents">Incidents</a>
+    <a class="{{ 'active' if active_soc_page == 'trace' else '' }}" href="/admin/soc/trace">Request Trace</a>
+    <a class="{{ 'active' if active_soc_page == 'quarantine' else '' }}" href="/admin/soc/quarantine">Quarantine</a>
+</nav>

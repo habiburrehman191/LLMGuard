@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import sqlite3
 from typing import Literal
@@ -72,6 +72,33 @@ class IncidentDetail:
     incident: SecurityIncidentRecord
     events: tuple[SecurityEventRecord, ...]
     status_audit: tuple[IncidentStatusAuditRecord, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SecurityOverview:
+    window_hours: int
+    total_events: int
+    suspicious_events: int
+    malicious_events: int
+    open_incidents: int
+    blocked_events: int
+    quarantined_events: int
+    session_restricted_events: int
+    application_breakdown: tuple[tuple[str, int], ...]
+    channel_breakdown: tuple[tuple[str, str, int], ...]
+    recent_events: tuple[SecurityEventRecord, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class QuarantineEventRecord:
+    event: SecurityEventRecord
+    incident_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class RequestTraceRecord:
+    application_id: str
+    events: tuple[SecurityEventRecord, ...]
 
 
 def record_security_event(
@@ -184,34 +211,237 @@ def record_security_event_safely(**kwargs: object) -> SecurityEventRecord | None
 def list_security_events(
     *,
     application_id: str | None = None,
+    channel: str | None = None,
+    stage: str | None = None,
+    classification: str | None = None,
+    severity: str | None = None,
+    action: str | None = None,
+    event_type: str | None = None,
+    created_since: str | None = None,
     limit: int = 100,
 ) -> list[SecurityEventRecord]:
     _validate_limit(limit)
+    filters = {
+        "application_id": application_id,
+        "channel": channel,
+        "stage": stage,
+        "classification": classification,
+        "severity": severity,
+        "action": action,
+        "event_type": event_type,
+    }
+    clauses: list[str] = []
+    parameters: list[object] = []
+    for column, value in filters.items():
+        if value:
+            clauses.append(f"{column} = ?")
+            parameters.append(value)
+    if created_since:
+        clauses.append("created_at >= ?")
+        parameters.append(created_since)
+    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+    parameters.append(limit)
     conn = get_connection()
     conn.row_factory = sqlite3.Row
     try:
-        if application_id:
-            rows = conn.execute(
-                """
-                SELECT * FROM security_events
-                WHERE application_id = ?
-                ORDER BY created_at DESC, event_id DESC
-                LIMIT ?
-                """,
-                (application_id, limit),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                """
-                SELECT * FROM security_events
-                ORDER BY created_at DESC, event_id DESC
-                LIMIT ?
-                """,
-                (limit,),
-            ).fetchall()
+        rows = conn.execute(
+            f"""
+            SELECT * FROM security_events
+            {where}
+            ORDER BY created_at DESC, event_id DESC
+            LIMIT ?
+            """,
+            tuple(parameters),
+        ).fetchall()
     finally:
         conn.close()
     return [_event_from_row(row) for row in rows]
+
+
+def get_security_overview(
+    *,
+    application_id: str | None = None,
+    window_hours: int = 24,
+    recent_limit: int = 8,
+) -> SecurityOverview:
+    if window_hours < 1 or window_hours > 24 * 30:
+        raise ValueError("window_hours must be between 1 and 720")
+    _validate_limit(recent_limit)
+    since = (
+        datetime.now(timezone.utc) - timedelta(hours=window_hours)
+    ).isoformat(timespec="microseconds")
+    clauses = ["created_at >= ?"]
+    parameters: list[object] = [since]
+    incident_clauses = ["status = 'OPEN'"]
+    incident_parameters: list[object] = []
+    if application_id:
+        clauses.append("application_id = ?")
+        parameters.append(application_id)
+        incident_clauses.append("application_id = ?")
+        incident_parameters.append(application_id)
+    where = f"WHERE {' AND '.join(clauses)}"
+    incident_where = f"WHERE {' AND '.join(incident_clauses)}"
+
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        totals = conn.execute(
+            f"""
+            SELECT
+                COUNT(*) AS total_events,
+                SUM(CASE WHEN LOWER(classification) = 'suspicious' THEN 1 ELSE 0 END)
+                    AS suspicious_events,
+                SUM(CASE WHEN LOWER(classification) = 'malicious' THEN 1 ELSE 0 END)
+                    AS malicious_events,
+                SUM(CASE WHEN LOWER(action) = 'block' THEN 1 ELSE 0 END)
+                    AS blocked_events,
+                SUM(CASE WHEN LOWER(action) = 'quarantine' THEN 1 ELSE 0 END)
+                    AS quarantined_events,
+                SUM(CASE WHEN LOWER(action) = 'session_restrict' THEN 1 ELSE 0 END)
+                    AS session_restricted_events
+            FROM security_events
+            {where}
+            """,
+            tuple(parameters),
+        ).fetchone()
+        open_incidents = conn.execute(
+            f"SELECT COUNT(*) FROM security_incidents {incident_where}",
+            tuple(incident_parameters),
+        ).fetchone()[0]
+        application_rows = conn.execute(
+            f"""
+            SELECT application_id, COUNT(*) AS event_count
+            FROM security_events
+            {where}
+            GROUP BY application_id
+            ORDER BY event_count DESC, application_id
+            """,
+            tuple(parameters),
+        ).fetchall()
+        channel_rows = conn.execute(
+            f"""
+            SELECT application_id, channel, COUNT(*) AS event_count
+            FROM security_events
+            {where}
+            GROUP BY application_id, channel
+            ORDER BY event_count DESC, application_id, channel
+            """,
+            tuple(parameters),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    recent_events = list_security_events(
+        application_id=application_id,
+        created_since=since,
+        limit=recent_limit,
+    )
+    return SecurityOverview(
+        window_hours=window_hours,
+        total_events=int(totals["total_events"] or 0),
+        suspicious_events=int(totals["suspicious_events"] or 0),
+        malicious_events=int(totals["malicious_events"] or 0),
+        open_incidents=int(open_incidents or 0),
+        blocked_events=int(totals["blocked_events"] or 0),
+        quarantined_events=int(totals["quarantined_events"] or 0),
+        session_restricted_events=int(totals["session_restricted_events"] or 0),
+        application_breakdown=tuple(
+            (str(row["application_id"]), int(row["event_count"]))
+            for row in application_rows
+        ),
+        channel_breakdown=tuple(
+            (
+                str(row["application_id"]),
+                str(row["channel"]),
+                int(row["event_count"]),
+            )
+            for row in channel_rows
+        ),
+        recent_events=tuple(recent_events),
+    )
+
+
+def list_quarantine_events(
+    *,
+    application_id: str | None = None,
+    limit: int = 100,
+) -> list[QuarantineEventRecord]:
+    _validate_limit(limit)
+    clauses = ["LOWER(e.action) = 'quarantine'"]
+    parameters: list[object] = []
+    if application_id:
+        clauses.append("e.application_id = ?")
+        parameters.append(application_id)
+    parameters.append(limit)
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT e.*,
+                   (
+                       SELECT ie.incident_id
+                       FROM security_incident_events AS ie
+                       WHERE ie.event_id = e.event_id
+                       ORDER BY ie.incident_id
+                       LIMIT 1
+                   ) AS incident_id
+            FROM security_events AS e
+            WHERE {' AND '.join(clauses)}
+            ORDER BY e.created_at DESC, e.event_id DESC
+            LIMIT ?
+            """,
+            tuple(parameters),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [
+        QuarantineEventRecord(
+            event=_event_from_row(row),
+            incident_id=(
+                str(row["incident_id"]) if row["incident_id"] is not None else None
+            ),
+        )
+        for row in rows
+    ]
+
+
+def session_policy_codes_for(
+    events: list[SecurityEventRecord] | tuple[SecurityEventRecord, ...],
+) -> dict[str, str]:
+    session_events = [
+        event
+        for event in events
+        if event.event_type == "SESSION_RESTRICTION" and event.request_id
+    ]
+    if not session_events:
+        return {}
+    request_ids = tuple(dict.fromkeys(event.request_id for event in session_events))
+    placeholders = ", ".join("?" for _ in request_ids)
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT application_id, channel, request_id, policy_code
+            FROM session_enforcement_events
+            WHERE request_id IN ({placeholders})
+            ORDER BY created_at, id
+            """,
+            request_ids,
+        ).fetchall()
+    finally:
+        conn.close()
+    codes = {
+        (str(row["application_id"]), str(row["channel"]), str(row["request_id"])):
+        str(row["policy_code"])
+        for row in rows
+    }
+    return {
+        event.event_id: codes[(event.application_id, event.channel, event.request_id)]
+        for event in session_events
+        if (event.application_id, event.channel, event.request_id) in codes
+    }
 
 
 def get_request_trace(
@@ -234,10 +464,37 @@ def get_request_trace(
     return [_event_from_row(row) for row in rows]
 
 
+def find_request_traces(request_id: str) -> list[RequestTraceRecord]:
+    normalized_request_id = _bounded_required(request_id, "request_id", 200)
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            SELECT * FROM security_events
+            WHERE request_id = ?
+            ORDER BY application_id, created_at, event_id
+            """,
+            (normalized_request_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    grouped: dict[str, list[SecurityEventRecord]] = {}
+    for row in rows:
+        event = _event_from_row(row)
+        grouped.setdefault(event.application_id, []).append(event)
+    return [
+        RequestTraceRecord(application_id=application_id, events=tuple(events))
+        for application_id, events in grouped.items()
+    ]
+
+
 def list_incidents(
     *,
     application_id: str | None = None,
     status: IncidentStatus | None = None,
+    severity: str | None = None,
+    category: str | None = None,
     limit: int = 100,
 ) -> list[SecurityIncidentRecord]:
     _validate_limit(limit)
@@ -249,6 +506,12 @@ def list_incidents(
     if status:
         clauses.append("status = ?")
         parameters.append(status)
+    if severity:
+        clauses.append("severity = ?")
+        parameters.append(severity)
+    if category:
+        clauses.append("category = ?")
+        parameters.append(category)
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     parameters.append(limit)
     conn = get_connection()

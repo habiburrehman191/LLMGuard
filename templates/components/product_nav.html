@@ -47,9 +47,9 @@
             <span class="am-status-badge role-badge">{{ user.role.value }}</span>
             <span class="am-status-badge scope-badge">{{ portal_scope|default("global") }}</span>
             {% if firewall_active is defined and not firewall_active %}
-            <span class="am-status-badge vulnerable-badge">Vulnerable red-team mode</span>
+            <span class="am-status-badge vulnerable-badge">Firewall disabled / red-team mode</span>
             {% else %}
-            <span class="am-status-badge protected-badge">Gateway protected</span>
+            <span class="am-status-badge protected-badge">Firewall enabled</span>
             {% endif %}
         </div>
     </div>
