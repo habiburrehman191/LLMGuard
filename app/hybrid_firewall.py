@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.authorization_boundary import is_authorization_only_request
 from app.config import get_settings
 from app.firewall import sanitize_text, rule_based_check
 from app.ml_firewall import MLFirewallClassifier, ml_check
@@ -34,6 +35,7 @@ class ChunkAssessment:
     label: str
     action: str
     reasons: list[str]
+    authorization_only: bool
 
 
 class HybridFirewall:
@@ -63,6 +65,7 @@ class HybridFirewall:
         rule_label: str,
         semantic_label: str,
         ml_label: str,
+        authorization_only: bool = False,
     ) -> float:
         weighted_score = (
             (self.settings.hybrid_rule_weight * self._calibrate_component_score(rule_score, rule_label))
@@ -88,7 +91,7 @@ class HybridFirewall:
             weighted_score = max(weighted_score, self.settings.quarantine_risk_threshold)
         elif ml_label == "malicious" and semantic_supports_attack:
             weighted_score = max(weighted_score, self.settings.hybrid_malicious_score_floor)
-        elif suspicious_votes >= 2:
+        elif suspicious_votes >= 2 and not authorization_only:
             weighted_score = max(
                 weighted_score,
                 max(
@@ -106,6 +109,7 @@ class HybridFirewall:
         rule_label: str,
         semantic_label: str,
         ml_label: str,
+        authorization_only: bool = False,
     ) -> str:
         malicious_votes = sum(
             label == "malicious"
@@ -116,6 +120,15 @@ class HybridFirewall:
             for label in (rule_label, semantic_label, ml_label)
         )
         semantic_supports_attack = semantic_label in {"suspicious", "malicious"}
+
+        if (
+            authorization_only
+            and rule_label == "safe"
+            and semantic_label != "malicious"
+            and ml_label != "malicious"
+            and risk_score < self.settings.malicious_risk_threshold
+        ):
+            return "safe"
 
         if (
             rule_label == "malicious" or
@@ -173,6 +186,12 @@ class HybridFirewall:
             firewall=self.semantic_firewall,
         )
         ml_result = ml_check(inspection_text, classifier=self.ml_classifier)
+        authorization_only = (
+            str(rule_result["label"]) == "safe"
+            and str(semantic_result["label"]) != "malicious"
+            and str(ml_result["label"]) != "malicious"
+            and is_authorization_only_request(inspection_text)
+        )
 
         risk_score = self._final_risk_score(
             rule_score=float(rule_result["risk_score"]),
@@ -181,12 +200,14 @@ class HybridFirewall:
             rule_label=str(rule_result["label"]),
             semantic_label=str(semantic_result["label"]),
             ml_label=str(ml_result["label"]),
+            authorization_only=authorization_only,
         )
         label = self._final_label(
             risk_score=risk_score,
             rule_label=str(rule_result["label"]),
             semantic_label=str(semantic_result["label"]),
             ml_label=str(ml_result["label"]),
+            authorization_only=authorization_only,
         )
         action = self._action_for_label(
             rule_label=str(rule_result["label"]),
@@ -211,6 +232,11 @@ class HybridFirewall:
             )
         if not reasons:
             reasons.append("All hybrid firewall layers classified the content as safe")
+        if authorization_only:
+            reasons.append(
+                "Record ownership or identity scope requires application authorization; "
+                "no security-evasion intent was detected"
+            )
 
         sanitized_text = text
         if action in {"sanitize", "block", "quarantine"}:
@@ -232,6 +258,7 @@ class HybridFirewall:
             label=label,
             action=action,
             reasons=reasons,
+            authorization_only=authorization_only,
         )
 
 
