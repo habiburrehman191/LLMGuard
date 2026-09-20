@@ -190,6 +190,52 @@ class LLMGuardClientTests(unittest.TestCase):
         self.assertNotIn(self.secret, repr(result))
         self.assertNotIn(self.secret, stream.getvalue())
 
+    def test_inspect_input_accepts_distinct_session_restriction_contract(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "request_id": "sdk-session-restrict",
+                    "stage": "input",
+                    "decision": "restrict",
+                    "classification": "safe",
+                    "threat_type": None,
+                    "severity": "none",
+                    "risk_score": 0.03,
+                    "action": "session_restrict",
+                    "reasons": ["Session access is temporarily restricted."],
+                    "session_enforced": True,
+                    "session_policy_code": "SESSION_RESTRICT_REPEATED_SUSPICIOUS",
+                    "session_state": "SUSPICIOUS",
+                    "detector_decision": "allow",
+                    "detector_action": "allow",
+                },
+            )
+
+        async def exercise():
+            async with httpx.AsyncClient(
+                transport=httpx.MockTransport(handler),
+            ) as http_client:
+                return await self.client.inspect_input(
+                    request_id="sdk-session-restrict",
+                    channel="public",
+                    content="A detector-safe follow-up request.",
+                    security_context={"session_id": "opaque-session-reference"},
+                    http_client=http_client,
+                )
+
+        result = run(exercise())
+        self.assertTrue(result.ok)
+        self.assertEqual("session_restrict", result.action)
+        self.assertTrue(result.session_enforced)
+        self.assertEqual(
+            "SESSION_RESTRICT_REPEATED_SUSPICIOUS",
+            result.session_policy_code,
+        )
+        self.assertEqual("SUSPICIOUS", result.session_state)
+        self.assertEqual("allow", result.detector_decision)
+        self.assertEqual("allow", result.detector_action)
+
     def test_inspect_context_sends_authenticated_context_contract(self) -> None:
         captured: dict[str, object] = {}
 

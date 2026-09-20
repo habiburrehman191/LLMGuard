@@ -57,6 +57,10 @@ class Settings:
     heartbeat_timeout_seconds: int
     heartbeat_max_skew_seconds: int
     session_hash_secret: str
+    session_enforcement_window_seconds: int
+    session_suspicious_event_threshold: int
+    session_malicious_event_threshold: int
+    session_recent_event_limit: int
 
 
 def _path_from_env(env_name: str, default: Path) -> Path:
@@ -176,6 +180,25 @@ def get_settings() -> Settings:
         session_hash_secret=(
             os.getenv("LLMGUARD_SESSION_HASH_SECRET", "").strip()
             or "local-llmguard-session-correlation-only-change-before-shared-deployment"
+        ),
+        session_enforcement_window_seconds=max(
+            1,
+            int(os.getenv("LLMGUARD_SESSION_ENFORCEMENT_WINDOW_SECONDS", "900")),
+        ),
+        session_suspicious_event_threshold=max(
+            2,
+            int(os.getenv("LLMGUARD_SESSION_SUSPICIOUS_EVENT_THRESHOLD", "3")),
+        ),
+        session_malicious_event_threshold=max(
+            2,
+            int(os.getenv("LLMGUARD_SESSION_MALICIOUS_EVENT_THRESHOLD", "2")),
+        ),
+        session_recent_event_limit=max(
+            2,
+            min(
+                256,
+                int(os.getenv("LLMGUARD_SESSION_RECENT_EVENT_LIMIT", "64")),
+            ),
         ),
     )
 

@@ -148,9 +148,22 @@ first/last seen timestamps, unique request count, suspicious/malicious event
 counts, latest/max reported risk score, and cumulative `SAFE`, `SUSPICIOUS`, or
 `MALICIOUS` state. Event evidence contains only request ID, stage,
 classification, risk score, action, and timestamp—never prompts, retrieved
-context, generated output, or application identity records. Phase 12A state is
-observational and does not alter per-request firewall decisions. Bypassed
-requests do not create detector evidence. Configure a private
+context, generated output, or application identity records.
+
+At the input boundary, a separate Phase 12B session policy uses only this
+non-content evidence. By default, three suspicious input events or two
+malicious input events within a 900-second window temporarily restrict a later
+input that the per-request detector would otherwise allow. A single suspicious
+event cannot trigger this policy, expired evidence cannot create a permanent
+lockout, and application, channel, and HMAC session scopes remain isolated.
+Detector decisions are retained separately; policy enforcement is returned as
+`action=session_restrict` with `session_enforced`, `session_policy_code`, and
+the recent-window `session_state`. Configure the bounded policy with
+`LLMGUARD_SESSION_ENFORCEMENT_WINDOW_SECONDS`,
+`LLMGUARD_SESSION_SUSPICIOUS_EVENT_THRESHOLD`,
+`LLMGUARD_SESSION_MALICIOUS_EVENT_THRESHOLD`, and
+`LLMGUARD_SESSION_RECENT_EVENT_LIMIT`. Bypassed requests neither create
+detector evidence nor run session enforcement. Configure a private
 `LLMGUARD_SESSION_HASH_SECRET` outside source control for shared deployments;
 the built-in value is for local development only.
 

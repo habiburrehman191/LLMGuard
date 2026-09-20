@@ -67,6 +67,26 @@ def blocked_result(request_id: str) -> InputInspectionResult:
     )
 
 
+def session_restricted_result(request_id: str) -> InputInspectionResult:
+    return InputInspectionResult(
+        ok=True,
+        request_id=request_id,
+        stage="input",
+        decision="restrict",
+        classification="safe",
+        threat_type=None,
+        severity="none",
+        risk_score=0.03,
+        action="session_restrict",
+        reasons=("Internal session policy detail that must not be exposed",),
+        session_enforced=True,
+        session_policy_code="SESSION_RESTRICT_REPEATED_SUSPICIOUS",
+        session_state="SUSPICIOUS",
+        detector_decision="allow",
+        detector_action="allow",
+    )
+
+
 class UniversityInputFirewallEnforcementTests(unittest.TestCase):
     def _configured_client(self, result_factory) -> tuple[LLMGuardClient, AsyncMock]:
         client = LLMGuardClient(
@@ -278,6 +298,84 @@ class UniversityInputFirewallEnforcementTests(unittest.TestCase):
                             self.assertIsNone(body["conversation_id"])
                             self.assertIsNone(body["message_id"])
                             self.assertNotIn("detector", body["answer"].lower())
+                            self.assertNotIn("risk", body["answer"].lower())
+                        database.assert_not_called()
+                        orchestration.assert_not_called()
+                        retrieval.assert_not_called()
+                        public_tool.assert_not_called()
+                        student_tool.assert_not_called()
+                        employee_tool.assert_not_called()
+                        main_llm.assert_not_called()
+
+        run(scenario())
+
+    def test_session_restriction_has_zero_downstream_calls_for_all_channels(self) -> None:
+        async def scenario() -> None:
+            transport = httpx.ASGITransport(app=app)
+            sdk_client, inspect_mock = self._configured_client(
+                session_restricted_result
+            )
+
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url="http://test",
+                follow_redirects=False,
+            ) as student_client:
+                await login(student_client, "student", "student.demo001", "Student@123")
+                async with httpx.AsyncClient(
+                    transport=transport,
+                    base_url="http://test",
+                    follow_redirects=False,
+                ) as employee_client:
+                    await login(
+                        employee_client,
+                        "employee",
+                        "employee.registrar",
+                        "Employee@123",
+                    )
+                    async with httpx.AsyncClient(
+                        transport=transport,
+                        base_url="http://test",
+                        follow_redirects=False,
+                    ) as public_client:
+                        with (
+                            patch(
+                                "university_site.chatbot.input_firewall.llmguard_client_from_env",
+                                return_value=sdk_client,
+                            ),
+                            patch("university_site.chatbot.router.SessionLocal") as database,
+                            patch("university_site.chatbot.router.ask") as orchestration,
+                            patch("university_site.chatbot.service.retrieve") as retrieval,
+                            patch("university_site.chatbot.retrieval._public_structured") as public_tool,
+                            patch("university_site.chatbot.retrieval._student_structured") as student_tool,
+                            patch("university_site.chatbot.retrieval._employee_structured") as employee_tool,
+                            patch("university_site.chatbot.service.generate_answer") as main_llm,
+                        ):
+                            responses = (
+                                await public_client.post(
+                                    "/api/university/chat/public",
+                                    json={"question": "A detector-safe follow-up request."},
+                                ),
+                                await student_client.post(
+                                    "/api/university/chat/student",
+                                    json={"question": "A detector-safe follow-up request."},
+                                ),
+                                await employee_client.post(
+                                    "/api/university/chat/employee",
+                                    json={"question": "A detector-safe follow-up request."},
+                                ),
+                            )
+
+                        self.assertEqual(3, inspect_mock.await_count)
+                        for response in responses:
+                            self.assertEqual(200, response.status_code)
+                            body = response.json()
+                            self.assertEqual("access_restricted", body["status"])
+                            self.assertEqual(GENERIC_BLOCKED_MESSAGE, body["answer"])
+                            self.assertFalse(body["model_called"])
+                            self.assertIsNone(body["conversation_id"])
+                            self.assertIsNone(body["message_id"])
+                            self.assertNotIn("session", body["answer"].lower())
                             self.assertNotIn("risk", body["answer"].lower())
                         database.assert_not_called()
                         orchestration.assert_not_called()

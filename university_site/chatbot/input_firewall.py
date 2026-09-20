@@ -22,6 +22,7 @@ class ChatInputPreflight:
     configured: bool
     inspection_failed: bool = False
     protection_bypassed: bool = False
+    session_enforced: bool = False
 
 
 async def inspect_chat_input(
@@ -81,6 +82,14 @@ async def inspect_chat_input(
             allowed=True,
             configured=True,
             protection_bypassed=True,
+        )
+
+    if result.session_enforced or result.action == "session_restrict":
+        return ChatInputPreflight(
+            request_id=request_id,
+            allowed=False,
+            configured=True,
+            session_enforced=True,
         )
 
     allowed = result.decision == "allow" and result.action in {"allow", "log"}

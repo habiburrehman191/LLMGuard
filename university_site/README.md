@@ -61,6 +61,11 @@ signed Public assistant token. The raw authentication cookie is never sent to
 LLMGuard. The same backend-derived reference accompanies input, context, and
 output inspection; LLMGuard applies its own keyed hash before persistence.
 Prompt text and browser-supplied role/user fields cannot select this reference.
+If LLMGuard temporarily restricts that scoped session after repeated recent
+security events, the University returns the same generic safe denial before
+opening its database or running retrieval, tools, or the model. Policy counts,
+scores, and codes are never exposed to chatbot users. Protection bypass skips
+this session policy, while University authentication and RBAC remain active.
 
 For responses that require the main language model, the University first
 applies its own authorization and retrieval rules. Only the resulting

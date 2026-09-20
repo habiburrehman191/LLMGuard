@@ -139,6 +139,11 @@ class LLMGuardClient:
             risk_score=_optional_risk_score(response_data["risk_score"]),
             action=response_data["action"],
             reasons=tuple(response_data["reasons"]),
+            session_enforced=response_data.get("session_enforced", False),
+            session_policy_code=response_data.get("session_policy_code"),
+            session_state=response_data.get("session_state"),
+            detector_decision=response_data.get("detector_decision"),
+            detector_action=response_data.get("detector_action"),
         )
 
     async def inspect_context(
@@ -410,7 +415,37 @@ def _is_valid_heartbeat_response(value: Any, application_id: str) -> bool:
 
 
 def _is_valid_input_response(value: Any, request_id: str) -> bool:
-    return _is_valid_inspection_response(value, request_id, stage="input")
+    if _is_valid_inspection_response(value, request_id, stage="input"):
+        return not bool(
+            isinstance(value, Mapping) and value.get("session_enforced")
+        )
+    if not isinstance(value, Mapping):
+        return False
+    risk_score = value.get("risk_score")
+    reasons = value.get("reasons")
+    return (
+        value.get("request_id") == request_id
+        and value.get("stage") == "input"
+        and value.get("decision") == "restrict"
+        and value.get("classification") in {"safe", "suspicious", "malicious"}
+        and (
+            value.get("threat_type") is None
+            or isinstance(value.get("threat_type"), str)
+        )
+        and value.get("severity") in {"none", "low", "medium", "high", "critical"}
+        and isinstance(risk_score, (int, float))
+        and not isinstance(risk_score, bool)
+        and 0 <= float(risk_score) <= 1
+        and value.get("action") == "session_restrict"
+        and isinstance(reasons, list)
+        and all(isinstance(reason, str) for reason in reasons)
+        and value.get("session_enforced") is True
+        and isinstance(value.get("session_policy_code"), str)
+        and value["session_policy_code"].startswith("SESSION_RESTRICT_")
+        and value.get("session_state") in {"SUSPICIOUS", "MALICIOUS"}
+        and value.get("detector_decision") == "allow"
+        and value.get("detector_action") in {"allow", "log"}
+    )
 
 
 def _is_valid_context_response(value: Any, request_id: str) -> bool:

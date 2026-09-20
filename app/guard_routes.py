@@ -39,7 +39,11 @@ from app.protection_control import (
     record_guard_stage_failure,
     record_guard_stage_success,
 )
-from app.session_risk import record_session_risk_event
+from app.session_enforcement import (
+    evaluate_input_session_policy,
+    record_session_enforcement,
+)
+from app.session_risk import SecuritySessionRecord, record_session_risk_event
 
 
 router = APIRouter(prefix="/api/v1", tags=["application-security"])
@@ -183,8 +187,20 @@ class InputGuardResponse(BaseModel):
     threat_type: str | None
     severity: Literal["none", "low", "medium", "high", "critical"]
     risk_score: float = Field(ge=0, le=1)
-    action: Literal["allow", "log", "sanitize", "quarantine", "block"]
+    action: Literal[
+        "allow",
+        "log",
+        "sanitize",
+        "quarantine",
+        "block",
+        "session_restrict",
+    ]
     reasons: list[str]
+    session_enforced: bool = False
+    session_policy_code: str | None = None
+    session_state: Literal["SAFE", "SUSPICIOUS", "MALICIOUS"] | None = None
+    detector_decision: Literal["allow", "restrict"] | None = None
+    detector_action: Literal["allow", "log", "sanitize", "quarantine", "block"] | None = None
 
 
 class SanitizedContextChunk(BaseModel):
@@ -356,12 +372,46 @@ def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:
             detail="Request ID has already been used for this application.",
         ) from None
 
-    _track_session_risk(
+    security_session = _track_session_risk(
         payload,
         classification=decision.classification,
         risk_score=decision.risk_score,
         action=decision.action,
     )
+
+    session_policy = None
+    if security_session is not None:
+        session_policy = evaluate_input_session_policy(
+            session=security_session,
+            current_classification=decision.classification,
+            current_action=decision.action,
+            current_risk_score=decision.risk_score,
+        )
+        if session_policy.session_enforced:
+            policy_code = session_policy.session_policy_code
+            if policy_code is None:
+                raise RuntimeError("Enforced session policy is missing a policy code")
+            record_session_enforcement(
+                session=security_session,
+                request_id=payload.request_id,
+                policy_code=policy_code,
+            )
+            return InputGuardResponse(
+                request_id=payload.request_id,
+                stage="input",
+                decision="restrict",
+                classification=decision.classification,
+                threat_type=decision.threat_type,
+                severity=decision.severity,
+                risk_score=decision.risk_score,
+                action="session_restrict",
+                reasons=["Session access is temporarily restricted by LLMGuard policy."],
+                session_enforced=True,
+                session_policy_code=policy_code,
+                session_state=session_policy.session_state,
+                detector_decision=decision.decision,
+                detector_action=decision.action,
+            )
 
     return InputGuardResponse(
         request_id=payload.request_id,
@@ -373,6 +423,7 @@ def _inspect_input(payload: InputGuardRequest) -> InputGuardResponse:
         risk_score=decision.risk_score,
         action=decision.action,
         reasons=list(decision.reasons),
+        session_state=(session_policy.session_state if session_policy else None),
     )
 
 
@@ -488,9 +539,9 @@ def _track_session_risk(
     classification: str,
     risk_score: float,
     action: str,
-) -> None:
+) -> SecuritySessionRecord | None:
     try:
-        record_session_risk_event(
+        return record_session_risk_event(
             application_id=payload.application_id,
             channel=payload.channel,
             request_id=payload.request_id,
@@ -502,4 +553,4 @@ def _track_session_risk(
         )
     except Exception:
         # Phase 12A tracking is observational and must not alter guard decisions.
-        pass
+        return None

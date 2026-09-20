@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 import hashlib
 import hmac
 import sqlite3
@@ -233,6 +234,35 @@ def list_session_events(
             ORDER BY id
             """,
             (security_session_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [_event_from_row(row) for row in rows]
+
+
+def list_recent_session_events(
+    security_session_id: int,
+    *,
+    stage: GuardStage,
+    since: datetime,
+    limit: int,
+) -> list[SecuritySessionEventRecord]:
+    if limit < 1 or limit > 256:
+        raise ValueError("limit must be between 1 and 256")
+    since_value = since.strftime("%Y-%m-%d %H:%M:%S")
+    conn = get_connection()
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            SELECT * FROM security_session_events
+            WHERE security_session_id = ?
+              AND stage = ?
+              AND datetime(created_at) >= datetime(?)
+            ORDER BY datetime(created_at) DESC, id DESC
+            LIMIT ?
+            """,
+            (security_session_id, stage, since_value, limit),
         ).fetchall()
     finally:
         conn.close()

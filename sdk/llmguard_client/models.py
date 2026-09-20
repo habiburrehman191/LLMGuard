@@ -45,6 +45,11 @@ class InputInspectionResult:
     risk_score: float | None = None
     action: str | None = None
     reasons: tuple[str, ...] = ()
+    session_enforced: bool = False
+    session_policy_code: str | None = None
+    session_state: str | None = None
+    detector_decision: str | None = None
+    detector_action: str | None = None
     error: LLMGuardClientError | None = None
 
 

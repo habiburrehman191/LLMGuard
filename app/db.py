@@ -376,6 +376,32 @@ def init_db() -> None:
         ON security_session_events (security_session_id, request_id, created_at)
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS session_enforcement_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            application_id TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            session_hash TEXT NOT NULL,
+            request_id TEXT NOT NULL,
+            policy_code TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(application_id),
+            UNIQUE (application_id, channel, request_id, policy_code)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE INDEX IF NOT EXISTS idx_session_enforcement_events_scope_created
+        ON session_enforcement_events (
+            application_id,
+            channel,
+            session_hash,
+            created_at
+        )
+        """
+    )
 
     existing_columns = {
         row[1]
