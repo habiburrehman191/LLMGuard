@@ -81,7 +81,7 @@ def _allow_output() -> SimpleNamespace:
 class EvaluationDatasetTests(unittest.TestCase):
     def test_dataset_is_deterministic_and_covers_every_required_category(self) -> None:
         cases = load_evaluation_cases()
-        self.assertEqual(18, len(cases))
+        self.assertEqual(54, len(cases))
         self.assertEqual(sorted(case.case_id for case in cases), [c.case_id for c in cases])
         counts = category_counts(cases)
         self.assertEqual(set(CATEGORIES), set(counts))
@@ -311,8 +311,11 @@ class ReportTests(unittest.TestCase):
             )
             json_path = Path(payload["output_files"]["json"])
             csv_path = Path(payload["output_files"]["csv"])
-            rendered = json_path.read_text(encoding="utf-8") + csv_path.read_text(
-                encoding="utf-8"
+            markdown_path = Path(payload["output_files"]["markdown"])
+            rendered = (
+                json_path.read_text(encoding="utf-8")
+                + csv_path.read_text(encoding="utf-8")
+                + markdown_path.read_text(encoding="utf-8")
             )
             self.assertNotIn("Ignore previous instructions", rendered)
             self.assertNotIn('"content"', rendered)

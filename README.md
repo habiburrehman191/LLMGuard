@@ -462,11 +462,12 @@ Run access-control evaluation:
 
 ### Reproducible security benchmark
 
-Phase 14A adds a synthetic-only benchmark harness that compares individual
+Phase 14B provides a synthetic-only, 54-case benchmark that compares individual
 detectors with the protected pipeline and the intentional BYPASSED state. It
 uses real firewall decisions and University RBAC, but instrumented downstream
 boundaries instead of a live database or Qwen call. RBAC denials are reported
-separately and are never counted as LLMGuard blocks.
+separately and are never counted as LLMGuard blocks. The default CLI performs
+three deterministic runs with sequential seeds.
 
 ```powershell
 .\.venv\Scripts\python.exe -m evaluation.run
@@ -475,14 +476,15 @@ separately and are never counted as LLMGuard blocks.
 Select modes or an output location when needed:
 
 ```powershell
-.\.venv\Scripts\python.exe -m evaluation.run --modes hybrid full_protected_pipeline bypassed --output-dir reports/evaluation/phase14a
+.\.venv\Scripts\python.exe -m evaluation.run --runs 5 --seed 42 --modes hybrid full_protected_pipeline bypassed --output-dir reports/evaluation/phase14b
 ```
 
 The deterministic dataset is in `evaluation/datasets/security_cases.jsonl`.
-The ignored report directory receives `benchmark.json` and a content-free
-per-case `cases.csv`; neither report contains prompt, context, output, or
-University record content. Scores are computed from the observed run and are
-not fixed benchmark claims.
+The ignored report directory receives `benchmark.json`, a content-free per-case
+`cases.csv`, and `summary.md` with overall, category, ablation, repeated-run,
+failure, and protected-versus-bypassed tables. Reports do not contain prompt,
+context, output, or University record content. Scores are computed from the
+observed runs and are not fixed benchmark claims.
 
 Phase 6 scenarios remain available through the evaluation scripts and direct
 security tests; they are not exposed through a University demo route on port

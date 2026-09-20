@@ -10,7 +10,7 @@ from evaluation.harness import DEFAULT_OUTPUT_DIR, MODE_ORDER, run_benchmark
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run the synthetic LLMGuard Phase 14A security benchmark.",
+        description="Run the synthetic LLMGuard Phase 14B security benchmark.",
     )
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET_PATH)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
@@ -21,6 +21,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=list(MODE_ORDER),
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--runs",
+        type=int,
+        default=3,
+        help="Repeated deterministic runs (1-100; default: 3).",
+    )
     return parser
 
 
@@ -31,10 +37,12 @@ def main(argv: list[str] | None = None) -> int:
         output_dir=args.output_dir,
         modes=args.modes,
         seed=args.seed,
+        run_count=args.runs,
     )
     summary = {
         "dataset_case_count": payload["metadata"]["dataset_case_count"],
         "modes": args.modes,
+        "run_count": args.runs,
         "metrics": payload["metrics"],
         "output_files": payload["output_files"],
     }

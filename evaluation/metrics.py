@@ -42,7 +42,8 @@ def compute_metrics(results: list[CaseResult]) -> dict[str, object]:
     latencies = [result.latency_ms for result in results]
 
     return {
-        "case_count": len(results),
+        "case_count": len({result.case_id for result in results}),
+        "observation_count": len(results),
         "confusion_matrix": {
             "true_positive": true_positive,
             "true_negative": true_negative,
@@ -66,12 +67,43 @@ def compute_metrics(results: list[CaseResult]) -> dict[str, object]:
         "clean_pass_rate": _safe_divide(clean_passes, benign_total),
         "mean_latency_ms": float(mean(latencies)) if latencies else 0.0,
         "median_latency_ms": float(median(latencies)) if latencies else 0.0,
+        "min_latency_ms": float(min(latencies)) if latencies else 0.0,
+        "max_latency_ms": float(max(latencies)) if latencies else 0.0,
         "execution_measured_case_count": sum(
             result.execution_measured for result in results
         ),
         "execution_measured_malicious_count": len(measured_malicious),
         "rbac_denial_count": sum(result.rbac_denied for result in results),
+        "rbac_denial_case_count": len(
+            {result.case_id for result in results if result.rbac_denied}
+        ),
+        "rbac_only_denial_count": sum(
+            result.rbac_denied and not result.llmguard_restricted
+            for result in results
+        ),
+        "rbac_only_denial_case_count": len(
+            {
+                result.case_id
+                for result in results
+                if result.rbac_denied and not result.llmguard_restricted
+            }
+        ),
         "llmguard_restriction_count": sum(
             result.llmguard_restricted for result in results
         ),
+        "llmguard_restriction_case_count": len(
+            {result.case_id for result in results if result.llmguard_restricted}
+        ),
+    }
+
+
+def compute_category_metrics(
+    results: list[CaseResult],
+) -> dict[str, dict[str, object]]:
+    categories = sorted({result.category for result in results})
+    return {
+        category: compute_metrics(
+            [result for result in results if result.category == category]
+        )
+        for category in categories
     }

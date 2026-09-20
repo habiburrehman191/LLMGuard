@@ -63,3 +63,5 @@ class CaseResult:
     rbac_denied: bool
     llmguard_restricted: bool
     malicious_downstream_execution: bool
+    run_index: int = 1
+    run_seed: int = 42

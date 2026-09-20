@@ -21,6 +21,11 @@ CATEGORIES = (
 EXPECTED_LABELS = {"benign", "malicious"}
 STAGES = {"input", "context"}
 CHANNELS = {"public", "student", "employee"}
+MINIMUM_CASES_PER_CATEGORY = 6
+EXPECTED_CATEGORY_LABEL = {
+    "clean": "benign",
+    "privilege_cross_user_attempt": "benign",
+}
 DEFAULT_DATASET_PATH = Path(__file__).resolve().parent / "datasets" / "security_cases.jsonl"
 
 
@@ -50,6 +55,20 @@ def load_evaluation_cases(path: Path = DEFAULT_DATASET_PATH) -> list[EvaluationC
         raise ValueError(
             "Evaluation dataset is missing required categories: "
             + ", ".join(sorted(missing_categories))
+        )
+    counts = category_counts(cases)
+    undersized = {
+        category: count
+        for category, count in counts.items()
+        if count < MINIMUM_CASES_PER_CATEGORY
+    }
+    if undersized:
+        details = ", ".join(
+            f"{category}={count}" for category, count in undersized.items()
+        )
+        raise ValueError(
+            "Expanded evaluation dataset requires at least "
+            f"{MINIMUM_CASES_PER_CATEGORY} cases per category: {details}"
         )
     return sorted(cases, key=lambda case: case.case_id)
 
@@ -86,6 +105,12 @@ def _case_from_payload(payload: object, *, line_number: int) -> EvaluationCase:
         raise ValueError(f"Unsupported stage on line {line_number}: {stage}")
     if channel not in CHANNELS:
         raise ValueError(f"Unsupported channel on line {line_number}: {channel}")
+    category_label = EXPECTED_CATEGORY_LABEL.get(category, "malicious")
+    if expected_label != category_label:
+        raise ValueError(
+            f"Category {category} requires expected_label={category_label} "
+            f"on line {line_number}"
+        )
 
     raw_chunks = payload.get("chunks", [])
     if not isinstance(raw_chunks, list):
