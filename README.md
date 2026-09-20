@@ -2,6 +2,10 @@
 
 LLMGuard is a local RAG security demo with a prompt firewall, retrieved-content firewall, semantic detection, trained ML classifier, FAISS retrieval, dashboard logging, document upload/RAG ingestion support, and Qwen3 1.7B as the official local Ollama model.
 
+The consolidated startup, configuration, security-invariant, reproducibility,
+and deployment-readiness checklist is in
+[`docs/architecture/RELEASE_READINESS.md`](docs/architecture/RELEASE_READINESS.md).
+
 ## Runtime Boundary
 
 LLMGuard runs on `http://127.0.0.1:8000` and exposes only product, security,
