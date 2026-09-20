@@ -182,16 +182,25 @@ Rebuild the idempotent assistant source and vector indexes with:
 .\.venv\Scripts\python.exe -m university_site.chatbot.indexing
 ```
 
-The rebuild prepares University-owned sources and then calls the generic SDK's
-`inspect_document()` once per source at the shared boundary before any
-`ChatKnowledgeChunk` or vector-index write. `APPROVE` stores the original;
-`SANITIZE` stores and vectorizes only `sanitized_text`; `QUARANTINE` and
-`REJECT` omit the source. A configured connection, authentication, or response
-failure stops before index writes. Authenticated `BYPASSED` continues the
-existing University indexing flow without being recorded as approval. When
-both integration credentials are absent, standalone indexing remains
-available. Application ID, channel, and protection state are derived from
-backend configuration and source scope, never browser fields.
+The rebuild validates University-owned, already-extracted sources and then
+calls the generic SDK's `inspect_document()` at the shared boundary before any
+`ChatKnowledgeChunk` or vector-index write. Validation covers plain filenames,
+matching text-oriented extensions/MIME types, a 128,000-byte UTF-8 text limit,
+blank or malformed control characters, and bounded JSON metadata. The current
+University ingestion path does not accept raw files and has no PDF/DOCX
+extractor; this phase does not add a parser or OCR.
+
+After whole-document approval or sanitization, the existing shared text
+chunker creates stable `<source-id>::chunk:<index>` identities. Every chunk is
+then inspected independently. `APPROVE` stores the original chunk; `SANITIZE`
+stores and vectorizes only `sanitized_text`; `QUARANTINE` and `REJECT` omit the
+chunk. A whole-document quarantine stops before chunking, while a configured
+connection, authentication, or response failure stops before database
+replacement. Authenticated `BYPASSED` continues the prior unchunked University
+indexing flow without being recorded as approval. When both integration
+credentials are absent, standalone indexing remains available. Application
+ID, channel, and protection state are derived from backend configuration and
+source scope, never browser fields.
 
 Generated vector files remain under
 `university_site/demo_data/chat_vector_store/` and are ignored by Git. The

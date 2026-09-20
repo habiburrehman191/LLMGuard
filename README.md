@@ -223,13 +223,18 @@ absent, the University retains its local standalone input, context, and output
 behavior. LLMGuard does not decide University record ownership or portal
 permissions.
 
-The University knowledge-index rebuild also uses `inspect_document()` at its
-single prepared-source boundary before writing `ChatKnowledgeChunk` rows or
-building vector indexes. Approved text continues unchanged, sanitized text
-fully replaces the original before persistence, and quarantined or rejected
-sources are omitted. A configured inspection failure stops the rebuild before
-index writes; explicit `BYPASSED` and fully unconfigured standalone mode retain
-the University's existing indexing behavior.
+The University knowledge-index rebuild validates its already-extracted text,
+filename/MIME pair, size, control characters, and bounded metadata before
+calling `inspect_document()` at its single prepared-source boundary. An
+approved or sanitized whole document is split with the existing deterministic
+text chunker, and every chunk is inspected again under a stable
+`<source-id>::chunk:<index>` identity. Only approved or sanitized chunk text is
+written to `ChatKnowledgeChunk` or supplied to vector indexing. A whole-source
+quarantine stops before chunking; a chunk quarantine/rejection omits that
+chunk; and a configured failure stops the rebuild before database replacement.
+Explicit `BYPASSED` and fully unconfigured standalone mode retain the previous
+unchunked University indexing behavior. The University has no file-upload
+extraction path, so this phase adds no PDF/DOCX parser or OCR.
 
 Legacy fictional-university route modules and test data remain in the repository
 for controlled regression coverage, but `/student/*`, `/employee/*`, and

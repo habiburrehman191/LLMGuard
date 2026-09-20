@@ -57,7 +57,23 @@ def configured_client(result: DocumentInspectionResult) -> tuple[LLMGuardClient,
         api_secret="synthetic-secret-not-real",
         environment="development",
     )
-    inspection = AsyncMock(return_value=result)
+    first_call = True
+
+    async def inspect_document(**kwargs) -> DocumentInspectionResult:
+        nonlocal first_call
+        if first_call:
+            first_call = False
+            return result
+        return DocumentInspectionResult(
+            ok=True,
+            request_id=kwargs["request_id"],
+            source_id=kwargs["source_id"],
+            classification="safe",
+            risk_score=0.01,
+            action="APPROVE",
+        )
+
+    inspection = AsyncMock(side_effect=inspect_document)
     client.inspect_document = inspection
     return client, inspection
 
@@ -116,8 +132,8 @@ class UniversityIngestionFirewallEnforcementTests(unittest.TestCase):
 
         self.assertEqual(1, result["total"])
         self.assertEqual([document["content"]], [item.content for item in stored])
-        inspection.assert_awaited_once()
-        sent = inspection.await_args.kwargs
+        self.assertEqual(2, inspection.await_count)
+        sent = inspection.await_args_list[0].kwargs
         self.assertEqual("public", sent["channel"])
         self.assertEqual(document["source_id"], sent["source_id"])
         self.assertEqual("text/plain", sent["mime_type"])
@@ -171,7 +187,7 @@ class UniversityIngestionFirewallEnforcementTests(unittest.TestCase):
             ):
                 rebuild_vector_indexes(session)
 
-        inspection.assert_awaited_once()
+        self.assertEqual(2, inspection.await_count)
         self.assertEqual(3, build_index.call_count)
         vector_chunks = [
             chunk

@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from ..models import ChatKnowledgeChunk
+from .ingestion_firewall import document_source_id_from_chunk_id
 from .types import SourceReference
 
 
@@ -24,10 +25,15 @@ def _allowed_statement(portal_context: str):
 
 
 def _metadata(item: ChatKnowledgeChunk) -> dict[str, object]:
+    document_source_id = document_source_id_from_chunk_id(item.source_id)
     return {
-        "document_id": item.source_id,
+        "document_id": document_source_id,
         "chunk_id": item.source_id,
-        "chunk_index": 0,
+        "chunk_index": (
+            int(item.source_id.rsplit("::chunk:", 1)[1])
+            if "::chunk:" in item.source_id
+            else 0
+        ),
         "chunk_text": item.content,
         "title": item.title,
         "category": item.source_type,
@@ -75,7 +81,7 @@ def _indexes_current(session: Session) -> bool:
 def _as_source(item: ChatKnowledgeChunk, score: float = 0.0) -> SourceReference:
     return SourceReference(
         source_type=item.source_type,
-        source_id=item.source_id,
+        source_id=document_source_id_from_chunk_id(item.source_id),
         title=item.title,
         route=item.route,
         classification=item.classification,
