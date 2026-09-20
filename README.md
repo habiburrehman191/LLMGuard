@@ -460,6 +460,30 @@ Run access-control evaluation:
 .\.venv\Scripts\python.exe scripts\evaluate_university_access_control.py
 ```
 
+### Reproducible security benchmark
+
+Phase 14A adds a synthetic-only benchmark harness that compares individual
+detectors with the protected pipeline and the intentional BYPASSED state. It
+uses real firewall decisions and University RBAC, but instrumented downstream
+boundaries instead of a live database or Qwen call. RBAC denials are reported
+separately and are never counted as LLMGuard blocks.
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run
+```
+
+Select modes or an output location when needed:
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run --modes hybrid full_protected_pipeline bypassed --output-dir reports/evaluation/phase14a
+```
+
+The deterministic dataset is in `evaluation/datasets/security_cases.jsonl`.
+The ignored report directory receives `benchmark.json` and a content-free
+per-case `cases.csv`; neither report contains prompt, context, output, or
+University record content. Scores are computed from the observed run and are
+not fixed benchmark claims.
+
 Phase 6 scenarios remain available through the evaluation scripts and direct
 security tests; they are not exposed through a University demo route on port
 8000.
