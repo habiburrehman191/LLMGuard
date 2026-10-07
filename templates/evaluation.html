@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation | LLMGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/evaluation_benchmark.css?v={{ asset_version }}-benchmark-1">
+</head>
+<body class="product-body portal-body console-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page">
+        <div class="portal-shell console-shell">
+            {% include "components/admin_sidebar.html" %}
+            <div class="portal-main console-main">
+                {% set active_evaluation_page = 'benchmark' %}
+                {% include "components/evaluation_subnav.html" %}
+                <div class="evaluation-benchmark-page" data-benchmark-state="{{ 'recorded' if benchmark_report.available else 'unavailable' }}">
+                    <header class="console-page-header eb-header">
+                        <div><span class="console-eyebrow">Evaluation</span><h1>Benchmark</h1><p>Controlled synthetic evaluation of LLMGuard security behavior.</p></div>
+                        <span class="eb-scope-pill"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#compare"></use></svg>Research / Demo Evaluation</span>
+                    </header>
+                    {% if benchmark_report.available %}
+                    {% set b = benchmark_report %}
+                    <div class="eb-summary" aria-label="Recorded benchmark metadata">
+                        <article><span>Evaluation dataset<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#database"></use></svg></span><strong data-benchmark-fact="cases">{{ benchmark_case_count }}</strong><small>Synthetic cases</small></article>
+                        <article><span>Repeated runs<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#compare"></use></svg></span><strong data-benchmark-fact="runs">{{ b.run_count }}</strong><small>Seeds {{ b.seeds|join(', ') }}</small></article>
+                        <article><span>Evaluation modes<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#firewall"></use></svg></span><strong data-benchmark-fact="modes">{{ b.modes|length }}</strong><small>Detectors and pipeline replay</small></article>
+                        <article class="eb-report-card"><span>Evidence source<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#audit"></use></svg></span><strong>Stored final report</strong><small>Recorded results · read only</small></article>
+                    </div>
+
+                    <div class="eb-main-grid">
+                        <div class="eb-column">
+                            <section class="eb-panel eb-performance" aria-labelledby="eb-performance-heading">
+                                <div class="eb-panel-heading"><div><span class="eb-kicker">Protection enabled</span><h2 id="eb-performance-heading">Protected benchmark results</h2></div><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                                <div class="eb-performance-body">
+                                    {% if b.protected.accuracy %}<div class="eb-accuracy"><div class="eb-ring" style="--eb-progress: {{ b.protected.accuracy.value * 100 }}%" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div><strong data-mode="full_protected_pipeline" data-metric="accuracy">{{ b.protected.accuracy.percent }}</strong><span>Accuracy</span></div>{% endif %}
+                                    <dl class="eb-quality-metrics">{% for key, label in [('precision', 'Precision'), ('recall', 'Recall'), ('f1', 'F1')] %}{% if key in b.protected %}<div><dt>{{ label }}</dt><dd data-mode="full_protected_pipeline" data-metric="{{ key }}">{{ b.protected[key].percent }}</dd></div>{% endif %}{% endfor %}</dl>
+                                </div>
+                                <p class="eb-panel-note">Results aggregated across {{ b.observations }} recorded observations.</p>
+                            </section>
+
+                            <section class="eb-panel" aria-labelledby="eb-outcome-heading">
+                                <div class="eb-panel-heading"><div><span class="eb-kicker">Security &amp; utility</span><h2 id="eb-outcome-heading">Recorded security outcomes</h2></div><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#target"></use></svg></div>
+                                <div class="eb-outcomes">{% for key, label, note in [('attack_success_rate', 'Attack Success Rate', 'Unsanitized instructions reaching execution'), ('false_positive_rate', 'False Positive Rate', 'Benign cases incorrectly restricted'), ('false_negative_rate', 'False Negative Rate', 'Malicious cases missed by protection'), ('clean_pass_rate', 'Clean Pass Rate', 'Benign cases passing the benchmark')] %}{% if key in b.protected %}<article class="{{ 'eb-good' if (b.protected[key].value == 0 if key != 'clean_pass_rate' else b.protected[key].value == 1) else 'eb-caution' }}"><span>{{ label }}</span><strong data-mode="full_protected_pipeline" data-metric="{{ key }}">{{ b.protected[key].percent }}</strong><small>{{ note }}</small></article>{% endif %}{% endfor %}</div>
+                                {% if b.sanitized %}<div class="eb-sanitized"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#rag"></use></svg><div><strong>Sanitized continuation, not attack success</strong><p>Malicious downstream rate: <span data-metric="malicious_downstream_execution_rate">{{ b.sanitized.rate.percent }}</span>. {{ b.sanitized.observations }} / {{ b.sanitized.measured }} measured malicious observations ({{ b.sanitized.cases }} unique cases) continued only after sanitization. Unsafe malicious execution: {{ b.sanitized.attack_successes }} recorded attack successes.</p></div></div>{% endif %}
+                            </section>
+
+                            {% if b.confusion %}<section class="eb-panel" aria-labelledby="eb-confusion-heading"><div class="eb-panel-heading"><div><span class="eb-kicker">Protected mode</span><h2 id="eb-confusion-heading">Classification result matrix</h2></div><span class="eb-mini-label">Observations, not unique cases</span></div><dl class="eb-confusion">{% for key, label in [('true_positive', 'True positive'), ('true_negative', 'True negative'), ('false_positive', 'False positive'), ('false_negative', 'False negative')] %}<div><dt>{{ label }}</dt><dd data-confusion="{{ key }}">{{ b.confusion[key] }}</dd></div>{% endfor %}</dl></section>{% endif %}
+                        </div>
+
+                        <div class="eb-column">
+                            {% if b.bypassed %}<section class="eb-panel" aria-labelledby="eb-comparison-heading"><div class="eb-panel-heading"><div><span class="eb-kicker">Controlled comparison</span><h2 id="eb-comparison-heading">Protected vs Bypassed</h2></div><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#compare"></use></svg></div><div class="eb-comparison"><div class="eb-comparison-labels"><span>Metric</span><strong>Protected</strong><strong>Bypassed</strong></div>{% for key, label in [('accuracy', 'Accuracy'), ('attack_success_rate', 'ASR'), ('false_negative_rate', 'FNR'), ('clean_pass_rate', 'Clean Pass Rate')] %}{% if key in b.protected and key in b.bypassed %}<div class="eb-comparison-row"><span>{{ label }}</span><strong>{{ b.protected[key].percent }}</strong><strong data-mode="bypassed" data-metric="{{ key }}">{{ b.bypassed[key].percent }}</strong></div>{% endif %}{% endfor %}</div>{% if b.rbac_note %}<p class="eb-panel-note">University RBAC remains active in both modes. Its denials are excluded from LLMGuard prevention counts.</p>{% endif %}</section>{% endif %}
+
+                            {% if b.coverage %}<section class="eb-panel" aria-labelledby="eb-coverage-heading"><div class="eb-panel-heading"><div><span class="eb-kicker">Synthetic dataset</span><h2 id="eb-coverage-heading">Case coverage</h2></div><span class="eb-mini-label">Categories, not vulnerability rates</span></div><div class="eb-coverage">{% for category in b.coverage %}<div data-category="{{ category.id }}"><span>{{ category.label }}</span><strong>{{ category.count }} cases</strong><div class="eb-coverage-track" aria-hidden="true"><i style="width: {{ category.percent }}%"></i></div></div>{% endfor %}</div><p class="eb-panel-note">Privilege / cross-user cases evaluate University authorization and are benign for detector scoring.</p></section>{% endif %}
+
+                            {% if b.latency %}<section class="eb-panel" aria-labelledby="eb-latency-heading"><div class="eb-panel-heading"><div><span class="eb-kicker">Protected mode · local timing</span><h2 id="eb-latency-heading">Benchmark latency</h2></div><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#chip"></use></svg></div><dl class="eb-latency">{% for key, label in [('mean_latency_ms', 'Mean'), ('median_latency_ms', 'Median')] %}{% if key in b.latency %}<div><dt>{{ label }}</dt><dd data-latency="{{ key }}">{{ b.latency[key] }} <small>ms</small></dd></div>{% endif %}{% endfor %}</dl><p class="eb-panel-note">Instrumented request-boundary replay. No live University database mutations or Qwen generation; timing is not production latency.</p></section>{% endif %}
+                        </div>
+                    </div>
+
+                    <section class="eb-panel eb-reproducibility" aria-labelledby="eb-reproduce-heading"><div class="eb-panel-heading"><div><span class="eb-kicker">Reproducibility</span><h2 id="eb-reproduce-heading">Reproduce Benchmark</h2></div><span class="eb-mini-label">CLI command · no web runner</span></div><div class="eb-reproduce-grid"><div class="eb-command"><span>Reproduction command</span><code data-reproduction-command>{{ b.command }}</code><p>Writes to a separate reproduction directory. Local timing may vary.</p></div><dl class="eb-provenance"><div><dt>Report source</dt><dd data-report-source>{{ b.source }}</dd></div><div><dt>Dataset SHA-256</dt><dd data-hash="dataset">{{ b.dataset_sha256 }}</dd></div><div><dt>Case-order SHA-256</dt><dd data-hash="order">{{ b.case_order_sha256 }}</dd></div></dl></div><div class="eb-modes"><span>Recorded modes</span>{% for mode in b.modes %}<span class="eb-mode" data-evaluation-mode="{{ mode.id }}">{{ mode.label }}<code>{{ mode.id }}</code></span>{% endfor %}</div><p class="eb-panel-note"><a href="/admin/compare">Detector Comparison</a> contains the detailed detector view.</p></section>
+                    {% else %}
+                    <section class="eb-panel eb-unavailable"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#audit"></use></svg><h2>No verified benchmark results</h2><p>{{ benchmark_report.reason }}</p><p>Current dataset: <strong data-benchmark-fact="cases">{{ benchmark_case_count }}</strong> synthetic cases.</p><div class="eb-command"><span>Evaluation command</span><code>python -m evaluation.run</code></div></section>
+                    {% endif %}
+                    <aside class="eb-research-note"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#document"></use></svg><p>Controlled synthetic evaluation. Results describe the tested benchmark and do not imply complete protection against all prompt-injection attacks.</p></aside>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
+</body>
+</html>

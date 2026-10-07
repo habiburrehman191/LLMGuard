@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -112,8 +113,8 @@ class SocConsoleTests(unittest.TestCase):
         expectations = {
             "/admin/security-dashboard": "No unified security events have been recorded.",
             "/admin/soc/events": "No events match the selected filters.",
-            "/admin/soc/incidents": "No incidents match the selected filters.",
-            "/admin/soc/quarantine": "No quarantine events have been recorded.",
+            "/admin/soc/incidents": "No incidents match the current filters.",
+            "/admin/soc/quarantine": "No quarantine evidence matches the selected application.",
             "/admin/soc/trace": "Enter a request ID",
         }
         for path, message in expectations.items():
@@ -197,10 +198,10 @@ class SocConsoleTests(unittest.TestCase):
         self.assertNotIn("bypass-visible", filtered.text)
 
         all_events = self.client.get("/admin/soc/events")
-        self.assertIn('class="soc-state-bypassed"', all_events.text)
+        self.assertIn("soc-state-bypassed", all_events.text)
         self.assertIn("bypassed", all_events.text)
-        self.assertIn('class="soc-state-failure"', all_events.text)
-        self.assertIn("INTEGRATION_VALIDATION_FAILURE", all_events.text)
+        self.assertIn("soc-state-failure", all_events.text)
+        self.assertIn("Integration Validation Failure", all_events.text)
 
     def test_incident_detail_correlation_and_lifecycle_are_real(self) -> None:
         request_id = "incident-console-trace"
@@ -267,8 +268,11 @@ class SocConsoleTests(unittest.TestCase):
 
     def test_request_trace_is_ordered_and_marks_missing_stages(self) -> None:
         request_id = "trace-with-gap"
-        self._record(request_id=request_id, stage="input", event_type="INPUT_FIREWALL")
-        self._record(request_id=request_id, stage="output", event_type="OUTPUT_FIREWALL")
+        # Distinct stored times prevent platform clock ties from reversing the fixture by event ID.
+        with patch("app.security_events._utc_timestamp", return_value="2026-10-07T14:00:00+00:00"):
+            self._record(request_id=request_id, stage="input", event_type="INPUT_FIREWALL")
+        with patch("app.security_events._utc_timestamp", return_value="2026-10-07T14:00:01+00:00"):
+            self._record(request_id=request_id, stage="output", event_type="OUTPUT_FIREWALL")
 
         response = self.client.get(
             "/admin/soc/trace",

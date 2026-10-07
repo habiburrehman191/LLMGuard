@@ -2,43 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red-Team Lab | LLMGuard</title>
+    <title>Red Team | LLMGuard</title>
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='redteam_dashboard.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="/static/evaluation_redteam.css?v={{ asset_version }}-redteam-1">
 </head>
-<body class="product-body am-tech-shell llmg-shell llmg-cyber-bg">
-    {% include "components/product_nav.html" %}
-    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
-        <header class="page-header"><div><span class="am-section-label">[05] RED TEAM LAB</span><h1 class="am-gradient-title">Red-Team Attack Replay Lab</h1><p>Review structured synthetic attack cases and compare expected protected outcomes.</p></div>{% include "components/security_badges.html" %}</header>
-        <section class="redteam-overview">
-            <article><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Stored cases</span><strong>{{ cases|length }}</strong></article>
-            <article><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#chip"></use></svg><span>Runner status</span><strong>{{ "Ready" if runner_available else "Offline" }}</strong></article>
-            <article><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg><span>Protected results</span><strong>Pending</strong></article>
-            <article><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#warning"></use></svg><span>Critical failures</span><strong>Not run</strong></article>
-        </section>
-        <section class="attack-category-grid" aria-label="Attack categories">
-            <article><span>01</span><strong>Privilege Escalation</strong><small>Cross-application role bypass</small></article>
-            <article><span>02</span><strong>Indirect Injection</strong><small>Poisoned document context</small></article>
-            <article><span>03</span><strong>Tool Misuse</strong><small>Unauthorized execution</small></article>
-            <article><span>04</span><strong>Output Leakage</strong><small>DLP and canary tests</small></article>
-        </section>
-        <section class="runner-banner {{ 'available' if runner_available else 'unavailable' }}">
-            <div><strong>{{ "Runner connected" if runner_available else "Runner not installed" }}</strong><p>{{ "Full suite execution is available." if runner_available else "The UI shows real stored cases only. No completed results are fabricated." }}</p></div>
-            <div><button id="run-redteam-suite" class="primary-button" type="button" {% if not runner_available %}disabled{% endif %}>Run full suite</button><a class="secondary-button" href="/admin/redteam/export">Export case manifest</a></div>
-        </section>
-        <p class="form-message" id="redteam-message" role="status"></p>
-        <section class="workspace-card">
-            <div class="section-heading"><div><span class="section-kicker">Attack inventory</span><h2>Synthetic security test cases</h2></div><span class="count-badge">{{ cases|length }}</span></div>
-            <div class="responsive-table">
-                <table><thead><tr><th>Case</th><th>Attack type</th><th>Severity</th><th>Vulnerable result</th><th>Protected result</th><th>Expected action</th><th>Status</th></tr></thead>
-                <tbody>
-                {% for case in cases %}
-                    <tr><td><strong>{{ case.name }}</strong><small>{{ case.case_id }}</small></td><td>{{ case.attack_type }}</td><td><span class="status-badge severity-{{ case.severity }}">{{ case.severity }}</span></td><td class="pending-cell">Not run</td><td class="pending-cell">Not run</td><td>{{ case.expected_action }}</td><td><span class="status-badge neutral-badge">Pending</span></td></tr>
-                {% else %}<tr><td colspan="7" class="empty-message">No red-team cases are stored in the database.</td></tr>{% endfor %}
-                </tbody></table>
+<body class="product-body console-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page"><div class="portal-shell console-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main console-main">
+        {% set active_evaluation_page = 'redteam' %}{% include "components/evaluation_subnav.html" %}
+        <div class="evaluation-redteam-page" data-runner-state="{{ 'not-configured' if not runner_available else 'unavailable' }}" data-redteam-enabled="{{ 'true' if redteam_enabled else 'false' }}">
+            <header class="console-page-header ert-header"><div><span class="console-eyebrow">Evaluation</span><h1>Red Team</h1><p>Adversarial evaluation runner is not configured in this environment.</p></div><span class="ert-scope"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#target"></use></svg>Research / Demo Evaluation</span></header>
+
+            <section class="ert-capability" aria-labelledby="ert-capability-heading">
+                <div class="ert-capability-main">
+                    <div class="ert-capability-top"><span class="ert-emblem"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#target"></use></svg></span><span class="ert-state" data-runner-status>{{ 'NOT CONFIGURED' if not runner_available else 'UNAVAILABLE' }}</span></div>
+                    <span class="ert-kicker">Execution capability</span><h2 id="ert-capability-heading">Adversarial runner unavailable</h2>
+                    <p>No reusable Red Team runner is installed in this controlled build. Stored case definitions can be reviewed and exported; automated attack generation and execution are unavailable.</p>
+                    <div class="ert-run-control"><button id="run-redteam-suite" type="button" disabled aria-describedby="ert-run-help"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#target"></use></svg>Run full suite</button><span id="ert-run-help">Execution is unavailable · HTTP 501</span></div>
+                    <p class="form-message" id="redteam-message" role="status" aria-live="polite"></p>
+                </div>
+                <div class="ert-capability-status"><div class="ert-status-heading"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#chip"></use></svg><span>Environment configuration</span></div><dl>
+                    <div><dt>Runner capability</dt><dd class="ert-amber">{{ 'Not configured' if not runner_available else 'Unavailable' }}</dd></div>
+                    <div><dt>Local red-team configuration</dt><dd data-redteam-flag class="{{ 'ert-flag-enabled' if redteam_enabled else '' }}">{{ 'Enabled' if redteam_enabled else 'Disabled' }}</dd></div>
+                    <div><dt>Execution response</dt><dd>501 <small>Not Implemented</small></dd></div>
+                </dl><p class="ert-flag-note">The configuration flag does not install or enable an automated runner. Execution remains unavailable in either flag state.</p></div>
+            </section>
+
+            <div class="ert-context-grid">
+                <section class="ert-panel ert-purpose" aria-labelledby="ert-purpose-heading"><span class="ert-icon"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg></span><div><span class="ert-kicker">Controlled test environment</span><h2 id="ert-purpose-heading">Adversarial evaluation purpose</h2><p>A configured attack-generation runner would exercise adversarial strategies against the protected LLM pipeline. This build provides stored case definitions, without an automated campaign runner.</p><div class="ert-boundary"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#lock"></use></svg><span>Synthetic data only. Existing protection and authorization boundaries apply.</span></div></div></section>
+                <section class="ert-panel ert-evidence" aria-labelledby="ert-evidence-heading"><span class="ert-kicker">Existing measured evidence</span><h2 id="ert-evidence-heading">Research evaluation available</h2><p>Use the evaluation views for the repository’s measured synthetic evidence.</p><a class="ert-evidence-link" href="/admin/evaluation"><span class="ert-icon"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#monitor"></use></svg></span><span><strong>Benchmark</strong><small>Controlled synthetic evaluation results</small></span><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a><a class="ert-evidence-link" href="/admin/compare"><span class="ert-icon"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#compare"></use></svg></span><span><strong>Detector Comparison</strong><small>Verified detector and protection evidence</small></span><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a></section>
             </div>
-        </section>
+
+            <section class="ert-panel ert-inventory" aria-labelledby="ert-inventory-heading"><div class="ert-inventory-heading"><div><span class="ert-kicker">Definitions, not execution results</span><h2 id="ert-inventory-heading">Stored synthetic cases</h2><p><span data-stored-case-count>{{ cases|length }}</span> stored case{{ '' if cases|length == 1 else 's' }} · expected actions are test specifications</p></div><a class="ert-export" href="/admin/redteam/export"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#document"></use></svg>Export case manifest</a></div>
+                {% if cases %}<div class="ert-cases">{% for case in cases %}<article class="ert-case"><div class="ert-case-identity"><h3 data-case-name>{{ case.name }}</h3><code data-case-id>{{ case.case_id }}</code></div><dl><div><dt>Attack type</dt><dd>{{ case.attack_type }}</dd></div><div><dt>Severity</dt><dd><span class="ert-severity ert-severity-{{ case.severity|lower }}">{{ case.severity }}</span></dd></div><div><dt>Expected action</dt><dd class="ert-expected">{{ case.expected_action }}</dd></div></dl></article>{% endfor %}</div>
+                {% else %}<div class="ert-empty"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#document"></use></svg><h3>No stored synthetic cases</h3><p>No red-team cases are stored in the database.</p></div>{% endif %}
+            </section>
+            <aside class="ert-research-note"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#document"></use></svg><p>Controlled synthetic evaluation. Stored case definitions are not evidence of a completed adversarial campaign.</p></aside>
+        </div>
     </div></div></main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
     <script src="{{ url_for('static', path='redteam_dashboard.js') }}?v={{ asset_version }}" defer></script>

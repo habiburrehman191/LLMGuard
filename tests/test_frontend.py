@@ -87,8 +87,8 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertEqual("/login", response.headers["location"])
         response = self.client.get("/app")
         self.assertEqual(200, response.status_code)
-        self.assertIn("Secure access to LLMGuard", response.text)
-        self.assertIn("/static/product.css?v=25", response.text)
+        self.assertIn("AI Security Firewall", response.text)
+        self.assertIn("/static/product.css?v=26", response.text)
 
     def test_soc_dashboard_uses_unified_metadata_not_legacy_prompt_logs(self) -> None:
         response = self.client.get("/admin/security-dashboard")
@@ -97,7 +97,7 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("No unified security events have been recorded.", response.text)
         self.assertNotIn("What is the reimbursement deadline?", response.text)
         self.assertNotIn("docs/clean/reimbursement_policy.txt", response.text)
-        self.assertIn("/static/security_dashboard.css?v=25", response.text)
+        self.assertIn("/static/security_dashboard.css?v=26", response.text)
         self.assertNotIn("/static/security_dashboard.js", response.text)
 
     def test_dashboard_data_endpoint_returns_metrics(self) -> None:

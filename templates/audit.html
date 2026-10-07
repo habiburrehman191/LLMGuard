@@ -6,10 +6,10 @@
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='security_dashboard.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body am-tech-shell llmg-shell llmg-cyber-bg">
-    {% include "components/product_nav.html" %}
-    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
+<body class="product-body console-body">
+    <main class="console-page"><div class="portal-shell console-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main console-main">
         <header class="page-header"><div><span class="am-section-label">[06] AUDIT TIMELINE</span><h1 class="am-gradient-title">Audit and Investigation Log</h1><p>Trace gateway interactions, firewall decisions, tool authorization, and controlled repository changes.</p></div>{% include "components/security_badges.html" %}</header>
         <div class="audit-summary">
             <article><span>AI interactions</span><strong>{{ interactions|length }}</strong></article>

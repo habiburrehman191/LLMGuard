@@ -3,99 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Overview | LLMGuard</title>
+    <title>Dashboard | LLMGuard</title>
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
-    {% include "components/product_nav.html" %}
-    <main class="portal-page">
-      <div class="portal-shell">
-        {% include "components/admin_sidebar.html" %}
-        <div class="portal-main">
-        <header class="portal-header admin-header">
-            <div>
-                <span class="am-section-label">[01] SECURITY OVERVIEW</span>
-                <h1 class="am-gradient-title">LLMGuard AI Security Dashboard</h1>
-                <p>Monitor firewall decisions, threat activity, detector outcomes, and the applications entering LLMGuard protection.</p>
-            </div>
-            <section class="identity-panel">
-                <span class="identity-avatar">A1</span>
-                <div><strong>{{ user.username }}</strong><small>{{ user.synthetic_ref }}</small></div>
-                {% include "components/security_badges.html" %}
-            </section>
-        </header>
-
-        <section class="admin-kpi-grid security-overview-kpis" aria-label="Security telemetry">
-            <article class="metric-card product-card"><span>Total requests</span><strong>{{ metrics.total_queries }}</strong><small>Inspected by the gateway</small></article>
-            <article class="metric-card product-card"><span>Safe</span><strong>{{ metrics.label_counts.get("safe", 0) }}</strong><small>Low-risk decisions</small></article>
-            <article class="metric-card product-card warning-kpi"><span>Suspicious</span><strong>{{ metrics.label_counts.get("suspicious", 0) }}</strong><small>Requests requiring attention</small></article>
-            <article class="metric-card product-card danger-kpi"><span>Malicious</span><strong>{{ metrics.label_counts.get("malicious", 0) }}</strong><small>High-risk detections</small></article>
-            <article class="metric-card product-card danger-kpi"><span>Blocked</span><strong>{{ metrics.action_counts.get("block", 0) }}</strong><small>Stopped by policy</small></article>
-            <article class="metric-card product-card"><span>Sanitized</span><strong>{{ metrics.action_counts.get("sanitize", 0) }}</strong><small>Released after filtering</small></article>
-            <article class="metric-card product-card warning-kpi"><span>Quarantined</span><strong>{{ metrics.action_counts.get("quarantine", 0) }}</strong><small>Held for investigation</small></article>
-            <article class="metric-card product-card"><span>Latest risk</span><strong>{{ "%.0f%%"|format(metrics.recent_logs[0].risk_score * 100) if metrics.recent_logs else "—" }}</strong><small>{{ metrics.recent_logs[0].label|title if metrics.recent_logs else "No events recorded" }}</small></article>
-        </section>
-
-        <section class="admin-module-grid">
-            <a class="product-card soc-card" href="/admin/security-dashboard"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#monitor"></use></svg><span>Security operations</span><strong>SOC &amp; Live Events</strong><p>Review current telemetry, critical events, detector signals, and enforcement details.</p></a>
-            <a class="product-card soc-card" href="/admin/audit"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#audit"></use></svg><span>Investigation</span><strong>Logs &amp; Request History</strong><p>Trace requests, firewall decisions, tool calls, and audit evidence.</p></a>
-            <a class="product-card soc-card" href="/admin/compare"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#compare"></use></svg><span>Detection analysis</span><strong>Detector Comparison</strong><p>Compare the controlled vulnerable baseline with the protected gateway path.</p></a>
-            <a class="product-card soc-card" href="/admin/documents"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#document"></use></svg><span>RAG protection</span><strong>Document Security</strong><p>Classify, inspect, index, and remove controlled synthetic sources.</p></a>
-            <a class="product-card soc-card" href="/admin/redteam"><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#target"></use></svg><span>Adversarial testing</span><strong>Red-Team Lab</strong><p>Review structured attack cases and runner availability.</p></a>
-        </section>
-
-        <div class="security-overview-grid">
-            <section class="workspace-card recent-security-card">
-                <div class="section-heading"><div><span class="section-kicker">Live security activity</span><h2>Recent security events</h2></div><span class="count-badge">{{ recent_security_events|length }}</span></div>
-                <div class="interaction-list compact security-event-list">
-                    {% for event in recent_security_events %}
-                    <article><span class="status-badge action-{{ event.action }}">{{ event.action }}</span><div><strong>{{ event.label|title }} · {{ event.threat_source or "gateway" }}</strong><small>{{ event.prompt }}</small></div><b>{{ "%.0f"|format(event.risk_score * 100) }}%</b></article>
-                    {% else %}<p class="empty-message">No security events have been recorded yet.</p>{% endfor %}
-                </div>
-                <a class="secondary-button dashboard-text-link" href="/admin/security-dashboard">Open SOC investigation view</a>
-            </section>
-            <section class="workspace-card protection-posture-card">
-                <div class="section-heading"><div><span class="section-kicker">Protection</span><h2>Firewall activity</h2></div><svg class="am-feature-icon"><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
-                <dl class="protection-metric-list">
-                    <div><dt>Prompt firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.prompt_firewall_blocks }}</dd></div>
-                    <div><dt>Access policy blocks</dt><dd>{{ metrics.zero_trust_metrics.access_policy_blocks }}</dd></div>
-                    <div><dt>Tool firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.tool_firewall_blocks }}</dd></div>
-                    <div><dt>Output firewall blocks</dt><dd>{{ metrics.zero_trust_metrics.output_firewall_blocks }}</dd></div>
-                    <div><dt>Unauthorized retrieval</dt><dd>{{ metrics.zero_trust_metrics.unauthorized_retrieval_attempts }}</dd></div>
-                </dl>
-            </section>
-        </div>
-
-        <section id="protected-applications" class="workspace-card protected-applications-panel" aria-labelledby="protected-applications-title">
-            <div class="protected-applications-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
-            <div class="protected-applications-content">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-kicker">Applications</span>
-                        <h2 id="protected-applications-title">Protected Applications</h2>
+<body class="product-body portal-body console-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page">
+        <div class="portal-shell console-shell">
+            {% include "components/admin_sidebar.html" %}
+            <div class="portal-main console-main dashboard-main">
+                {% if selected_integration %}
+                {% set selected_application = selected_integration.application %}
+                {% set verified_stages = namespace(count=0) %}
+                {% for stage in ("input", "context", "output") %}{% if stage in selected_integration.guard_stages %}{% set verified_stages.count = verified_stages.count + 1 %}{% endif %}{% endfor %}
+                {% set recent = security_overview.recent_events %}
+                {% set safe_recent = namespace(ids=[]) %}
+                {% for event in recent %}{% if event.request_id and event.request_id not in safe_recent.ids and event.stage == "input" and event.classification == "safe" and event.action in ("allow", "log") %}{% set safe_recent.ids = safe_recent.ids + [event.request_id] %}{% endif %}{% endfor %}
+                <header class="dashboard-heading">
+                    <div class="dashboard-context">
+                        <div class="dashboard-title-row">
+                            <h1>Security Overview</h1>
+                            <form class="application-switcher" method="get" action="/admin/dashboard">
+                                <label class="sr-only" for="dashboard-application">Selected application</label>
+                                <select id="dashboard-application" name="application_id" onchange="this.form.submit()">
+                                    {% for integration in application_integrations %}
+                                    <option value="{{ integration.application.application_id }}" {{ 'selected' if integration.application.application_id == selected_application.application_id else '' }}>{{ integration.application.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#chevron-down"></use></svg>
+                                <noscript><button class="secondary-button" type="submit">Apply</button></noscript>
+                            </form>
+                        </div>
+                        <div class="dashboard-context-tags">
+                            <span class="integration-state state-{{ selected_integration.runtime_state|lower }}">{{ selected_integration.runtime_state|replace('_', ' ')|title }}</span>
+                            {% if selected_application.environment %}<span>Environment: {{ selected_application.environment|title }}</span>{% endif %}
+                            <span>Channels: {{ selected_application.channels|map(attribute='channel')|join(', ') }}</span>
+                        </div>
                     </div>
-                    <a class="secondary-button dashboard-text-link" href="/admin/applications">Open registry</a>
-                </div>
-                {% for integration in application_integrations %}
-                {% set application = integration.application %}
-                <article class="dashboard-application-row">
-                    <div>
-                        <strong>{{ application.name }}</strong>
-                        <small>{{ application.organization.name }} · {{ application.environment|title }} · Connection: {{ integration.connection_state|replace("_", " ")|title }} · Protection: {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}</small>
-                        <small>Last heartbeat: {{ integration.last_heartbeat_at or "none" }}</small>
-                        <small>App version: {{ integration.application_version or "not reported" }} · Integration: {{ integration.integration_version or "not reported" }} · Channels: {{ integration.reported_channels|join(", ") if integration.reported_channels else "not reported" }}</small>
+                    <div class="dashboard-heading-state">
+                        <small>Heartbeat: <time>{{ selected_integration.last_heartbeat_at or "not received" }}</time></small>
+                        <small>{{ selected_integration.connection_state|replace('_', ' ')|title }}</small>
                     </div>
-                    <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
-                    <code>{{ application.application_id }}</code>
-                </article>
+                </header>
+
+                <section class="reference-dashboard-grid" aria-label="LLMGuard security dashboard">
+                    <article class="dashboard-panel protection-overview-panel">
+                        <div class="panel-heading"><h2>Protection Overview</h2><span>Guard health</span></div>
+                        <div class="protection-gauge">
+                            <svg viewBox="0 0 220 126" role="img" aria-label="{{ verified_stages.count }} of 3 guard stages verified">
+                                {% for stage, path in [
+                                    ("input", "M25 108 A86 86 0 0 1 68 35"),
+                                    ("context", "M78 30 A86 86 0 0 1 142 30"),
+                                    ("output", "M152 35 A86 86 0 0 1 195 108")
+                                ] %}
+                                <path class="gauge-track" d="{{ path }}"/>
+                                <path class="gauge-segment gauge-{{ stage }} {{ 'is-active' if stage in selected_integration.guard_stages else '' }}" d="{{ path }}"/>
+                                {% endfor %}
+                            </svg>
+                            <div><span>Verified guard stages</span><strong>{{ verified_stages.count }} / 3</strong>
+                                <small>{{ selected_integration.runtime_state|replace('_', ' ')|title }}</small></div>
+                        </div>
+                        <div class="stage-legend">
+                            {% for stage in ("input", "context", "output") %}
+                            <span><i class="{{ 'is-active' if stage in selected_integration.guard_stages else '' }}"></i>{{ stage|title }}
+                                <b>{{ 'Bypassed' if selected_integration.runtime_state == 'BYPASSED' else ('Ready' if stage in selected_integration.guard_stages else 'Unverified') }}</b></span>
+                            {% endfor %}
+                        </div>
+                        <p class="dashboard-scope-note">Readiness reflects recorded guard checks, not a security percentage.</p>
+                    </article>
+
+                    <article class="dashboard-panel application-visual-panel">
+                        <div class="panel-heading"><h2>Application Security</h2><span>Security boundary</span></div>
+                        <div class="boundary-emblem" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                        <div class="application-visual-copy">
+                            <span>{{ 'Protected Application' if selected_integration.runtime_state == 'PROTECTED' else 'Registered Application' }}</span>
+                            <h3>{{ selected_application.name }}</h3>
+                            <p>LLMGuard Security Boundary</p>
+                        </div>
+                        <div class="boundary-model"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#brain"></use></svg><span>Local Model <code>qwen3:1.7b</code></span></div>
+                        {% if selected_integration.application_version or selected_integration.integration_version %}
+                        <div class="dashboard-integration-versions">
+                            {% if selected_integration.application_version %}<span>Application <code>{{ selected_integration.application_version }}</code></span>{% endif %}
+                            {% if selected_integration.integration_version %}<span>Integration <code>{{ selected_integration.integration_version }}</code></span>{% endif %}
+                        </div>
+                        {% endif %}
+                        <a class="dashboard-application-link" href="/admin/applications/{{ selected_application.application_id }}">View application <span aria-hidden="true">→</span></a>
+                    </article>
+
+                    <article class="dashboard-panel activity-timeline-panel">
+                        <div class="panel-heading"><h2>Security Activity</h2><span>Recent events</span></div>
+                        <div class="activity-timeline">
+                            {% for action, label, tone in [
+                                ("allow", "Allowed", "green"), ("log", "Logged", "cyan"),
+                                ("block", "Blocked", "red"), ("sanitize", "Sanitized", "cyan"),
+                                ("quarantine", "Quarantined", "amber"), ("session_restrict", "Restricted", "amber"),
+                                ("bypass", "Bypassed", "amber"), ("fail_closed", "Fail closed", "red"), ("reject", "Rejected", "red")
+                            ] %}
+                            {% set count = namespace(value=0) %}
+                            {% for event in recent %}{% if event.action == action %}{% set count.value = count.value + 1 %}{% endif %}{% endfor %}
+                            {% if count.value %}
+                            <div class="timeline-row" data-activity-action="{{ action }}"><span>{{ label }}</span>
+                                <div class="timeline-track"><i class="tone-{{ tone }}" style="width: {{ ((count.value / recent|length) * 100)|round|int }}%"></i></div><strong>{{ count.value }}</strong></div>
+                            {% endif %}
+                            {% endfor %}
+                            {% set other = namespace(count=0) %}
+                            {% for event in recent %}{% if event.action not in ("allow", "log", "block", "sanitize", "quarantine", "session_restrict", "bypass", "fail_closed", "reject") %}{% set other.count = other.count + 1 %}{% endif %}{% endfor %}
+                            {% if other.count %}<div class="timeline-row" data-activity-action="other"><span>Other actions</span><div class="timeline-track"><i class="tone-cyan" style="width: {{ ((other.count / recent|length) * 100)|round|int }}%"></i></div><strong>{{ other.count }}</strong></div>{% endif %}
+                            {% if not recent %}
+                            <div class="reference-empty-state"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#radar"></use></svg><strong>No security activity yet</strong><span>Stored events will populate this chart.</span></div>
+                            {% endif %}
+                        </div>
+                        <p class="dashboard-scope-note">Action counts · latest {{ recent|length }} events within {{ security_overview.window_hours }}h</p>
+                    </article>
+
+                    <article class="dashboard-panel security-summary-panel">
+                        <div class="panel-heading"><h2>Security Summary</h2><span>Selected application</span></div>
+                        <div class="dashboard-summary-grid">
+                            {% for label, count, scope, icon, tone in [
+                                ("Blocked", security_overview.blocked_events, "Last " ~ security_overview.window_hours ~ "h", "shield", "red"),
+                                ("Open Incidents", security_overview.open_incidents, "Current", "warning", "cyan"),
+                                ("Quarantined", security_overview.quarantined_events, "Last " ~ security_overview.window_hours ~ "h", "rag", "amber"),
+                                ("Safe Requests", safe_recent.ids|length, "Recent input requests", "audit", "green")
+                            ] %}
+                            <div class="dashboard-summary-metric tone-{{ tone }}"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ icon }}"></use></svg>
+                                <div><span>{{ label }}</span><strong>{{ count }}</strong><small>{{ scope }}</small></div></div>
+                            {% endfor %}
+                        </div>
+                        <p class="dashboard-scope-note">Distinct safe input request IDs in the latest {{ recent|length }} unified events.</p>
+                    </article>
+
+                    <article class="dashboard-panel top-events-panel">
+                        <div class="panel-heading"><h2>Recent Security Events</h2><a href="/admin/soc/events?application_id={{ selected_application.application_id|urlencode }}">View all</a></div>
+                        <div class="top-event-list">
+                            {% for event in recent[:5] %}
+                            <a class="top-event-row" href="{{ '/admin/soc/trace?application_id=' ~ (event.application_id|urlencode) ~ '&request_id=' ~ (event.request_id|urlencode) if event.request_id else '/admin/soc/events?application_id=' ~ (selected_application.application_id|urlencode) }}" data-security-event>
+                                <span class="event-icon"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ 'warning' if event.classification in ('malicious', 'suspicious') else 'shield' }}"></use></svg></span>
+                                <span class="event-copy"><strong>{{ event.event_type|replace('_', ' ')|title }}</strong><small>{{ event.channel }} · {{ event.stage }} · Risk: {{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Not scored" }}</small></span>
+                                <span class="dashboard-event-outcome"><span class="status-badge soc-action-{{ event.action }}">{{ event.action|replace('_', ' ') }}</span><time datetime="{{ event.created_at }}" title="{{ event.created_at }}">{{ event.created_at[:19]|replace('T', ' ') }} UTC</time></span>
+                            </a>
+                            {% else %}
+                            <div class="reference-empty-state"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg><strong>No security events yet</strong><span>No stored events for this application in the last {{ security_overview.window_hours }}h.</span></div>
+                            {% endfor %}
+                        </div>
+                    </article>
+
+                    <section class="dashboard-panel runtime-panel" id="llmg-runtime-loop" data-runtime-loop aria-labelledby="runtime-title">
+                        <div class="runtime-heading">
+                            <div><span class="runtime-eyebrow">Architecture walkthrough</span><h2 id="runtime-title">LLMGuard — Autonomous Runtime Loop</h2><p>Illustrative flow · latest recorded stage status. Motion does not represent live requests.</p></div>
+                            <span class="integration-state state-{{ selected_integration.runtime_state|lower }}">{{ selected_integration.runtime_state|replace('_', ' ')|title }}</span>
+                        </div>
+                        <div class="runtime-visual">
+                            <svg class="runtime-track" viewBox="0 0 1100 350" aria-hidden="true">
+                                <path class="runtime-rail-foundation" data-runtime-path/>
+                                <path class="runtime-rail-inner" data-runtime-path/>
+                                <path class="runtime-rail-light" data-runtime-path/>
+                                <path class="runtime-quarantine-branch" d="M428 127 C428 275 485 301 550 301"/>
+                                <circle class="runtime-hub-ring" cx="550" cy="163" r="53"/>
+                                <circle class="runtime-hub" cx="550" cy="163" r="43"/>
+                                <use href="/static/llmguard-icons.svg#shield" x="534" y="146" width="32" height="32"/>
+                                <text class="runtime-hub-label" x="550" y="226">LLMGuard</text>
+                                <text class="runtime-hub-subtitle" x="550" y="242">Hybrid Engine</text>
+                                <text class="runtime-hub-state" data-protection-state="{{ selected_integration.runtime_state }}" x="550" y="258">{{ selected_integration.runtime_state|replace('_', ' ') }}</text>
+                                <g data-runtime-motion><circle class="runtime-motion-glow" r="12"/><circle class="runtime-motion-core" r="4"/></g>
+                                {% for i in range(1, 8) %}<g class="runtime-checkpoint" data-runtime-checkpoint="{{ i }}"><circle class="runtime-node-glow" r="18"/><circle class="runtime-node" r="9"/><circle class="runtime-node-pip" r="3"/><text class="runtime-node-label" data-runtime-node-label></text><text class="runtime-node-status" data-runtime-node-status></text></g>{% endfor %}
+                                <rect class="runtime-quarantine-well" x="455" y="282" width="190" height="43" rx="10"/>
+                                <text class="runtime-quarantine-title" x="550" y="299">Quarantine</text>
+                                <text class="runtime-quarantine-count" x="550" y="315">{{ security_overview.quarantined_events }} events · last {{ security_overview.window_hours }}h</text>
+                            </svg>
+                        </div>
+                        <ol class="runtime-stages" aria-label="Seven LLMGuard architecture stages">
+                            {% for number, name, key, detail in [
+                                ("01", "Request Ingress", "ingress", "Controlled request routes and content validation."),
+                                ("02", "Input Firewall", "input", "Prompt firewall, normalization and hybrid detection."),
+                                ("03", "Session / Authorization", "session", "Session risk policy and role-based access control."),
+                                ("04", "Context Firewall", "context", "Retrieved-content inspection and access filtering."),
+                                ("05", "Trusted Prompt + LLM", "llm", "Trusted prompt construction and the local model."),
+                                ("06", "Output Firewall", "output", "Output filtering and data-loss prevention."),
+                                ("07", "Audit / Response", "audit", "Security event logging and controlled responses.")
+                            ] %}
+                            {% set recorded = namespace(event=none) %}
+                            {% for event in recent %}{% if event.stage == key and recorded.event is none %}{% set recorded.event = event %}{% endif %}{% endfor %}
+                            {% set status = namespace(value="Not reported", source="No per-stage telemetry supplied") %}
+                            {% if key in ("input", "context", "output") and selected_integration.runtime_state == "BYPASSED" %}
+                                {% set status.value = "BYPASSED" %}{% set status.source = "Current application protection state" %}
+                            {% elif recorded.event %}
+                                {% set status.value = {"allow": "PASS", "log": "PASS", "block": "BLOCK", "sanitize": "SANITIZE", "quarantine": "QUARANTINE", "bypass": "BYPASSED", "fail_closed": "DEGRADED", "reject": "BLOCK", "session_restrict": "BLOCK"}.get(recorded.event.action, recorded.event.action|upper) %}
+                                {% set status.source = "Latest stored " ~ key ~ " event · " ~ recorded.event.created_at %}
+                            {% elif key in selected_integration.guard_stages %}
+                                {% set status.value = "READY" %}{% set status.source = "Recorded guard-stage health check" %}
+                            {% endif %}
+                            <li><button type="button" data-runtime-stage="{{ loop.index }}" data-stage-name="{{ number }} {{ name }}" data-stage-status="{{ status.value }}" data-stage-source="{{ status.source }}" data-stage-detail="{{ detail }}" aria-label="{{ number }} {{ name }}: {{ status.value }}"><span>{{ number }}</span><strong>{{ name }}</strong><small>{{ status.value }}</small></button></li>
+                            {% endfor %}
+                        </ol>
+                        <div class="runtime-footer">
+                            <div class="runtime-detail" aria-live="off"><span data-runtime-focus>01 Request Ingress</span><strong data-runtime-status>Not reported</strong><small data-runtime-source>No per-stage telemetry supplied</small><p data-runtime-detail>Controlled request routes and content validation.</p></div>
+                            <div class="runtime-controls"><button class="secondary-button" type="button" data-runtime-toggle aria-pressed="false">Pause animation</button><button class="secondary-button" type="button" data-runtime-speed>1× Speed</button></div>
+                        </div>
+                    </section>
+                </section>
                 {% else %}
-                <p>No external applications are registered.</p>
-                {% endfor %}
+                <header class="dashboard-heading"><div><h1>Security Overview</h1><p>No application selected</p></div></header>
+                <section class="dashboard-panel reference-empty-state"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#database"></use></svg><strong>No applications registered</strong><span>Registered applications will appear here.</span></section>
+                {% endif %}
             </div>
-        </section>
         </div>
-      </div>
     </main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
 </body>

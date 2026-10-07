@@ -5,42 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body am-tech-shell login-body llmg-shell neural-os">
-    {% include "components/product_nav.html" %}
-    <main class="login-page">
-        <section class="login-context llmg-login-context">
-            <div class="login-shield am-glass-card am-glow-border llmg-shield-terminal" aria-hidden="true">
-                <svg><use href="/static/llmguard-icons.svg#shield"></use></svg>
-                <span class="am-scan-line"></span>
-                <i></i><i></i><i></i>
-            </div>
-            <span class="llmg-section-label">NEURAL DEFENSE OS / SECURE IDENTITY</span>
-            <h1 class="llmg-gradient-title">Secure access to LLMGuard</h1>
-            <p>Authenticate with a security administrator account to enter the monitoring, protection, and evaluation console.</p>
-            <div class="login-security-note">
-                <strong>Security invariant</strong>
-                <p>Restricted secrets are never sent to Qwen, including for the Super Admin role.</p>
-            </div>
-        </section>
-
-        <section class="login-workspace llmg-login-workspace">
-            <section class="login-card am-glass-card llmg-glass-card llmg-glow-border llmg-corner-bracket">
-                <div class="section-heading">
-                    <div><span class="llmg-section-label">SECURITY CONSOLE</span><h2>Administrator sign in</h2></div>
-                    <span class="am-status-badge protected-badge">Synthetic demo</span>
+<body class="product-body reference-login-body">
+    <main class="reference-login-shell">
+        <div class="login-radar" aria-hidden="true"></div>
+        <div class="reference-login-composition">
+            <p class="login-environment-note">
+                <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
+                Controlled Research Environment
+            </p>
+            <section class="reference-login-card" aria-labelledby="login-heading">
+                <div class="reference-login-intro">
+                    <div class="reference-login-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                    <h1>LLMGuard</h1>
+                    <p>AI Security Firewall</p>
                 </div>
+                <h2 id="login-heading">Administrator Sign In</h2>
                 <form id="login-form">
-                    <label class="field-label" for="username">Username</label>
-                    <input id="username" name="username" type="text" autocomplete="username" required>
-                    <label class="field-label" for="password">Password</label>
-                    <input id="password" name="password" type="password" autocomplete="current-password" required>
-                    <button class="am-cyber-button llmg-cyber-button primary-button" type="submit">Continue to security console</button>
-                    <p class="form-message" id="login-message" role="status"></p>
+                    <div class="login-field">
+                        <label for="username">Username</label>
+                        <div class="login-input-wrap">
+                            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#employee"></use></svg>
+                            <input id="username" name="username" type="text" autocomplete="username" required>
+                        </div>
+                    </div>
+                    <div class="login-field">
+                        <label for="password">Password</label>
+                        <div class="login-input-wrap">
+                            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#lock"></use></svg>
+                            <input id="password" name="password" type="password" autocomplete="current-password" required>
+                        </div>
+                    </div>
+                    <button class="primary-button" type="submit">Sign In to Security Console</button>
+                    <p class="form-message" id="login-message" role="status" aria-live="polite" aria-atomic="true"></p>
                 </form>
-                <p class="login-access-note">Use the existing synthetic security-administrator credentials for this controlled testbed.</p>
+                <p class="login-access-note">Restricted administrative access.</p>
             </section>
-        </section>
+        </div>
     </main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
 </body>

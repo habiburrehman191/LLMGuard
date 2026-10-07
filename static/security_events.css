@@ -1,0 +1,79 @@
+/* Events-only presentation. Existing Security and shared console rules stay intact. */
+.security-events-page { min-width: 0; display: grid; align-content: start; gap: 20px; }
+.security-events-page :is(h2, h3, p) { margin: 0; }
+.security-events-page svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.security-events-page .se-page-header { margin: 0; padding: 4px 0; }
+.security-events-page .se-page-header .count-badge { color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.security-events-page .se-stream-panel { min-width: 0; padding: 20px; background: var(--cs-panel); box-shadow: var(--cs-shadow); }
+.se-panel-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.se-panel-heading > div { min-width: 0; flex: 1; }
+.se-heading-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.security-events-page h2 { color: var(--cs-text); font-size: 15px; font-weight: 650; line-height: 1.4; letter-spacing: -.02em; }
+.se-panel-heading p { margin-top: 3px; color: var(--cs-muted); font-size: 11px; }
+.se-privacy-label { display: inline-flex; align-items: center; gap: 6px; color: var(--cs-muted); font-size: 10px; }
+.se-privacy-label svg { width: 13px; height: 13px; color: var(--cs-blue-2); }
+.se-filter-form { display: grid; grid-template-columns: minmax(170px, 1.15fr) minmax(180px, 1.2fr) minmax(130px, .75fr) minmax(130px, .75fr) auto; align-items: end; gap: 12px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--cs-line); }
+.security-events-page .se-filter-form label { min-width: 0; display: grid; gap: 6px; color: var(--cs-muted); font-size: 10px; }
+.security-events-page .se-filter-form :is(input, select) { min-width: 0; width: 100%; height: 36px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--cs-line); border-radius: 8px; font-size: 11px; color: var(--cs-text); background: var(--cs-panel-2); }
+.se-filter-actions { display: flex; align-items: center; gap: 7px; }
+.security-events-page .se-filter-actions :is(button, a) { padding: 8px 12px; min-height: 36px; white-space: nowrap; font-size: 11px; }
+.security-events-page .se-more-filters[hidden] { display: none; }
+.se-advanced-filters { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 4px; }
+.se-enhanced-filters .se-advanced-filters { display: none; }
+.se-enhanced-filters.show-advanced-filters .se-advanced-filters { display: grid; }
+.se-event-list { display: grid; gap: 8px; }
+.se-event-row { min-width: 0; display: grid; grid-template-columns: 34px minmax(180px, 1fr) minmax(105px, auto) minmax(85px, auto) 162px 68px; align-items: center; gap: 12px; min-height: 74px; padding: 12px; border: 1px solid transparent; border-radius: 8px; background: var(--cs-panel-2); transition: background-color .15s ease, border-color .15s ease; }
+.se-event-row:hover { border-color: var(--cs-line-strong); background: var(--cs-panel-3); }
+.se-event-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.se-event-main { min-width: 0; display: grid; gap: 6px; }
+.security-events-page .se-event-main h3 { color: var(--cs-text); font-size: 12px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.se-event-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; color: var(--cs-muted); font-size: 10px; line-height: 1.5; }
+.se-event-meta > span { min-width: 0; overflow-wrap: anywhere; }
+.se-application-name { flex-basis: 100%; color: var(--cs-faint); }
+.se-channel { color: var(--cs-blue-2); }
+.se-risk-classification { min-width: 0; display: grid; justify-items: start; gap: 5px; color: var(--cs-muted); }
+.se-risk-score { display: inline-flex; gap: 6px; align-items: center; padding: 3px 6px; border-radius: 4px; background: var(--cs-panel-3); font: 10px/1.3 var(--cs-font-code); }
+.se-risk-score strong { font-weight: 650; }
+.se-classification { font: 600 9px/1.4 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-events-page .se-action { justify-self: start; padding: 4px 8px; min-height: 24px; font-size: 9px; line-height: 1.4; white-space: normal; text-align: center; overflow-wrap: anywhere; }
+.security-events-page .se-event-time { min-width: 0; max-width: 100%; display: block; color: var(--cs-muted); font: 10px/1.5 var(--cs-font-code); white-space: normal; overflow-wrap: anywhere; }
+.se-trace-link { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 7px 8px; border: 1px solid var(--cs-line); border-radius: 6px; color: var(--cs-text-2); background: var(--cs-panel-3); font-size: 10px; text-decoration: none; }
+.se-trace-link svg { width: 13px; height: 13px; }
+.se-trace-link:hover { color: var(--cs-on-primary); background: var(--cs-blue); }
+.security-events-page .se-classification-malicious, .security-events-page .se-classification-error { color: var(--cs-red); }
+.se-event-icon.se-classification-malicious, .se-event-icon.se-classification-error { background: var(--cs-red-soft); }
+.security-events-page .se-classification-suspicious, .security-events-page .se-classification-session_risk, .security-events-page .se-classification-bypassed { color: var(--cs-amber); }
+.se-event-icon.se-classification-suspicious, .se-event-icon.se-classification-session_risk, .se-event-icon.se-classification-bypassed { background: var(--cs-amber-soft); }
+.security-events-page .se-classification-safe { color: var(--cs-green); }
+.se-event-icon.se-classification-safe { background: var(--cs-green-soft); }
+.se-list-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--cs-line); color: var(--cs-muted); font-size: 10px; }
+.se-empty-state { display: grid; justify-items: center; gap: 10px; padding: 40px 16px; border-radius: 8px; text-align: center; background: var(--cs-panel-2); }
+.se-empty-state svg { width: 28px; height: 28px; color: var(--cs-blue-2); }
+.security-events-page .se-empty-state h3 { color: var(--cs-text); font-size: 14px; font-weight: 600; }
+.se-empty-state p { color: var(--cs-muted); font-size: 12px; }
+@media (max-width: 1180px) {
+    .se-filter-form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .se-filter-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    .se-event-row { grid-template-columns: 34px minmax(150px, 1fr) 100px 88px 125px 62px; gap: 10px; }
+}
+@media (max-width: 760px) {
+    .security-events-page .se-stream-panel { padding: 16px; }
+    .se-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .se-advanced-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .se-event-row { grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; }
+    .se-event-icon { grid-column: 1; grid-row: 1; align-self: start; }
+    .se-event-main { grid-column: 2 / -1; grid-row: 1; }
+    .se-risk-classification { grid-column: 2; grid-row: 2; }
+    .security-events-page .se-action { grid-column: 3; grid-row: 2; }
+    .se-event-time { grid-column: 2; grid-row: 3; }
+    .se-trace-link { grid-column: 3; grid-row: 3; }
+}
+@media (max-width: 480px) {
+    .se-panel-heading { flex-wrap: wrap; }
+    .se-privacy-label { margin-left: 42px; }
+    .se-filter-form { grid-template-columns: minmax(0, 1fr); }
+    .se-advanced-filters { grid-template-columns: minmax(0, 1fr); }
+    .se-filter-actions { justify-content: flex-start; flex-wrap: wrap; }
+    .se-event-row { padding: 12px 10px; gap: 9px; }
+    .se-event-meta { gap: 4px 8px; }
+}

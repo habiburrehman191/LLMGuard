@@ -1,43 +1,63 @@
 {% extends "soc_base.html" %}
+{% block soc_page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', path='security_events.css') }}?v={{ asset_version }}">
+{% endblock %}
+{% block soc_page_scripts %}
+<script src="{{ url_for('static', path='security_events.js') }}?v={{ asset_version }}" defer></script>
+{% endblock %}
+{% macro icon(name) -%}<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ name }}"></use></svg>{%- endmacro %}
+{% set stage_labels = {'input': 'Input Firewall', 'context': 'Context Firewall', 'output': 'Output Firewall'} %}
 {% block soc_content %}
-<header class="page-header security-header">
-    <div><span class="am-section-label">[SOC] LIVE EVENTS</span><h1 class="am-gradient-title">Live Security Events</h1><p>Chronological unified firewall outcomes. Content payloads and credentials are never shown here.</p></div>
-    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#audit"></use></svg><div><strong>{{ events|length }} events shown</strong><small>Newest first, maximum 200</small></div></div>
-</header>
+<div class="security-events-page" data-security-events>
+    <header class="console-page-header se-page-header">
+        <div><span class="console-eyebrow">Security</span><h1>Security Operations</h1><p>Inspect security decisions across protected LLM applications.</p></div>
+        <span class="count-badge">{{ events|length }} {{ 'event' if events|length == 1 else 'events' }} shown</span>
+    </header>
 
-<section class="workspace-card soc-filter-panel">
-    <form class="soc-filter-grid" method="get" action="/admin/soc/events">
-        <label>Application<select name="application_id"><option value="">All applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if filters.application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
-        <label>Channel<select name="channel"><option value="">All channels</option>{% for value in ['public', 'student', 'employee'] %}<option value="{{ value }}" {{ 'selected' if filters.channel == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
-        <label>Stage<select name="stage"><option value="">All stages</option>{% for value in ['input', 'context', 'output', 'ingestion', 'integration'] %}<option value="{{ value }}" {{ 'selected' if filters.stage == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
-        <label>Classification<select name="classification"><option value="">All classifications</option>{% for value in ['safe', 'suspicious', 'malicious', 'session_risk', 'bypassed', 'error'] %}<option value="{{ value }}" {{ 'selected' if filters.classification == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
-        <label>Severity<select name="severity"><option value="">All severities</option>{% for value in ['none', 'low', 'medium', 'high', 'critical'] %}<option value="{{ value }}" {{ 'selected' if filters.severity == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
-        <label>Action<select name="action"><option value="">All actions</option>{% for value in ['allow', 'log', 'sanitize', 'quarantine', 'reject', 'block', 'session_restrict', 'bypass', 'fail_closed'] %}<option value="{{ value }}" {{ 'selected' if filters.action == value else '' }}>{{ value }}</option>{% endfor %}</select></label>
-        <label>Event type<input name="event_type" value="{{ filters.event_type }}" placeholder="e.g. INPUT_FIREWALL"></label>
-        <div class="soc-filter-actions"><button class="primary-button" type="submit">Apply filters</button><a class="secondary-button" href="/admin/soc/events">Clear</a></div>
-    </form>
-</section>
+    <section class="console-panel se-stream-panel" aria-labelledby="se-stream-title">
+        <div class="se-panel-heading">
+            <span class="se-heading-icon">{{ icon('audit') }}</span>
+            <div><h2 id="se-stream-title">Security Events</h2><p>Stored firewall decisions · newest first</p></div>
+            <span class="se-privacy-label">{{ icon('lock') }}Metadata only</span>
+        </div>
+        <form class="se-filter-form" method="get" action="/admin/soc/events" data-security-event-filters>
+            <label class="se-search"><span>Search event type</span><input name="event_type" value="{{ filters.event_type }}" maxlength="100" placeholder="Exact event type, e.g. INPUT_FIREWALL"></label>
+            <label class="se-application-filter"><span>Application</span><select name="application_id"><option value="">All applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if filters.application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
+            <label><span>Stage</span><select name="stage"><option value="">All stages</option>{% for value in ['input', 'context', 'output', 'ingestion', 'integration'] %}<option value="{{ value }}" {{ 'selected' if filters.stage == value else '' }}>{{ stage_labels.get(value, value|title) }}</option>{% endfor %}</select></label>
+            <label><span>Action</span><select name="action"><option value="">All actions</option>{% for value in ['allow', 'log', 'sanitize', 'quarantine', 'reject', 'block', 'session_restrict', 'bypass', 'fail_closed'] %}<option value="{{ value }}" {{ 'selected' if filters.action == value else '' }}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></label>
+            <div class="se-filter-actions">
+                <button class="secondary-button se-more-filters" type="button" data-more-filters aria-expanded="false" aria-controls="se-secondary-filters" hidden>More filters</button>
+                <button class="primary-button" type="submit">Apply</button>
+                <a class="secondary-button" href="/admin/soc/events">Clear</a>
+            </div>
+            <div id="se-secondary-filters" class="se-advanced-filters">
+                <label><span>Channel</span><select name="channel"><option value="">All channels</option>{% for value in ['public', 'student', 'employee'] %}<option value="{{ value }}" {{ 'selected' if filters.channel == value else '' }}>{{ value|title }}</option>{% endfor %}</select></label>
+                <label><span>Classification</span><select name="classification"><option value="">All classifications</option>{% for value in ['safe', 'suspicious', 'malicious', 'session_risk', 'bypassed', 'error'] %}<option value="{{ value }}" {{ 'selected' if filters.classification == value else '' }}>{{ value|replace('_', ' ')|title }}</option>{% endfor %}</select></label>
+                <label><span>Severity</span><select name="severity"><option value="">All severities</option>{% for value in ['none', 'low', 'medium', 'high', 'critical'] %}<option value="{{ value }}" {{ 'selected' if filters.severity == value else '' }}>{{ value|title }}</option>{% endfor %}</select></label>
+            </div>
+        </form>
 
-<section class="workspace-card event-workspace soc-table-card">
-    <div class="section-heading"><div><span class="section-kicker">Security metadata only</span><h2>Event stream</h2><p>Classification, severity, risk, action, stage, and available session policy codes are shown exactly as stored.</p></div></div>
-    <div class="responsive-table security-table">
-        <table>
-            <thead><tr><th>Time</th><th>Application / Channel</th><th>Stage / Type</th><th>Classification</th><th>Severity</th><th>Risk</th><th>Action</th><th>Request</th></tr></thead>
-            <tbody>
+        <div class="se-event-list" aria-label="Stored security events">
             {% for event in events %}
-                <tr class="{{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}">
-                    <td><time datetime="{{ event.created_at }}">{{ event.created_at }}</time></td>
-                    <td><strong>{{ event.application_name }}</strong><small>{{ event.channel }} · {{ event.application_id }}</small></td>
-                    <td><strong>{{ event.stage }}</strong><small>{{ event.event_type }}{% if event.policy_code %} · {{ event.policy_code }}{% endif %}</small></td>
-                    <td><span class="status-badge soc-classification-{{ event.classification|lower }}">{{ event.classification }}</span></td>
-                    <td><span class="status-badge soc-severity-{{ event.severity|lower }}">{{ event.severity }}</span></td>
-                    <td>{{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Not recorded" }}</td>
-                    <td><span class="status-badge soc-action-{{ event.action|lower }}">{{ event.action }}</span></td>
-                    <td>{% if event.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ event.application_id|urlencode }}&amp;request_id={{ event.request_id|urlencode }}">{{ event.request_id }}</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
-                </tr>
-            {% else %}<tr><td colspan="8" class="empty-message">No events match the selected filters.</td></tr>{% endfor %}
-            </tbody>
-        </table>
-    </div>
-</section>
+            <article class="se-event-row {{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}" data-security-event="{{ event.event_id }}" data-stage="{{ event.stage }}" data-action="{{ event.action }}" data-classification="{{ event.classification }}">
+                <span class="se-event-icon se-classification-{{ event.classification|lower }}">{{ icon('warning' if event.operational_failure or event.severity in ['high', 'critical'] else 'document' if event.stage in ['context', 'ingestion'] else 'shield') }}</span>
+                <div class="se-event-main">
+                    <h3>{{ event.event_type|replace('_', ' ')|title }}</h3>
+                    <div class="se-event-meta"><span class="se-application-name">{{ event.application_name }}</span><span class="se-channel">{{ event.channel|title }}</span><span>{{ stage_labels.get(event.stage, event.stage|replace('_', ' ')|title) }}</span></div>
+                </div>
+                <div class="se-risk-classification se-classification-{{ event.classification|lower }}">
+                    {% if event.risk_score is not none %}<span class="se-risk-score">Risk <strong>{{ "%.2f"|format(event.risk_score) }}</strong></span>{% endif %}
+                    <span class="se-classification">{{ event.classification|replace('_', ' ')|upper }}</span>
+                </div>
+                <span class="status-badge se-action soc-action-{{ event.action|lower }}">{{ event.action|replace('_', ' ')|title }}</span>
+                <time class="se-event-time" datetime="{{ event.created_at }}">{{ event.created_at|replace('T', ' ')|replace('+00:00', ' UTC') }}</time>
+                {% if event.request_id %}<a class="se-trace-link" aria-label="Open request trace for {{ event.event_type|replace('_', ' ')|title }}" href="/admin/soc/trace?application_id={{ event.application_id|urlencode }}&amp;request_id={{ event.request_id|urlencode }}">Trace {{ icon('arrow') }}</a>{% endif %}
+            </article>
+            {% else %}
+            <div class="se-empty-state">{{ icon('audit') }}<h3>No security events</h3><p>No events match the selected filters.</p></div>
+            {% endfor %}
+        </div>
+        <footer class="se-list-footer"><span>{{ events|length }} {{ 'event' if events|length == 1 else 'events' }} shown</span><span>Up to 200 matching events</span></footer>
+    </section>
+</div>
 {% endblock %}

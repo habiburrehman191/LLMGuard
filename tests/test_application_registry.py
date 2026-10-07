@@ -168,7 +168,7 @@ class ApplicationRegistryTests(unittest.TestCase):
             "employee",
         ):
             self.assertIn(expected, page.text)
-        self.assertIn("Registration records identity and intended channels only", page.text)
+        self.assertIn("Protected applications connected to LLMGuard.", page.text)
         self.assertIn("University of Haripur AI System", dashboard.text)
         self.assertIn("Integration Pending", dashboard.text)
 

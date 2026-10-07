@@ -1,39 +1,65 @@
 {% extends "soc_base.html" %}
+{% block soc_page_styles %}<link rel="stylesheet" href="{{ url_for('static', path='security_trace.css') }}?v={{ asset_version }}-trace-1">{% endblock %}
+{% macro icon(name) -%}<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ name }}"></use></svg>{%- endmacro %}
+{% set stage_labels = {'input': 'Input Firewall', 'context': 'Context Firewall', 'output': 'Output Firewall', 'university_authorization': 'University Authorization', 'protected_application_authorization': 'Protected Application Authorization', 'retrieval': 'Retrieval', 'trusted_prompt': 'Trusted Prompt', 'local_llm': 'Local LLM', 'session': 'Session / Authorization'} %}
+{% macro stage_label(stage) -%}{{ stage_labels.get(stage, stage|replace('_', ' ')|title) }}{%- endmacro %}
+{% macro tone(event) -%}{{ 'amber' if event.classification == 'bypassed' or event.action == 'bypass' else 'red' if event.operational_failure or event.action in ['block', 'reject', 'fail_closed'] else 'amber' if event.action in ['sanitize', 'quarantine', 'restrict', 'session_restrict'] else 'green' if event.action == 'allow' else 'blue' }}{%- endmacro %}
+{% macro decision(event) -%}<span class="str-decision str-tone-{{ tone(event) }}">{{ event.action|upper }}</span><span class="str-classification">{{ event.classification|upper }}</span>{% if event.risk_score is number %}<span class="str-risk">Risk <strong>{{ '%.2f'|format(event.risk_score) }}</strong></span>{% endif %}{%- endmacro %}
+{% macro evidence(event, additional=false) -%}
+<article class="str-evidence-row" {{ 'data-additional-event' if additional else 'data-trace-event' }}="{{ event.event_id }}">
+    <span class="str-evidence-icon str-tone-{{ tone(event) }}">{{ icon('warning' if tone(event) == 'red' else 'document' if event.stage in ['context', 'ingestion', 'retrieval'] else 'shield') }}</span>
+    <div class="str-evidence-main"><h3>{{ event.event_type|replace('_', ' ')|title }}</h3><div class="str-event-meta"><span>{{ stage_label(event.stage) }}</span><span class="str-channel">{{ event.channel|title }}</span></div><code>{{ event.event_type }}</code></div>
+    <div class="str-event-decision">{{ decision(event) }}</div>
+    <time datetime="{{ event.created_at }}">{{ event.created_at|replace('T', ' ')|replace('+00:00', ' UTC') }}</time>
+    <details class="str-identifiers"><summary>Event identifiers</summary><dl><div><dt>Event ID</dt><dd><code>{{ event.event_id }}</code></dd></div><div><dt>Stage ID</dt><dd><code>{{ event.stage }}</code></dd></div>{% if event.policy_code %}<div><dt>Policy code</dt><dd><code>{{ event.policy_code }}</code></dd></div>{% endif %}{% if event.source_id %}<div><dt>Source ID</dt><dd><code>{{ event.source_id }}</code></dd></div>{% endif %}{% if event.chunk_id %}<div><dt>Chunk ID</dt><dd><code>{{ event.chunk_id }}</code></dd></div>{% endif %}</dl></details>
+</article>
+{%- endmacro %}
 {% block soc_content %}
-<header class="page-header security-header">
-    <div><span class="am-section-label">[SOC] REQUEST TRACE</span><h1 class="am-gradient-title">Request Trace</h1><p>Follow recorded security stages by request ID without exposing request, context, or response content.</p></div>
-    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#neural"></use></svg><div><strong>Chronological evidence</strong><small>Unified events only</small></div></div>
-</header>
-
-<section class="workspace-card soc-trace-search">
+<div class="security-trace-page">
+<header class="console-page-header str-page-header"><div><span class="console-eyebrow">Security</span><h1>Request Trace</h1><p>Follow recorded LLMGuard security decisions across the request lifecycle.</p></div></header>
+<section class="console-panel str-search-panel" aria-label="Trace search">
     <form method="get" action="/admin/soc/trace">
         <label for="trace-request-id">Request ID<input id="trace-request-id" name="request_id" value="{{ request_id }}" maxlength="200" required placeholder="Enter an exact request ID"></label>
         <label for="trace-application">Application (optional)<select id="trace-application" name="application_id"><option value="">Search all applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
-        <button class="primary-button" type="submit">Open trace</button>
+        <button class="primary-button" type="submit">{{ icon('audit') }}Open trace</button>
     </form>
 </section>
-
 {% if matching_applications|length > 1 and not events %}
-<section class="workspace-card"><div class="section-heading"><div><span class="section-kicker">Application scope required</span><h2>Request ID exists in multiple applications</h2><p>Select the intended application to keep traces isolated.</p></div></div><div class="soc-link-list">{% for app_id in matching_applications %}<a href="/admin/soc/trace?application_id={{ app_id|urlencode }}&amp;request_id={{ request_id|urlencode }}">{{ application_names.get(app_id, app_id) }} <small>{{ app_id }}</small></a>{% endfor %}</div></section>
+<section class="console-panel str-scope-panel"><div class="str-panel-heading"><span class="str-heading-icon">{{ icon('monitor') }}</span><div><h2>Choose an application</h2><p>This request ID exists in multiple applications. Select one to inspect its isolated trace.</p></div></div><div class="str-application-links">{% for app_id in matching_applications %}<a href="/admin/soc/trace?application_id={{ app_id|urlencode }}&amp;request_id={{ request_id|urlencode }}"><span>{{ application_names.get(app_id, app_id) }}<code>{{ app_id }}</code></span>{{ icon('arrow') }}</a>{% endfor %}</div></section>
 {% elif trace_searched and not events %}
-<p class="empty-message soc-page-empty">No security events were recorded for this request ID{% if selected_application_id %} in the selected application{% endif %}.</p>
+<section class="console-panel str-empty-state" data-trace-state="no-result">{{ icon('audit') }}<h2>No recorded trace found</h2><p>No security events matched this request and application.</p></section>
 {% elif events %}
-<section class="soc-trace-stages" aria-label="Core security stage coverage">
-    {% for stage in stage_summary %}<article class="{{ 'recorded' if stage.recorded else 'missing' }}"><span>0{{ loop.index }}</span><strong>{{ stage.stage }}</strong>{% if stage.recorded %}<small>{{ stage.event_count }} event{{ '' if stage.event_count == 1 else 's' }} recorded</small>{% else %}<small>No event recorded; this stage may not have executed.</small>{% endif %}</article>{% endfor %}
-    {% for stage in other_stages %}<article class="recorded supplemental"><span>+</span><strong>{{ stage }}</strong><small>Additional recorded stage</small></article>{% endfor %}
+{% set recorded = stage_summary|selectattr('recorded')|list %}
+{% set risks = namespace(values=[]) %}{% for event in events %}{% if event.risk_score is number %}{% set risks.values = risks.values + [event.risk_score] %}{% endif %}{% endfor %}
+{% set final_event = events[-1] %}
+<section class="console-panel str-summary-panel" aria-labelledby="str-summary-title">
+    <div class="str-panel-heading"><span class="str-heading-icon">{{ icon('audit') }}</span><div><h2 id="str-summary-title">Recorded trace</h2><p>Persisted security evidence</p></div><span class="str-privacy-label">{{ icon('lock') }}Metadata only</span></div>
+    <div class="str-request-reference"><span>Request ID</span><code>{{ request_id }}</code></div>
+    <dl class="str-summary-grid">
+        <div><dt>Application</dt><dd>{{ application_names.get(selected_application_id, selected_application_id) }}<code>{{ selected_application_id }}</code></dd></div>
+        <div><dt>Channel</dt><dd>{{ events|map(attribute='channel')|unique|map('title')|join(', ') }}</dd></div>
+        <div><dt>Recorded events</dt><dd>{{ events|length }}</dd></div>
+        {% if risks.values %}<div><dt>Highest recorded risk</dt><dd class="str-numeric">{{ '%.2f'|format(risks.values|max) }}</dd></div>{% endif %}
+        <div><dt>First event</dt><dd><time datetime="{{ events[0].created_at }}">{{ events[0].created_at|replace('T', ' ')|replace('+00:00', ' UTC') }}</time></dd></div>
+        <div><dt>Last event</dt><dd><time datetime="{{ final_event.created_at }}">{{ final_event.created_at|replace('T', ' ')|replace('+00:00', ' UTC') }}</time></dd></div>
+    </dl>
+    <div class="str-outcome str-tone-{{ tone(final_event) }}" data-final-event="{{ final_event.event_id }}"><span class="str-outcome-icon">{{ icon('shield') }}</span><div><span class="str-outcome-label">Last recorded decision</span><strong>{{ stage_label(final_event.stage) }} <span class="str-decision str-tone-{{ tone(final_event) }}">{{ final_event.action|upper }}</span></strong></div></div>
 </section>
-<section class="workspace-card event-workspace soc-table-card">
-    <div class="section-heading"><div><span class="section-kicker">Request {{ request_id }}</span><h2>Chronological security events</h2></div></div>
-    <div class="responsive-table security-table"><table>
-        <thead><tr><th>Time</th><th>Stage</th><th>Type</th><th>Classification</th><th>Severity</th><th>Risk</th><th>Action</th><th>Safe references</th></tr></thead>
-        <tbody>{% for event in events %}<tr class="{{ 'soc-state-bypassed' if event.classification == 'bypassed' else 'soc-state-failure' if event.operational_failure else '' }}">
-            <td>{{ event.created_at }}</td><td>{{ event.stage }}</td><td>{{ event.event_type }}{% if event.policy_code %}<small>{{ event.policy_code }}</small>{% endif %}</td>
-            <td>{{ event.classification }}</td><td>{{ event.severity }}</td><td>{{ "%.0f%%"|format(event.risk_score * 100) if event.risk_score is not none else "Not recorded" }}</td><td>{{ event.action }}</td>
-            <td>{{ event.source_id or 'No source ID' }}<small>{{ event.chunk_id or 'No chunk ID' }}</small></td>
-        </tr>{% endfor %}</tbody>
-    </table></div>
+<div class="str-investigation-grid">
+<section class="console-panel str-pipeline-panel" aria-labelledby="str-pipeline-title">
+    <div class="str-panel-heading"><span class="str-heading-icon">{{ icon('neural') }}</span><div><h2 id="str-pipeline-title">Stage Trace Pipeline</h2><p>Recorded canonical guards in architectural order</p></div></div>
+    {% if recorded %}<ol class="str-pipeline" aria-label="Recorded canonical stages">
+        {% for stage in recorded %}{% set stage_events = events|selectattr('stage', 'equalto', stage.stage)|list %}
+        <li class="str-stage str-tone-{{ tone(stage_events[-1]) }}" data-recorded-stage="{{ stage.stage }}"><span class="str-node">{{ icon('document' if stage.stage == 'context' else 'shield') }}</span><div class="str-stage-card"><div class="str-stage-heading"><h3>{{ {'input': '02', 'context': '06', 'output': '09'}.get(stage.stage, '') }} {{ stage_label(stage.stage) }}</h3><span class="str-recorded-label">Recorded</span></div><p class="str-stage-count"><code>{{ stage.stage }}</code> · {{ stage.event_count }} event{{ '' if stage.event_count == 1 else 's' }} recorded</p><div class="str-stage-decisions">{% for event in stage_events %}<div data-stage-event="{{ event.event_id }}"><span class="str-stage-event-type">{{ event.event_type|replace('_', ' ')|title }}</span><div class="str-event-decision">{{ decision(event) }}</div><time datetime="{{ event.created_at }}">{{ event.created_at|replace('T', ' ')|replace('+00:00', ' UTC') }}</time></div>{% endfor %}</div></div></li>
+        {% endfor %}</ol><p class="str-path-end">End of recorded canonical stages</p>
+    {% else %}<div class="str-pipeline-empty"><p>No canonical guard events recorded.</p><p>Review the additional security evidence below.</p></div>{% endif %}
+    {% if recorded|length == 1 and recorded[0].stage == 'input' %}<p class="str-containment-note">No later canonical stages are recorded for this request.</p>{% endif %}
+    {% if stage_summary|rejectattr('recorded')|list %}<details class="str-coverage"><summary>Recording coverage</summary>{% for stage in stage_summary if not stage.recorded %}<p><strong>{{ stage_label(stage.stage) }}</strong><span>No event recorded; this stage may not have executed.</span></p>{% endfor %}</details>{% endif %}
+    <p class="str-evidence-note">Only recorded stages appear in this pipeline. Missing records do not establish execution.</p>
 </section>
-{% else %}
-<p class="empty-message soc-page-empty">Enter a request ID to inspect its recorded security trace.</p>
-{% endif %}
+<section class="console-panel str-events-panel" aria-labelledby="str-events-title"><div class="str-panel-heading"><span class="str-heading-icon">{{ icon('audit') }}</span><div><h2 id="str-events-title">Chronological security events</h2><p>Decision metadata supporting this trace</p></div><span class="str-shown-count">{{ events|length }} recorded</span></div><div class="str-evidence-list">{% for event in events %}{{ evidence(event) }}{% endfor %}</div></section>
+</div>
+{% if other_stages %}<section class="console-panel str-additional-panel" aria-labelledby="str-additional-title"><div class="str-panel-heading"><span class="str-heading-icon">{{ icon('document') }}</span><div><h2 id="str-additional-title">Additional Security Evidence</h2><p>Recorded stages outside the canonical guard pipeline</p></div></div><div class="str-additional-stages">{% for stage in other_stages %}<span>{{ stage_label(stage) }} <code>{{ stage }}</code></span>{% endfor %}</div><div class="str-evidence-list">{% for event in events if event.stage in other_stages %}{{ evidence(event, true) }}{% endfor %}</div></section>{% endif %}
+{% else %}<section class="console-panel str-empty-state" data-trace-state="unsearched">{{ icon('neural') }}<h2>Trace a request</h2><p>Enter a request ID to inspect its recorded security path.</p></section>{% endif %}
+</div>
 {% endblock %}
