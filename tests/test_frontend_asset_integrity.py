@@ -86,6 +86,7 @@ class FrontendAssetIntegrityTests(unittest.TestCase):
             "llmguard-mark-light.png": (289, 324),
             "llmguard-mark-light-64.png": (64, 64),
             "llmguard-wordmark-dark.png": (1210, 366),
+            "university-of-haripur-logo.png": (600, 100),
         }
         for name, dimensions in expected.items():
             with self.subTest(name=name):

@@ -76,7 +76,13 @@
 
                     <article class="dashboard-panel application-visual-panel">
                         <div class="panel-heading"><h2>Application Security</h2><span>Security boundary</span></div>
-                        <div class="boundary-emblem" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                        <div class="boundary-emblem" aria-hidden="true">
+                            {% if selected_application.application_id == 'university-of-haripur' %}
+                            <span class="application-logo application-logo--uoh" data-application-logo="university-of-haripur"><img src="/static/branding/university-of-haripur-logo.png" alt=""></span>
+                            {% else %}
+                            <svg><use href="/static/llmguard-icons.svg#shield"></use></svg>
+                            {% endif %}
+                        </div>
                         <div class="application-visual-copy">
                             <span>{{ 'Protected Application' if selected_integration.runtime_state == 'PROTECTED' else 'Registered Application' }}</span>
                             <h3>{{ selected_application.name }}</h3>

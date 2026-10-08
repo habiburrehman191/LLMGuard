@@ -366,10 +366,10 @@
 .gauge-segment.is-active { stroke: var(--cs-blue); }
 .gauge-context.is-active { stroke: var(--cs-blue-2); }
 .gauge-output.is-active { stroke: var(--cs-green); }
-.protection-gauge-copy { position: absolute; inset: 0; z-index: 1; width: 100%; height: 126px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding-top: 42px; text-align: center; pointer-events: none; }
-.protection-gauge-copy span { color: var(--cs-muted); font-size: 10px; line-height: 14px; white-space: nowrap; }
+.protection-gauge-copy { position: absolute; top: 34px; right: 0; left: 0; z-index: 1; width: 100%; max-width: 220px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 0 auto; text-align: center; pointer-events: none; }
+.protection-gauge-copy span { max-width: 100%; color: var(--cs-muted); font-size: 10px; line-height: 14px; text-align: center; white-space: nowrap; }
 .protection-gauge-copy strong { display: block; margin: 0; font-size: 32px; font-weight: 700; line-height: 38px; white-space: nowrap; }
-.protection-gauge-copy small { color: var(--cs-muted); font-size: 11px; line-height: 16px; white-space: nowrap; }
+.protection-gauge-copy small { max-width: 100%; color: var(--cs-muted); font-size: 11px; line-height: 16px; text-align: center; white-space: nowrap; }
 .stage-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 9px; border: 1px solid var(--cs-line); border-radius: var(--cs-radius-sm); background: var(--cs-panel-2); }
 .stage-legend span { min-width: 0; display: grid; grid-template-columns: 6px 1fr; align-items: center; gap: 3px 6px; color: var(--cs-muted); font-size: 10px; }
 .stage-legend i { width: 6px; height: 6px; border-radius: 50%; background: var(--cs-faint); }
@@ -381,6 +381,10 @@
 .boundary-emblem { position: relative; width: 66px; height: 66px; display: grid; place-items: center; margin: 6px 0 10px; border: 1px solid rgba(30,107,255,.45); border-radius: 16px; color: var(--cs-blue-2); background: var(--cs-panel); box-shadow: var(--cs-primary-glow); }
 .boundary-emblem::after { content: ""; position: absolute; inset: -12px; border: 1px dashed var(--cs-line-strong); border-radius: 22px; pointer-events: none; }
 .boundary-emblem svg { width: 36px; height: 36px; }
+.application-logo { display: block; overflow: hidden; background: transparent; }
+.application-logo img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: left center; }
+.boundary-emblem .application-logo { width: 50px; height: 50px; padding: 3px; border-radius: 50%; }
+.boundary-emblem .application-logo img { border-radius: 50%; }
 .application-visual-copy { text-align: center; }
 .application-visual-copy > span { color: var(--cs-faint); font-size: 10px; }
 .application-visual-copy h3 { margin: 4px 0; color: var(--cs-text); font-size: 15px; font-weight: 600; line-height: 20px; }
@@ -535,6 +539,8 @@
 .application-icon svg { width: 17px; height: 17px; }
 .application-card .application-icon { flex: 0 0 48px; width: 48px; height: 48px; border-radius: var(--cs-radius); background: var(--cs-panel-3); color: var(--cs-blue-2); box-shadow: var(--cs-primary-glow); }
 .application-card .application-icon svg { width: 28px; height: 28px; }
+.application-card .application-logo { flex: 0 0 48px; width: 48px; height: 48px; padding: 3px; border-radius: 50%; box-shadow: var(--cs-primary-glow); }
+.application-card .application-logo img { border-radius: 50%; }
 .application-card-title { min-width: 0; }
 .application-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .application-card-title h2 { margin: 0; color: var(--cs-text); font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -.02em; overflow-wrap: anywhere; }

@@ -91,6 +91,8 @@ class DashboardFrontendTests(unittest.TestCase):
         self.assertIn("Channels: public, student, employee", html)
         self.assertNotIn("ApplicationChannelRecord(", html)
         self.assertIn("qwen3:1.7b", html)
+        self.assertIn('data-application-logo="university-of-haripur"', html)
+        self.assertIn('src="/static/branding/university-of-haripur-logo.png"', html)
         for unsupported in ("gpt-4o-mini", "Pinecone", "ChromaDB", "PCAP", "100% Verified", "Simulate Prompt Attack"):
             self.assertNotIn(unsupported, html)
         self.assertNotRegex(html, r'data-stage-status="[^"]*ms')
@@ -146,6 +148,7 @@ class DashboardFrontendTests(unittest.TestCase):
         self.record(request_id="only-first-application", action="block", classification="malicious")
         html = self.page("synthetic-empty")
         self.assertIn('value="synthetic-empty" selected', html)
+        self.assertNotIn('data-application-logo="university-of-haripur"', html)
         self.assertIn('method="get" action="/admin/dashboard"', html)
         self.assertNotIn("only-first-application", html)
         self.assertIn("No security events yet", html)

@@ -89,6 +89,8 @@ async function main() {
             verified:[...main.querySelectorAll('[data-guard-stage]')].map(el=>el.dataset.verified),
             count:main.querySelectorAll('[data-application-card]').length,
             links:[...main.querySelectorAll('.application-card-link')].map(el=>new URL(el.href).pathname),
+            applicationLogo:card?.querySelector('[data-application-logo] img')?.getAttribute('src'),
+            applicationLogoWidth:card?.querySelector('[data-application-logo] img')?.naturalWidth,
             headers:document.querySelectorAll('.console-header').length,
             scrollWidth:document.documentElement.scrollWidth,
             card:bounds?{left:bounds.left,top:bounds.top,right:bounds.right,bottom:bounds.bottom,height:bounds.height}:null,
@@ -121,6 +123,8 @@ async function main() {
             assert.equal(layout.count,1); assert.equal(layout.headers,1);
             assert.equal(layout.forms,0,'No list credential/protection/configuration controls');
             assert.deepEqual(layout.links,['/admin/applications/university-of-haripur']);
+            assert.equal(layout.applicationLogo,'/static/branding/university-of-haripur-logo.png');
+            assert.ok(layout.applicationLogoWidth>0);
             assert.equal(layout.state,'PROTECTED');
             assert.deepEqual(layout.channels,['Public','Student','Employee']);
             assert.deepEqual(layout.verified,['true','true','true']);

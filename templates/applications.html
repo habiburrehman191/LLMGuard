@@ -30,7 +30,11 @@
                     <article class="application-card" data-application-card="{{ application.application_id }}">
                         <div class="application-card-main">
                             <div class="application-identity-header">
+                                {% if application.application_id == 'university-of-haripur' %}
+                                <span class="application-logo application-logo--uoh" data-application-logo="university-of-haripur" aria-hidden="true"><img src="/static/branding/university-of-haripur-logo.png" alt=""></span>
+                                {% else %}
                                 <span class="application-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></span>
+                                {% endif %}
                                 <div class="application-card-title">
                                     <div class="application-name-row">
                                         <h2>{{ application.name }}</h2>

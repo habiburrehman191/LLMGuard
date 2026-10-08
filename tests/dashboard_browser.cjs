@@ -105,12 +105,14 @@ async function main() {
                     const r=el.getBoundingClientRect(); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};
                 });
                 const brand=document.querySelector('.console-brand-mark img');
+                const applicationLogo=document.querySelector('.application-visual-panel [data-application-logo] img');
                 return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
                     scrollHeight:document.documentElement.scrollHeight,panels,
                     runtimeVisual:{left:runtime.left,top:runtime.top,right:runtime.right,bottom:runtime.bottom},
                     gaugeCenterDelta:Math.abs((gauge.left+gauge.width/2)-(gaugeCopy.left+gaugeCopy.width/2)),
                     gaugeTextAlign:getComputedStyle(document.querySelector('.protection-gauge-copy')).textAlign,
                     gaugeLines,brandSrc:brand.getAttribute('src'),brandNaturalWidth:brand.naturalWidth,
+                    applicationLogoSrc:applicationLogo?.getAttribute('src'),applicationLogoNaturalWidth:applicationLogo?.naturalWidth,
                     favicon:new URL(document.querySelector('link[rel=icon]').href).pathname,
                     sheets:[...document.querySelectorAll('link[rel=stylesheet]')].map(el=>el.href)};
             })()`);
@@ -121,6 +123,8 @@ async function main() {
             assert.ok(layout.gaugeLines.every((line,index,lines)=>index===0 || lines[index-1].bottom<=line.top),JSON.stringify(layout));
             assert.equal(layout.brandSrc,'/static/branding/llmguard-mark-light-64.png');
             assert.ok(layout.brandNaturalWidth>0);
+            assert.equal(layout.applicationLogoSrc,'/static/branding/university-of-haripur-logo.png');
+            assert.ok(layout.applicationLogoNaturalWidth>0);
             assert.equal(layout.favicon,'/static/branding/llmguard-mark-32.png');
             assert.equal(new Set(layout.sheets).size,3);
             assert.ok(layout.sheets.every(url=>url.startsWith('http://127.0.0.1:8765/static/')));
