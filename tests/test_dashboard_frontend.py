@@ -78,6 +78,11 @@ class DashboardFrontendTests(unittest.TestCase):
         self.assertIn("No security events yet", html)
         self.assertIn("0 / 3", html)
         self.assertIn("state-integration_pending", html)
+        self.assertIn(
+            '<div class="protection-gauge-copy"><span>Verified guard stages</span><strong>0 / 3</strong>',
+            html,
+        )
+        self.assertIn("<small>Integration Pending</small>", html)
         self.assertIn('data-protection-state="INTEGRATION_PENDING"', html)
         self.assertEqual(7, html.count('data-runtime-stage='))
         self.assertEqual(7, html.count('data-runtime-checkpoint='))
@@ -97,11 +102,14 @@ class DashboardFrontendTests(unittest.TestCase):
         html = self.page()
         self.assertIn("state-degraded", html)
         self.assertIn("1 / 3", html)
+        self.assertIn("<small>Degraded</small>", html)
         self.assertEqual(1, html.count('data-stage-status="READY"'))
         for stage in ("context", "output"):
             record_guard_stage_success(UNIVERSITY_APPLICATION_ID, stage)
-        self.assertIn("state-protected", self.page())
-        self.assertIn("3 / 3", self.page())
+        protected_html = self.page()
+        self.assertIn("state-protected", protected_html)
+        self.assertIn("3 / 3", protected_html)
+        self.assertIn("<small>Protected</small>", protected_html)
         set_protection_enabled(UNIVERSITY_APPLICATION_ID, enabled=False, actor="synthetic-dashboard-test",
                                reason="Synthetic local bypass rendering check")
         self.assertEqual(3, self.page().count('data-stage-status="BYPASSED"'))

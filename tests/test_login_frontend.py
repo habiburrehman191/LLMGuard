@@ -59,11 +59,31 @@ class LoginPresentationTests(unittest.TestCase):
         radar = next(attrs for _, attrs in self.elements if attrs.get("class") == "login-radar")
         self.assertEqual(radar["aria-hidden"], "true")
         self.assertNotIn("tabindex", radar)
-        self.assertFalse(any(tag in {"nav", "header", "img"} for tag, _ in self.elements))
+        self.assertFalse(any(tag in {"nav", "header"} for tag, _ in self.elements))
+        brand_images = [attrs for tag, attrs in self.elements if tag == "img"]
+        self.assertEqual(brand_images, [{
+            "src": "/static/branding/llmguard-mark.png",
+            "alt": "",
+        }])
 
     def test_only_existing_assets_and_real_login_content_are_used(self):
         scripts = [attrs["src"] for tag, attrs in self.elements if tag == "script"]
         self.assertEqual(scripts, ["/static/product.js?v=test"])
+        favicons = [
+            attrs for tag, attrs in self.elements
+            if tag == "link" and attrs.get("rel") == "icon"
+        ]
+        self.assertEqual(favicons, [{
+            "rel": "icon",
+            "type": "image/png",
+            "sizes": "32x32",
+            "href": "/static/branding/llmguard-mark-32.png?v=test",
+        }])
+        self.assertNotIn("/static/university/images/logo.png", self.html)
+        self.assertNotIn(
+            '<div class="reference-login-icon" aria-hidden="true"><svg>',
+            self.html,
+        )
         self.assertFalse(any(key.startswith("on") for _, attrs in self.elements for key in attrs))
         for text in ("AI Security Firewall", "Administrator Sign In",
                      "Sign In to Security Console", "Controlled Research Environment"):

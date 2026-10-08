@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }}</title>
+    {% include "components/llmguard_favicon.html" %}
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
@@ -17,7 +18,9 @@
             </p>
             <section class="reference-login-card" aria-labelledby="login-heading">
                 <div class="reference-login-intro">
-                    <div class="reference-login-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></div>
+                    <div class="reference-login-icon" aria-hidden="true">
+                        <img src="/static/branding/llmguard-mark.png" alt="">
+                    </div>
                     <h1>LLMGuard</h1>
                     <p>AI Security Firewall</p>
                 </div>

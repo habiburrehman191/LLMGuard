@@ -71,6 +71,7 @@ async function main() {
     };
     try {
         await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+        await send('Network.setCacheDisabled',{cacheDisabled:true});
         await send('Page.navigate',{url:'http://127.0.0.1:8765/login'});
         await waitFor('document.readyState==="complete" && !!document.getElementById("login-form")');
         await evaluate(`document.getElementById('username').value='admin1';
@@ -98,13 +99,29 @@ async function main() {
                     const r=el.getBoundingClientRect(); return {left:r.left,right:r.right,width:r.width,height:r.height};
                 });
                 const runtime=document.querySelector('.runtime-visual').getBoundingClientRect();
+                const gauge=document.querySelector('.protection-gauge').getBoundingClientRect();
+                const gaugeCopy=document.querySelector('.protection-gauge-copy').getBoundingClientRect();
+                const gaugeLines=[...document.querySelector('.protection-gauge-copy').children].map(el=>{
+                    const r=el.getBoundingClientRect(); return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};
+                });
+                const brand=document.querySelector('.console-brand-mark img');
                 return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
                     scrollHeight:document.documentElement.scrollHeight,panels,
                     runtimeVisual:{left:runtime.left,top:runtime.top,right:runtime.right,bottom:runtime.bottom},
+                    gaugeCenterDelta:Math.abs((gauge.left+gauge.width/2)-(gaugeCopy.left+gaugeCopy.width/2)),
+                    gaugeTextAlign:getComputedStyle(document.querySelector('.protection-gauge-copy')).textAlign,
+                    gaugeLines,brandSrc:brand.getAttribute('src'),brandNaturalWidth:brand.naturalWidth,
+                    favicon:new URL(document.querySelector('link[rel=icon]').href).pathname,
                     sheets:[...document.querySelectorAll('link[rel=stylesheet]')].map(el=>el.href)};
             })()`);
             assert.ok(layout.scrollWidth<=width,JSON.stringify(layout));
             assert.ok(layout.panels.every(panel=>panel.left>=0 && panel.right<=width),JSON.stringify(layout));
+            assert.ok(layout.gaugeCenterDelta<=0.5,JSON.stringify(layout));
+            assert.equal(layout.gaugeTextAlign,'center');
+            assert.ok(layout.gaugeLines.every((line,index,lines)=>index===0 || lines[index-1].bottom<=line.top),JSON.stringify(layout));
+            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark-64.png');
+            assert.ok(layout.brandNaturalWidth>0);
+            assert.equal(layout.favicon,'/static/branding/llmguard-mark-32.png');
             assert.equal(new Set(layout.sheets).size,3);
             assert.ok(layout.sheets.every(url=>url.startsWith('http://127.0.0.1:8765/static/')));
             layouts.push(layout);

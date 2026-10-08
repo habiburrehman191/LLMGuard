@@ -19,6 +19,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ application.name }} | LLMGuard</title>
+    {% include "components/llmguard_favicon.html" %}
     {% for sheet in ['product.css', 'portal.css', 'console.css', 'application_detail.css'] %}<link rel="stylesheet" href="{{ url_for('static', path=sheet) }}?v={{ asset_version }}">{% endfor %}
 </head>
 <body class="product-body portal-body console-body application-detail-body" data-portal-scope="{{ portal_scope }}">

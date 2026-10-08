@@ -14,7 +14,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "26"
+ASSET_VERSION = "27"
 
 
 @router.get("/", response_class=RedirectResponse)
@@ -33,8 +33,8 @@ def landing(request: Request) -> RedirectResponse:
 @router.get("/favicon.ico", include_in_schema=False)
 def favicon() -> FileResponse:
     return FileResponse(
-        BASE_DIR / "static" / "favicon.svg",
-        media_type="image/svg+xml",
+        BASE_DIR / "static" / "branding" / "llmguard-mark-32.png",
+        media_type="image/png",
     )
 
 

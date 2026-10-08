@@ -62,6 +62,37 @@ class FrontendAssetIntegrityTests(unittest.TestCase):
                             check_asset(attrs[key])
         self.assertGreaterEqual(len(checked), 20)
 
+    def test_every_llmguard_page_uses_only_the_canonical_product_favicon(self):
+        expected = "/static/branding/llmguard-mark-32.png"
+        for route in self.pages():
+            with self.subTest(route=route):
+                page = self.client.get(route)
+                icons = [
+                    attrs.get("href", "")
+                    for tag, attrs in Elements(page.text).items
+                    if tag == "link" and attrs.get("rel") == "icon"
+                ]
+                self.assertEqual(1, len(icons))
+                self.assertEqual(expected, urlsplit(icons[0]).path)
+                self.assertNotIn("/static/university/images/logo.png", page.text)
+
+    def test_canonical_branding_pngs_exist_with_expected_dimensions_and_alpha(self):
+        from PIL import Image
+
+        expected = {
+            "llmguard-mark.png": (319, 362),
+            "llmguard-mark-64.png": (64, 64),
+            "llmguard-mark-32.png": (32, 32),
+            "llmguard-wordmark-dark.png": (1210, 366),
+        }
+        for name, dimensions in expected.items():
+            with self.subTest(name=name):
+                with Image.open(ROOT / "static" / "branding" / name) as image:
+                    self.assertEqual("PNG", image.format)
+                    self.assertEqual("RGBA", image.mode)
+                    self.assertEqual(dimensions, image.size)
+                    self.assertEqual((0, 255), image.getchannel("A").getextrema())
+
     def test_current_rendered_sprite_symbols_exist(self):
         symbols = {node.attrib['id'] for node in ElementTree.parse(ROOT / 'static/llmguard-icons.svg').iter()
                    if 'id' in node.attrib}

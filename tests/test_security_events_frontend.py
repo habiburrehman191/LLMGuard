@@ -45,8 +45,8 @@ class SecurityEventsFrontendTests(unittest.TestCase):
         self.assertIn("0 events shown", html)
         self.assertEqual(1, html.count('class="console-header"'))
         self.assertEqual([], self.rows(html))
-        self.assertIn('/static/security_events.css?v=26', html)
-        self.assertIn('/static/security_events.js?v=26', html)
+        self.assertIn('/static/security_events.css?v=27', html)
+        self.assertIn('/static/security_events.js?v=27', html)
         for route in ("events", "incidents", "trace", "quarantine"):
             self.assertIn(f'href="/admin/soc/{route}"', html)
         self.assertIn('class="active" href="/admin/soc/events"', html)

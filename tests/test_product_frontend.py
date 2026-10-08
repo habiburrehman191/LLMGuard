@@ -71,11 +71,19 @@ class ProductFrontendTests(unittest.TestCase):
             "/static/redteam_dashboard.css",
             "/static/redteam_dashboard.js",
             "/static/llmguard-icons.svg",
+            "/static/branding/llmguard-mark.png",
+            "/static/branding/llmguard-mark-64.png",
+            "/static/branding/llmguard-mark-32.png",
+            "/static/branding/llmguard-wordmark-dark.png",
             "/favicon.ico",
         ):
             with self.subTest(path=path):
                 response = self.client.get(path)
                 self.assertEqual(200, response.status_code)
+        favicon = self.client.get("/favicon.ico")
+        canonical = self.client.get("/static/branding/llmguard-mark-32.png")
+        self.assertEqual("image/png", favicon.headers["content-type"])
+        self.assertEqual(canonical.content, favicon.content)
 
     def test_console_header_has_accessible_primary_navigation_contract(self) -> None:
         self._login("admin1", "Admin@123")
@@ -116,8 +124,9 @@ class ProductFrontendTests(unittest.TestCase):
                 response = self.client.get(path)
                 self.assertEqual(200, response.status_code)
                 self.assertIn(text, response.text)
-                self.assertIn("/static/portal.css?v=26", response.text)
-                self.assertIn("/static/console.css?v=26", response.text)
+                self.assertIn("/static/portal.css?v=27", response.text)
+                self.assertIn("/static/console.css?v=27", response.text)
+                self.assertIn("/static/branding/llmguard-mark-32.png?v=27", response.text)
 
         dashboard = self.client.get("/admin/dashboard")
         self.assertIn("University of Haripur AI System", dashboard.text)

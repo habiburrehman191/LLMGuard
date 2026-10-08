@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | LLMGuard</title>
+    {% include "components/llmguard_favicon.html" %}
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
@@ -61,7 +62,7 @@
                                 <path class="gauge-segment gauge-{{ stage }} {{ 'is-active' if stage in selected_integration.guard_stages else '' }}" d="{{ path }}"/>
                                 {% endfor %}
                             </svg>
-                            <div><span>Verified guard stages</span><strong>{{ verified_stages.count }} / 3</strong>
+                            <div class="protection-gauge-copy"><span>Verified guard stages</span><strong>{{ verified_stages.count }} / 3</strong>
                                 <small>{{ selected_integration.runtime_state|replace('_', ' ')|title }}</small></div>
                         </div>
                         <div class="stage-legend">

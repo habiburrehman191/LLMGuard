@@ -53,6 +53,12 @@ class ConsoleShellTests(unittest.TestCase):
             "security": "/admin/soc/events",
             "evaluation": "/admin/evaluation",
         }, routes)
+        brand_images = [attrs for tag, attrs in elements if tag == "img"]
+        self.assertEqual(brand_images, [{
+            "src": "/static/branding/llmguard-mark-64.png",
+            "alt": "",
+        }])
+        self.assertNotIn("/static/university/images/logo.png", self.render_shell())
 
     def test_account_trigger_controls_the_hidden_menu_and_logout_button(self):
         elements = ShellElements(self.render_shell()).elements

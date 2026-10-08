@@ -1599,6 +1599,14 @@ summary { color: var(--cyan); font-size: 0.94rem; font-weight: 800; cursor: poin
     filter: drop-shadow(0 0 8px rgba(34, 211, 238, .45));
 }
 
+.brand-mark img {
+    width: 32px;
+    height: 32px;
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(34, 211, 238, .28));
+}
+
 .product-nav nav {
     gap: 4px;
     align-items: center;

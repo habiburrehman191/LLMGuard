@@ -71,25 +71,40 @@ async function main() {
     };
     try {
         await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+        await send('Network.setCacheDisabled',{cacheDisabled:true});
         await send('Page.navigate',{url:'http://127.0.0.1:8765/login'});
         await waitFor('document.readyState === "complete" && !!document.getElementById("login-form")');
         const layouts=[];
-        for(const [width,height] of [[1280,942],[1440,900],[1280,720],[1024,768],[800,600],[375,667],[320,568]]) {
+        for(const [width,height] of [[1280,942],[1440,900],[1366,768],[1280,720],[1024,768],[800,600],[375,667],[320,568]]) {
             await viewport(width,height);
             await capture(`login-${width}x${height}`);
             const layout=await evaluate(`(() => {
                 const card=document.querySelector('.reference-login-card').getBoundingClientRect();
                 const sheets=[...document.querySelectorAll('link[rel="stylesheet"]')].map(el=>el.href);
+                const fields=[...document.querySelectorAll('.login-input-wrap')].map(wrap=>{
+                    const input=wrap.querySelector('input'), icon=wrap.querySelector('svg');
+                    const inputRect=input.getBoundingClientRect(), iconRect=icon.getBoundingClientRect();
+                    return {id:input.id,height:inputRect.height,paddingLeft:getComputedStyle(input).paddingLeft,
+                        centerDelta:Math.abs((inputRect.top+inputRect.height/2)-(iconRect.top+iconRect.height/2))};
+                });
+                const brand=document.querySelector('.reference-login-icon img');
                 return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
                     scrollHeight:document.documentElement.scrollHeight,cardWidth:card.width,cardTop:card.top,
                     cardLeft:card.left,cardRight:card.right,bodyFont:getComputedStyle(document.body).fontFamily,
-                    inputHeight:document.getElementById('username').getBoundingClientRect().height,
+                    fields,brandSrc:brand.getAttribute('src'),brandNaturalWidth:brand.naturalWidth,
+                    favicon:new URL(document.querySelector('link[rel=icon]').href).pathname,
                     headers:document.querySelectorAll('header').length,sheets};
             })()`);
             assert.ok(layout.scrollWidth<=width, JSON.stringify(layout));
             assert.ok(layout.scrollHeight<=height, JSON.stringify(layout));
             assert.ok(layout.cardLeft>=0 && layout.cardRight<=width);
-            assert.equal(layout.headers,0); assert.equal(layout.inputHeight,44);
+            assert.equal(layout.headers,0);
+            assert.deepEqual(layout.fields.map(field=>field.height),[46,46]);
+            assert.deepEqual(layout.fields.map(field=>field.paddingLeft),['44px','44px']);
+            assert.ok(layout.fields.every(field=>field.centerDelta<=0.5),JSON.stringify(layout));
+            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark.png');
+            assert.ok(layout.brandNaturalWidth>0);
+            assert.equal(layout.favicon,'/static/branding/llmguard-mark-32.png');
             assert.ok(layout.bodyFont.includes('Plus Jakarta Sans'));
             assert.equal(new Set(layout.sheets).size,2);
             assert.ok(layout.sheets.every(url=>url.startsWith('http://127.0.0.1:8765/static/')));
@@ -126,7 +141,7 @@ async function main() {
         await capture('login-error');
         await evaluate(`document.getElementById('password').value='Admin@123'; true`);
         await key('Enter','Enter',13,'\r');
-        await waitFor('location.pathname === "/admin/dashboard" && !!document.querySelector("[data-logout]")');
+        await waitFor('location.pathname === "/admin/dashboard" && document.readyState === "complete" && !!document.querySelector("[data-logout]")');
         const cookies=await send('Network.getCookies');
         const httpOnlyCookie=cookies.cookies.some(cookie=>cookie.httpOnly);
         assert.equal(httpOnlyCookie,true);
