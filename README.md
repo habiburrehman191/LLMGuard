@@ -2,9 +2,385 @@
 
 LLMGuard is a local RAG security demo with a prompt firewall, retrieved-content firewall, semantic detection, trained ML classifier, FAISS retrieval, dashboard logging, document upload/RAG ingestion support, and Qwen3 1.7B as the official local Ollama model.
 
+## Shared Console Visual System
+
+The authenticated console uses FastAPI, Jinja and vanilla JavaScript. The
+exported Obsidian Cyber SOC UI is a visual reference only: no exported pages,
+demo telemetry, Tailwind runtime, or frontend build system are installed.
+
+`static/console.css` owns the shared `--cs-*` color, typography, spacing, radius
+and surface tokens. Existing product/portal primitives resolve to those same
+tokens inside the console; their stylesheets retain the existing page behavior.
+Plus Jakarta Sans and JetBrains Mono are served locally from `static/fonts/`
+with their SIL Open Font License files. No external font request is required.
+
+The shared header remains `templates/components/admin_sidebar.html`. Its four
+navigation links keep their routes and `data-console-section` hooks. The account
+menu uses the authenticated username/role, supports keyboard and outside-click
+dismissal, and retains the existing sign-out action. Navigation remains visible
+in a second header row on narrow screens. Security badges use current state.
+
+Shared cards, buttons, badges and inputs receive the common palette and control
+states. Page content, charts, metrics, application tabs, protection controls,
+login/logout APIs and backend/security logic are unchanged in this shell step.
+
+Run the shell regression checks with:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p test_console_shell.py -v
+node --test tests/console_shell.test.cjs
+```
+
+## Login Presentation
+
+`templates/login.html` uses the exported login composition as a visual reference,
+with the shared console tokens, a centered card, the existing shield sprite, and
+decorative radar rings. It presents only administrator username/password sign-in;
+exported SSO, hardware-key, persistence, encryption and telemetry claims are omitted.
+The four login form IDs and `POST /auth/login` contract remain unchanged.
+
+Login presentation checks are in `tests/test_login_frontend.py`. The optional
+`node tests/login_browser.cjs` checker requires an isolated synthetic preview on
+port 8765 and a freshly started Chrome process/profile with CDP on port 9227; it verifies real login,
+error feedback, native Enter/Tab, logout, assets and responsive layout.
+
 The consolidated startup, configuration, security-invariant, reproducibility,
 and deployment-readiness checklist is in
 [`docs/architecture/RELEASE_READINESS.md`](docs/architecture/RELEASE_READINESS.md).
+
+## Dashboard Presentation
+
+`/admin/dashboard` translates the exported dashboard into the existing Jinja,
+console tokens, SVG sprite and vanilla JavaScript. Only dashboard presentation
+changes: the shared shell, login, other pages, APIs and security behavior remain
+the existing implementation. The application selector keeps its GET contract.
+
+The gauge shows available input/context/output guard checks alongside the real
+runtime state. Activity and the five recent event rows use stored unified events
+for the selected application. Blocked/quarantine totals are scoped to 24 hours;
+open incidents are current. Safe Requests counts distinct safe input request IDs
+in the existing six-event sample, not a fabricated 24-hour total. Optional
+application/integration versions come only from actual heartbeat metadata.
+
+The seven-stage Autonomous Runtime Loop is an architecture walkthrough with
+latest recorded status, not live request telemetry. Missing stage data says
+Not reported; guard health can show READY. No stage latency is invented. Motion
+uses one animation frame chain, stops offscreen/hidden, honors reduced motion,
+and preserves manual pause. Stage buttons pause and reveal the status source.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p test_dashboard_frontend.py -v
+node --test tests/console_shell.test.cjs tests/runtime_loop.test.cjs
+node --check static/product.js
+```
+
+The optional `node tests/dashboard_browser.cjs` checker uses an isolated preview
+on port 8765 and Chrome CDP on port 9227, as above. Both preview databases must
+be scoped to `reports/ui/dashboard-preview/` before starting the server. Seed
+and refresh synthetic browser fixtures immediately before the checker:
+
+```powershell
+$env:LLMGUARD_DB_PATH = Join-Path (Get-Location) 'reports/ui/dashboard-preview/llmguard.db'
+.\.venv\Scripts\python.exe -m tests.dashboard_browser_seed
+node tests/dashboard_browser.cjs
+```
+
+The fixture helper refuses to seed any other database. It is never loaded by
+the application. Screenshots/results are written to ignored `reports/ui/dashboard/`.
+
+## Applications List Presentation
+
+`/admin/applications` uses the exported wide application-card composition with
+the existing shared console tokens and SVG sprite. Each card comes only from
+`application_integrations`: identity, environment, registered channels, protection,
+runtime state, connection and UTC heartbeat retain their existing meanings.
+Optional versions appear only when reported by the integration. Input, Context
+and Output show recorded guard-stage verification or Not reported; this is not
+live request telemetry. The sole card action opens the unchanged detail route.
+An empty registry shows a truthful empty state without sample applications.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_applications_frontend tests.test_application_registry tests.test_integration_heartbeat -v
+node --check static/product.js
+```
+
+The optional `node tests/applications_browser.cjs` checker requires an isolated
+synthetic preview on port 8765 and Chrome CDP on port 9227. Before starting that
+preview, set `LLMGUARD_DB_PATH` to the absolute path
+`reports/ui/applications-preview/llmguard.db` and scope
+`LLMGUARD_TESTBED_DATABASE_URL` to a separate SQLite file in the same directory.
+Use the existing synthetic seed identities. The checker runs guarded fixtures
+for all five runtime states and an empty registry, then restores the default
+University application in Integration pending state. Its fixture helper refuses
+any other database path and is never imported by the application. Results and
+screenshots are written to ignored `reports/ui/applications/`.
+
+## Application Detail Presentation
+
+`/admin/applications/{application_id}` uses the exported Application Detail visual
+language with the existing FastAPI, Jinja, and vanilla JavaScript contracts. Its
+Overview, Integration, Protection, and Credentials tabs retain the shared tab
+handlers and keyboard navigation. Page-specific styling lives in
+`static/application_detail.css`; completed console pages retain their styles.
+
+The summary and integration metadata use registry and heartbeat values only.
+Guard stages show VERIFIED for recorded successes and NOT REPORTED when the
+existing detail context exposes no successful verification. It does not expose
+per-stage failure records, so this UI does not infer FAILED from missing stages.
+Runtime state remains the authoritative existing integration state. University
+RBAC belongs to the protected University application. No demo telemetry, cloud
+providers, credentials, policy switches, or unsupported rotation controls are used.
+
+Protection control keeps its Super Admin endpoint, required disable reason, and
+audit trail. Credential creation and revocation retain their existing form routes.
+The creation response alone displays the new secret in a distinct one-time panel;
+later detail loads show credential metadata only.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_application_detail_frontend tests.test_protection_control tests.test_application_credentials -v
+.\.venv\Scripts\python.exe -m tests.application_detail_preview serve
+node tests/application_detail_browser.cjs
+```
+
+The optional browser checker uses only the synthetic preview on port 8766 and
+Chrome CDP on port 9228. Start a separate Chrome session with its user-data directory
+inside `reports/ui/application-detail/` and open the preview login page. The preview
+helper fixes both SQLite paths inside that ignored directory. Results and screenshots
+are saved there; one-time plaintext secrets are never included in QA artifacts.
+
+## Security Events Presentation
+
+`/admin/soc/events` uses the exported threat-log visual language with scoped
+`static/security_events.css` and `static/security_events.js`. The shared Security
+subnavigation, global header, other SOC pages, and completed console pages retain
+their presentation. Two empty extension blocks in `soc_base.html` allow Events to
+load its assets without adding them to other pages.
+
+Rows display stored event type, application, channel, stage, action,
+classification, timestamp, and numeric risk when available. Risk remains the
+stored normalized value, including zero; classifications never generate scores.
+The list is metadata-only. Existing Trace links use request identifiers without
+displaying long identifiers or raw prompts, retrieved content, outputs, or secrets.
+
+The native GET form retains `application_id`, `channel`, `stage`,
+`classification`, `severity`, `action`, and `event_type`. Search event type is an
+exact match, matching the existing backend. More Filters progressively collapses
+secondary fields; without JavaScript every filter remains visible and functional.
+The count describes only events shown. The existing limit is 200 matching events;
+there are no invented totals, incident metrics, pagination, or live telemetry.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_security_events_frontend tests.test_soc_console tests.test_unified_security_events -v
+.\.venv\Scripts\python.exe -m tests.security_events_preview serve
+node tests/security_events_browser.cjs
+```
+
+The optional browser checker uses the synthetic preview on port 8767 and Chrome
+CDP on port 9229. Start a separate Chrome session with its user-data directory
+inside `reports/ui/security-events/` and open the preview login page. The preview
+helper fixes both SQLite paths inside that ignored directory, and its fixture
+modes modify only those databases. Results, comparisons, and screenshots are
+saved there. Production event persistence, filtering, and authorization are unchanged.
+
+## Security Incidents List Presentation
+
+`/admin/soc/incidents` uses compact incident rows with Incidents-only
+`static/security_incidents.css` and `static/security_incidents.js`. The shared
+header, Security subnavigation, Events, Incident Detail, Trace, Quarantine, and
+completed console pages retain their presentation. The existing asset-extension
+blocks load the new files only on the incidents list.
+
+Rows map directly to stored summary code, category, application name, severity,
+status, related-event count, first seen, last seen, and a secondary monospace
+incident ID. Each row has one Investigate link to the existing detail route.
+Critical/high severity is red, medium is amber, and low is cyan. Status labels
+remain OPEN, ACKNOWLEDGED, and RESOLVED. No risk scores, network controls, fake
+telemetry, raw prompts, retrieved content, outputs, or secrets are added.
+Channel is absent from the existing incident context and is therefore omitted.
+
+The native GET form preserves `application_id`, `incident_status`, `severity`,
+and the existing exact-match `category` filter. The scoped script omits blank
+parameters during native form serialization because the existing optional status
+enum rejects an empty string. No client filtering or backend changes are used.
+The count describes only supplied incidents, with the existing 200-result limit.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_security_incidents_frontend tests.test_soc_console tests.test_security_events -v
+node --test tests/security_incidents.test.cjs
+node --check static/security_incidents.js
+.\.venv\Scripts\python.exe -m tests.security_incidents_preview serve
+```
+
+The optional browser preview runs on `http://127.0.0.1:8768` and fixes both
+SQLite stores inside ignored `reports/ui/security-incidents/preview/`. Its
+`incidents` and `empty` fixture modes affect only those synthetic QA stores;
+they do not seed the normal application. Browser captures and results are saved
+in `reports/ui/security-incidents/`. The full suite was run against isolated
+stores and a disposable model copy, preserving the repository classifier.
+
+## Security Incident Detail Presentation
+
+`/admin/soc/incidents/{incident_id}` uses detail-scoped
+`static/security_incident_detail.css` with the existing local fonts, console
+tokens and `llmguard-icons.svg`. The global header, Security subnav, Incidents
+list, Events, Trace, Quarantine and other completed pages remain unchanged.
+
+The compact summary displays stored title/category, application, severity,
+status, related-event count, first/last seen and secondary identifiers. Correlated
+event rows show actual event type, stage, channel, classification, action,
+severity, timestamp and normalized numeric risk when supplied, including zero.
+Missing risk does not generate a score. Native expandable identifier sections
+retain safe event/request/source/chunk references without making long IDs primary
+row text. View Trace links preserve `application_id` and `request_id` on the
+existing `/admin/soc/trace` route; Back to Incidents returns to the existing list.
+
+OPEN incidents expose native POST forms for Acknowledge and Resolve; ACKNOWLEDGED
+incidents expose only Resolve; RESOLVED incidents show a terminal state. The
+existing endpoints, transitions, redirects, persistence and RBAC are unchanged.
+The status-update notice appears only when its query value matches the persisted
+state. Lifecycle history uses actual old/new status, actor and timestamp; no
+missing notes or reasons are invented. No detail-specific JavaScript is required.
+
+This is metadata-only investigation: no raw prompts, retrieved context, outputs,
+document bodies, credentials or secrets. No endpoint/network controls, assignees,
+fake telemetry, latency, countdowns or incident risk derived from severity.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_security_incident_detail_frontend tests.test_soc_console tests.test_security_events -v
+.\.venv\Scripts\python.exe -m tests.security_incident_detail_preview serve
+```
+
+The optional synthetic preview runs on `http://127.0.0.1:8769`, with both SQLite
+stores fixed beneath ignored `reports/ui/security-incident-detail/preview/`.
+The `incident` fixture mode affects only those QA stores; `snapshot` exports their
+current metadata for verification. Browser QA follows one incident through the
+real acknowledge/resolve workflow, with captures at 1440×900, 1366×768, 1024px,
+375px and 320px. Evidence lives in `reports/ui/security-incident-detail/`.
+
+## Request Trace Presentation
+
+`/admin/soc/trace` uses scoped `static/security_trace.css` and the approved local
+fonts, console tokens and existing icon sprite. Native GET search retains exact
+`request_id` (maximum 200 characters) and optional `application_id`. A request ID
+shared by multiple applications requires an application choice; records remain
+isolated. Initial and no-result views contain no fabricated trace data.
+
+The connected pipeline uses the existing `stage_summary` identifiers: `input`,
+`context`, `output`, labeled Input Firewall, Context Firewall and Output Firewall
+in architectural order (02/06/09). Only recorded canonical guards get nodes and
+connectors; an input-only block or session restriction ends at input. Missing
+records appear separately under native Recording coverage and do not establish
+that downstream execution occurred. No synthetic ingress, response, retrieval
+or model nodes are added. Canonical grouping is architectural; the evidence list
+retains the backend's chronological order, including its event-ID tie break.
+
+The summary derives application, channel, event count, first/last timestamps,
+optional highest numeric risk and last recorded decision from supplied events.
+It does not claim a delivered response or successful model execution. Numeric
+risk includes zero and is displayed to two decimals; absent risk/latency is not
+invented. `other_stages` remains visible in Additional Security Evidence, with
+matching event metadata in chronological order. Explicit University authorization
+records are labeled University Authorization, separate from LLMGuard guard stages.
+This label does not add University instrumentation or authorization ownership.
+
+Rendering stays metadata-only: no prompt, context, document body, output, secrets,
+personal records, network/APM telemetry or fake live execution. There is no new
+JavaScript, polling, API, status mutation or backend/security change.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_security_trace_frontend tests.test_soc_console tests.test_security_events -v
+.\.venv\Scripts\python.exe -m tests.security_trace_preview serve
+```
+
+The optional isolated synthetic preview runs on `http://127.0.0.1:8770` with both
+SQLite stores beneath ignored `reports/ui/security-trace/preview/`. Its `fixtures`
+mode seeds/exports only those QA stores. Fixtures cover input block, later guards,
+sanitized context, output block, bypass, session restriction, additional evidence,
+long IDs and shared IDs across applications. This fixture evidence is not added
+to production data. Screenshots and verification results live in
+`reports/ui/security-trace/`; the visual report is appended to `design-qa.md`.
+
+## Quarantine Presentation
+
+`/admin/soc/quarantine` uses scoped `static/security_quarantine.css`, the existing
+console shell, SOC subnav, local fonts and icon sprite. Native GET filtering keeps
+the existing optional `application_id` parameter and the backend's record order.
+The count describes only the currently rendered set (up to the existing 200-record
+limit). No quarantine or security backend behavior changes.
+
+Compact rows show the actual application and recorded timestamp. Native Safe
+identifiers disclosures contain available event, application, request, source,
+chunk and incident IDs. Request-linked records navigate to the existing Trace
+route with `application_id` and `request_id`; correlated incidents retain their
+existing detail links. Missing references produce no invented links.
+
+The route does not supply category, stage, channel, classification or reason, so
+rows use the neutral title Quarantine record and do not infer those fields from
+source/chunk IDs. Linked traces and incidents provide existing decision metadata.
+Protected content remains private: no raw chunks, documents, input/output, secrets
+or personal records are rendered. There are no release/delete/restore actions,
+new JavaScript, polling, fake telemetry or new APIs.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_security_quarantine_frontend tests.test_soc_console tests.test_security_events -v
+.\.venv\Scripts\python.exe -m tests.security_quarantine_preview serve
+.\.venv\Scripts\python.exe -m tests.security_quarantine_preview serve-empty
+```
+
+The optional synthetic previews use separate SQLite stores beneath ignored
+`reports/ui/security-quarantine/preview/` (port 8771) and `preview-empty/` (port
+8772). Fixtures cover multiple applications, context references, request/incident
+links, absent references and maximum-length identifiers. The `fixtures` mode
+only seeds/exports the populated QA stores; it never writes production data.
+Screenshots and verification results live in `reports/ui/security-quarantine/`;
+the visual report is appended to `design-qa.md`.
+
+## Evaluation Benchmark Presentation
+
+`/admin/evaluation` remains a read-only admin page with the existing Evaluation
+subnav and `benchmark_case_count` context. Scoped `static/evaluation_benchmark.css`
+adds research metric panels, a truthful accuracy ring, security outcomes,
+Protected/Bypassed comparison, dataset coverage and a classification result matrix.
+Detector Comparison and Red Team presentation are unchanged.
+
+The presentation adapter reads only `reports/evaluation/final/benchmark.json` and
+the existing dataset. It verifies schema/synthetic metadata, dataset SHA-256,
+case-order SHA-256 and repeated-run metadata before exposing an explicit safe
+field selection. Metrics are read from the artifact, not recomputed or copied
+from the UI export. Rates are displayed as percentages; latency uses recorded
+protected-mode mean/median milliseconds. Matrix values are observations across
+runs, not unique cases. No protected content or per-case payload is rendered.
+
+Missing, corrupt or dataset-mismatched reports show No verified benchmark results
+and the real current dataset count. Invalid individual rates/latency values are
+omitted. The report is an ignored local artifact: environments without it display
+this fallback rather than embedded benchmark claims. The adapter never executes
+the harness, changes calculations, or writes reports.
+
+Where stored evidence supports it, a note explains sanitized malicious-origin
+continuation separately from attack success. University RBAC remains a protected
+application boundary. The benchmark uses instrumented execution boundaries, not
+live University mutations or Qwen generation; local timing is not production
+latency. Results describe controlled synthetic cases, not comprehensive attack
+protection or production certification.
+
+Reproduce the stored run metadata through the real `python -m evaluation.run`
+CLI. The displayed command selects stored runs/seeds/modes and writes to
+`reports/evaluation/reproduction`, preserving the final report. The page has no
+web runner, fake terminal state, polling, historical trend or new JavaScript.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_evaluation_benchmark_frontend tests.test_evaluation tests.test_phase14a_evaluation tests.test_phase14b_evaluation -v
+.\.venv\Scripts\python.exe -m tests.evaluation_benchmark_preview serve
+.\.venv\Scripts\python.exe -m tests.evaluation_benchmark_preview serve-unavailable
+```
+
+Optional previews use separate isolated SQLite stores beneath ignored
+`reports/ui/evaluation-benchmark/` on ports 8773 and 8774. The first reads the
+existing final report without running evaluation; the second simulates an absent
+artifact inside its disposable process. No benchmark cases or reports are changed.
+Source audit, screenshots, comparisons and test results are saved in that QA
+directory, with a separate report appended to `design-qa.md`.
 
 ## Runtime Boundary
 
@@ -707,7 +1083,7 @@ The FastAPI template UI presents LLMGuard as a standalone AI security product.
 Product routes:
 
 ```text
-GET /                         Product landing page
+GET /                         Sign-in or administrator dashboard redirect
 GET /login                    Local testbed sign-in
 GET /admin/dashboard          Super admin control plane
 GET /admin/compare            Protected vs vulnerable comparison
@@ -756,6 +1132,47 @@ When neither control is enabled, the vulnerable panel shows the gateway's real
 rejection response. Protected mode remains active and blocked or quarantined
 requests do not call Qwen.
 
+### Detector Comparison Presentation
+
+`/admin/compare` separates **Final Benchmark Comparison** (stored aggregate
+evidence) from **Interactive Comparison** (one submitted synthetic input).
+The read-only `app/comparison_presentation.py` adapter validates the controlled
+`reports/evaluation/final/benchmark.json` against the current dataset using the
+existing Benchmark provenance checks. It reads allowlisted `metrics[mode]`
+fields without running evaluation or modifying any report, dataset, or detector.
+
+Detector modes are `rules_only`, `semantic_only`, `ml_only`, and `hybrid`.
+`full_protected_pipeline` and `bypassed` are separate system modes. The detector
+matrix uses accuracy, precision, recall, F1, FPR, and FNR. Rates are rendered as
+percentages; visual bar widths derive directly from accuracy. Detector ASR stays
+N/A when `execution_measured_malicious_count` is zero, following
+`evaluation/reporting.py`. Missing or invalid metrics also remain N/A. Recorded
+mean/median latency is explicitly benchmark timing, not production latency.
+The protected downstream explanation uses verified sanitized result rows;
+sanitized continuation is not attack success. University RBAC remains distinct.
+
+Missing, corrupt, or mismatched final artifacts show an unavailable state;
+interactive functionality remains intact. Its existing fields and JavaScript
+still submit JSON to `POST /admin/compare/run` and render actual gateway results.
+No input history, new persistence, fake detector execution, or web benchmark
+runner is added. Existing local red-team gating and security behavior apply.
+
+For isolated browser QA with synthetic stores and bypass disabled:
+
+```powershell
+.venv/Scripts/python.exe -m tests.evaluation_compare_preview serve
+# http://127.0.0.1:8775/admin/compare
+.venv/Scripts/python.exe -m tests.evaluation_compare_preview serve-unavailable
+# http://127.0.0.1:8776/admin/compare
+.venv/Scripts/python.exe -m unittest tests.test_evaluation_compare_frontend -v
+```
+
+The preview uses real gateway decisions, without detector or model stubs. Its
+browser QA submits malicious inputs that stop before Qwen. Existing gateway
+tests cover downstream behavior with synthetic model substitutes. Do not enter
+real personal data or secrets. Results describe the controlled synthetic
+benchmark and should not be interpreted as universal detector accuracy.
+
 ### Document And Security Operations
 
 The document manager accepts controlled synthetic TXT, PDF, and DOCX uploads,
@@ -772,10 +1189,39 @@ investigation tabs. All `/admin/*` product and telemetry routes require the
 
 ### Red-Team Lab
 
-`/admin/redteam` displays persisted structured cases and expected outcomes. If a
-reusable backend runner is not installed, run controls return an explicit
-unavailable response and the UI does not fabricate completed results. The export
-endpoint still provides the stored case manifest.
+`/admin/redteam` is a read-only capability and stored-case view. **No real Red
+Team runner exists in this build.** GET provides `cases` and
+`runner_available=False`; `POST /admin/redteam/run` remains an admin-authorized
+HTTP **501 Not Implemented** stub with `available=false`. No evaluation, attack
+generation, model call, or fabricated result is performed by that endpoint.
+
+`redteam_enabled` is derived from `REDTEAM_MODE=true` or
+`APP_ENV=local_redteam`. It reflects local red-team configuration and is shown
+separately from runner capability. It does not install a runner or change the
+501 endpoint: both flag states display **Not Configured** and preserve the
+disabled `Run full suite` control. Existing bypass behavior elsewhere is unchanged.
+
+The page uses Red-Team-scoped `static/evaluation_redteam.css`, the existing icon
+sprite and shared Evaluation navigation. Stored definitions show their real
+name, case ID, attack type, severity and **expected** action, without raw prompts
+or arbitrary metadata. Expected actions are test specifications, not observed
+execution. `GET /admin/redteam/export` still exports the existing safe manifest,
+`runner_available=false`, and `results=[]`. The existing cases API is unchanged.
+No attack options, benchmark duplicates, simulated progress, run history, or
+results are added. Benchmark and Detector Comparison links lead to measured
+synthetic evaluation evidence on their separate pages.
+
+For isolated synthetic browser previews of the two configuration states:
+
+```powershell
+.venv/Scripts/python.exe -m tests.evaluation_redteam_preview serve-disabled
+# http://127.0.0.1:8777/admin/redteam — no stored cases
+.venv/Scripts/python.exe -m tests.evaluation_redteam_preview serve-enabled
+# http://127.0.0.1:8778/admin/redteam — synthetic definitions, still no runner
+.venv/Scripts/python.exe -m unittest tests.test_evaluation_redteam_frontend -v
+```
+
+These previews use disposable stores and do not execute attacks or call Qwen.
 
 Run the Phase 9 route and product-shell tests:
 
@@ -912,21 +1358,13 @@ The refreshed interface includes:
   glass surfaces, and balanced dashboard density.
 - Cache-busted product assets using UI asset version `18`.
 
-The landing hero renders the reusable
-`templates/components/neural_defense_spline.html` component. By default it
-uses the original CSS/SVG/JavaScript interactive neural-core fallback. To use
-a hosted Spline scene, set an HTTPS URL from the `spline.design` domain:
-
-```powershell
-$env:LLMGUARD_SPLINE_SCENE_URL="https://my.spline.design/example/"
-```
-
-Invalid or non-Spline URLs are ignored and the local fallback remains active.
+The current `/` entry point redirects to `/login` or `/admin/dashboard`.
+The former landing hero and optional hosted Spline scene are no longer served.
 
 Primary routes remain unchanged:
 
 ```text
-/                         LLMGuard AI Firewall landing page
+/                         Sign-in or administrator dashboard redirect
 /login                    Secure synthetic identity access
 /admin/dashboard          Super Admin command center
 /admin/security-dashboard SOC security overview

@@ -3,85 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protected Applications | LLMGuard</title>
+    <title>Applications | LLMGuard</title>
+    {% include "components/llmguard_favicon.html" %}
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
-    {% include "components/product_nav.html" %}
-    <main class="product-page">
-      <div class="portal-shell">
-        {% include "components/admin_sidebar.html" %}
-        <div class="portal-main">
-            <header class="page-header">
-                <div>
-                    <span class="am-section-label">[02] APPLICATION REGISTRY</span>
-                    <h1 class="am-gradient-title">Protected Applications</h1>
-                    <p>Registered external AI applications and their approved integration channels.</p>
-                </div>
-                {% include "components/security_badges.html" %}
-            </header>
-
-            <section class="registry-notice" aria-label="Registry status">
-                <svg class="am-inline-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#database"></use></svg>
-                <p>Registration records identity and intended channels only. It does not indicate an active connection, heartbeat, or protection status.</p>
-            </section>
-
-            <section class="application-registry-grid" aria-label="Registered applications">
-                {% for integration in application_integrations %}
-                {% set application = integration.application %}
-                <article class="workspace-card application-registry-card">
-                    <div class="application-card-heading">
-                        <div>
-                            <span class="section-kicker">{{ application.organization.name }}</span>
-                            <h2>{{ application.name }}</h2>
+<body class="product-body portal-body console-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page">
+        <div class="portal-shell console-shell">
+            {% include "components/admin_sidebar.html" %}
+            <div class="portal-main console-main applications-list-main">
+                <header class="console-page-header applications-list-header">
+                    <div>
+                        <div class="applications-title-row">
+                            <h1>Applications</h1>
+                            <span class="count-badge">{{ application_integrations|length }} registered {{ 'application' if application_integrations|length == 1 else 'applications' }}</span>
                         </div>
-                        <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
+                        <p>Protected applications connected to LLMGuard.</p>
                     </div>
-                    <dl class="application-details">
-                        <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
-                        <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
-                        <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
-                        <div><dt>Registration status</dt><dd>{{ application.status|replace("_", " ")|title }}</dd></div>
-                        <div><dt>Connection state</dt><dd>{{ integration.connection_state|replace("_", " ")|title }}</dd></div>
-                        <div><dt>Protection</dt><dd>{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</dd></div>
-                        <div><dt>Runtime state</dt><dd>{{ integration.runtime_state|replace("_", " ")|title }}</dd></div>
-                        <div><dt>Last heartbeat</dt><dd>{{ integration.last_heartbeat_at or "No valid heartbeat" }}</dd></div>
-                        <div><dt>Application version</dt><dd>{{ integration.application_version or "Not reported" }}</dd></div>
-                        <div><dt>Integration version</dt><dd>{{ integration.integration_version or "Not reported" }}</dd></div>
-                        <div><dt>Heartbeat environment</dt><dd>{{ integration.heartbeat_environment|title if integration.heartbeat_environment else "Not reported" }}</dd></div>
-                    </dl>
-                    <div class="application-channel-section">
-                        <span class="section-kicker">Registered channels</span>
-                        <div class="application-channel-list">
-                            {% for channel in application.channels %}
-                            <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}">{{ channel.channel }}</span>
+                </header>
+
+                <section class="application-card-grid" aria-label="Registered applications">
+                    {% for integration in application_integrations %}
+                    {% set application = integration.application %}
+                    <article class="application-card" data-application-card="{{ application.application_id }}">
+                        <div class="application-card-main">
+                            <div class="application-identity-header">
+                                {% if application.application_id == 'university-of-haripur' %}
+                                <span class="application-logo application-logo--uoh" data-application-logo="university-of-haripur" aria-hidden="true"><img src="/static/branding/university-of-haripur-logo.png" alt=""></span>
+                                {% else %}
+                                <span class="application-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#shield"></use></svg></span>
+                                {% endif %}
+                                <div class="application-card-title">
+                                    <div class="application-name-row">
+                                        <h2>{{ application.name }}</h2>
+                                        <span class="application-environment">{{ application.environment|title }}</span>
+                                    </div>
+                                    <span class="application-organization">{{ application.organization.name }}</span>
+                                </div>
+                            </div>
+                            <div class="application-id-row"><span>Application ID</span><code class="application-id">{{ application.application_id }}</code></div>
+                            <div class="application-channel-list" aria-label="Registered channels">
+                                <span class="application-channels-label">Channels</span>
+                                {% for channel in application.channels %}
+                                <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}" data-channel="{{ channel.channel }}" aria-label="{{ channel.channel|title }} channel{{ ' disabled' if not channel.enabled else '' }}">{{ channel.channel|title }}{% if not channel.enabled %}<small>Disabled</small>{% endif %}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="application-protection"><span>Protection</span><strong class="protection-state {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}">{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</strong></div>
+                            {% if integration.application_version or integration.integration_version %}
+                            <div class="application-versions">
+                                {% if integration.application_version %}<span>Application <code>{{ integration.application_version }}</code></span>{% endif %}
+                                {% if integration.integration_version %}<span>Integration <code>{{ integration.integration_version }}</code></span>{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="application-runtime">
+                            <span class="application-runtime-label">Runtime state</span>
+                            <span class="integration-state state-{{ integration.runtime_state|lower }}" data-runtime-state="{{ integration.runtime_state }}">{{ integration.runtime_state|replace('_', ' ')|title }}</span>
+                            <dl class="application-connection">
+                                <div><dt>Connection</dt><dd>{{ integration.connection_state|replace('_', ' ')|title }}</dd></div>
+                                <div><dt>Last heartbeat</dt><dd>{% if integration.last_heartbeat_at %}<time datetime="{{ integration.last_heartbeat_at }}" title="{{ integration.last_heartbeat_at }}">{{ integration.last_heartbeat_at[:19]|replace('T', ' ') }} UTC</time>{% else %}Not received{% endif %}</dd></div>
+                            </dl>
+                        </div>
+
+                        <div class="application-guard-strip" aria-label="Recorded guard-stage verification">
+                            {% for stage, icon in [('input', 'firewall'), ('context', 'rag'), ('output', 'output')] %}
+                            <div class="application-guard-stage {{ 'is-verified' if stage in integration.guard_stages else 'is-unreported' }}" data-guard-stage="{{ stage }}" data-verified="{{ 'true' if stage in integration.guard_stages else 'false' }}">
+                                <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ icon }}"></use></svg>
+                                <div><strong>{{ stage|title }}</strong><span>{{ 'VERIFIED' if stage in integration.guard_stages else 'NOT REPORTED' }}</span></div>
+                            </div>
                             {% endfor %}
                         </div>
-                    </div>
-                    <div class="application-channel-section">
-                        <span class="section-kicker">Heartbeat-reported channels</span>
-                        {% if integration.reported_channels %}
-                        <div class="application-channel-list">
-                            {% for channel in integration.reported_channels %}
-                            <span class="application-channel">{{ channel }}</span>
-                            {% endfor %}
+                        <div class="application-card-footer">
+                            <small>Verification reflects recorded guard-stage health.</small>
+                            <a class="primary-button application-card-link" href="/admin/applications/{{ application.application_id }}" aria-label="Open {{ application.name }}">Open Application <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a>
                         </div>
-                        {% else %}
-                        <p class="integration-empty-value">No channels reported yet.</p>
-                        {% endif %}
-                    </div>
-                    <a class="secondary-button dashboard-text-link" href="/admin/applications/{{ application.application_id }}">Manage application</a>
-                </article>
-                {% else %}
-                <article class="workspace-card registry-empty-state">
-                    <h2>No applications registered</h2>
-                    <p>The registry contains no external AI applications.</p>
-                </article>
-                {% endfor %}
-            </section>
+                    </article>
+                    {% else %}
+                    <article class="console-panel applications-empty-state">
+                        <span class="applications-empty-mark" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#database"></use></svg></span>
+                        <h2>No applications registered</h2>
+                        <p>Applications appear here after they are registered with LLMGuard.</p>
+                    </article>
+                    {% endfor %}
+                </section>
+            </div>
         </div>
-      </div>
     </main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
 </body>

@@ -1,0 +1,82 @@
+/* Incidents list only; shared console and other Security views remain unchanged. */
+.security-incidents-page { min-width: 0; display: grid; gap: 20px; align-content: start; }
+.security-incidents-page :is(h2, h3, p, dl, dd) { margin: 0; }
+.security-incidents-page svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.security-incidents-page .si-page-header { margin: 0; padding: 4px 0; }
+.security-incidents-page .count-badge { color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.security-incidents-page .si-list-panel { min-width: 0; padding: 20px; background: var(--cs-panel); box-shadow: var(--cs-shadow); }
+.security-incidents-page .si-panel-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.security-incidents-page .si-panel-heading > div { min-width: 0; flex: 1; }
+.security-incidents-page .si-heading-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.security-incidents-page h2 { color: var(--cs-text); font-size: 15px; font-weight: 650; line-height: 1.4; letter-spacing: -.02em; }
+.security-incidents-page .si-panel-heading p { margin-top: 3px; color: var(--cs-muted); font-size: 11px; }
+.security-incidents-page .si-privacy-label { display: inline-flex; align-items: center; gap: 6px; color: var(--cs-muted); font-size: 10px; }
+.security-incidents-page .si-privacy-label svg { width: 13px; height: 13px; color: var(--cs-blue-2); }
+.security-incidents-page .si-filter-form { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr) minmax(0, .8fr) minmax(0, 1fr) auto; align-items: end; gap: 12px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--cs-line); }
+.security-incidents-page .si-filter-form label { min-width: 0; display: grid; gap: 6px; color: var(--cs-muted); font-size: 10px; }
+.security-incidents-page .si-filter-form :is(input, select) { min-width: 0; width: 100%; height: 36px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--cs-line); border-radius: 8px; font-size: 11px; color: var(--cs-text); background: var(--cs-panel-2); }
+.security-incidents-page .si-filter-actions { display: flex; align-items: center; gap: 7px; }
+.security-incidents-page .si-filter-actions :is(button, a) { padding: 8px 12px; min-height: 36px; white-space: nowrap; font-size: 11px; }
+.security-incidents-page .si-incident-list { display: grid; gap: 8px; }
+.security-incidents-page .si-incident-row { min-width: 0; display: grid; grid-template-columns: 82px minmax(0, 1fr) 124px 78px 192px 108px; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--cs-line); border-left: 3px solid var(--cs-blue-2); border-radius: 8px; background: var(--cs-panel-2); transition: background-color .15s ease; }
+.security-incidents-page .si-incident-row:hover { background: var(--cs-panel-3); }
+.security-incidents-page .si-severity-badge { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 7px; border-radius: 6px; color: var(--cs-blue-2); background: var(--cs-blue-soft); font: 600 10px/1.4 var(--cs-font-code); }
+.security-incidents-page .si-severity-badge svg { width: 13px; height: 13px; }
+.security-incidents-page :is(.si-severity-high, .si-severity-critical) { border-left-color: var(--cs-red); }
+.security-incidents-page :is(.si-severity-high, .si-severity-critical) .si-severity-badge { color: var(--cs-red); background: var(--cs-red-soft); }
+.security-incidents-page .si-severity-medium { border-left-color: var(--cs-amber); }
+.security-incidents-page .si-severity-medium .si-severity-badge { color: var(--cs-amber); background: var(--cs-amber-soft); }
+.security-incidents-page .si-incident-main { min-width: 0; display: grid; gap: 6px; }
+.security-incidents-page h3 { color: var(--cs-text); font-size: 13px; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+.security-incidents-page .si-incident-meta { display: flex; flex-wrap: wrap; gap: 3px 10px; color: var(--cs-muted); font-size: 10px; line-height: 1.5; }
+.security-incidents-page .si-incident-meta > span { min-width: 0; overflow-wrap: anywhere; }
+.security-incidents-page .si-application { flex-basis: 100%; color: var(--cs-text-2); }
+.security-incidents-page .si-incident-id { max-width: 100%; color: var(--cs-faint); font: 9px/1.5 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incidents-page :is(.si-status-group, .si-event-count) { min-width: 0; display: grid; justify-items: start; gap: 6px; }
+.security-incidents-page .si-meta-label { color: var(--cs-muted); font-size: 10px; }
+.security-incidents-page .si-status-badge { max-width: 100%; padding: 4px 7px; border: 1px solid var(--cs-line); border-radius: 6px; color: var(--cs-text-2); background: var(--cs-panel-3); font: 600 9px/1.5 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incidents-page .si-status-open { color: var(--cs-red); background: var(--cs-red-soft); }
+.security-incidents-page .si-status-acknowledged { color: var(--cs-blue-2); background: var(--cs-blue-soft); }
+.security-incidents-page .si-status-resolved { color: var(--cs-green); background: var(--cs-green-soft); }
+.security-incidents-page .si-event-count strong { color: var(--cs-text); font: 600 13px/1.5 var(--cs-font-code); }
+.security-incidents-page .si-timestamps { min-width: 0; display: grid; gap: 8px; }
+.security-incidents-page .si-timestamps > div { min-width: 0; display: grid; gap: 3px; }
+.security-incidents-page .si-timestamps dt { color: var(--cs-muted); font-size: 9px; }
+.security-incidents-page .si-timestamps time { display: block; min-width: 0; color: var(--cs-text-2); font: 9px/1.5 var(--cs-font-code); white-space: normal; overflow-wrap: anywhere; }
+.security-incidents-page .si-investigate { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 8px 10px; border: 1px solid var(--cs-line-strong); border-radius: 6px; color: var(--cs-text); background: var(--cs-panel-3); font-size: 11px; text-decoration: none; }
+.security-incidents-page .si-investigate svg { width: 13px; height: 13px; }
+.security-incidents-page .si-investigate:hover { color: var(--cs-on-primary); background: var(--cs-blue); }
+.security-incidents-page :is(a, button, input, select):focus-visible { outline: 2px solid var(--cs-blue-2); outline-offset: 3px; }
+.security-incidents-page .si-list-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--cs-line); color: var(--cs-muted); font-size: 10px; }
+.security-incidents-page .si-empty-state { display: grid; justify-items: center; gap: 10px; padding: 40px 16px; border-radius: 8px; text-align: center; background: var(--cs-panel-2); }
+.security-incidents-page .si-empty-state svg { width: 28px; height: 28px; color: var(--cs-blue-2); }
+.security-incidents-page .si-empty-state h3 { font-size: 14px; font-weight: 600; }
+.security-incidents-page .si-empty-state p { color: var(--cs-muted); font-size: 12px; }
+@media (max-width: 1180px) {
+    .security-incidents-page .si-filter-form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .security-incidents-page .si-filter-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    .security-incidents-page .si-incident-row { grid-template-columns: 82px minmax(0, 1fr) 124px 78px 108px; gap: 12px; }
+    .security-incidents-page .si-timestamps { grid-column: 2 / -1; grid-row: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .security-incidents-page .si-investigate { grid-column: 5; grid-row: 1; }
+}
+@media (max-width: 760px) {
+    .security-incidents-page .si-list-panel { padding: 16px; }
+    .security-incidents-page .si-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .security-incidents-page .si-incident-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .security-incidents-page .si-severity-badge { grid-column: 1; grid-row: 1; justify-self: start; }
+    .security-incidents-page .si-status-group { grid-column: 2; grid-row: 1; justify-self: end; }
+    .security-incidents-page .si-status-group .si-meta-label { display: none; }
+    .security-incidents-page .si-incident-main { grid-column: 1 / -1; grid-row: 2; }
+    .security-incidents-page .si-timestamps { grid-column: 1 / -1; grid-row: 3; }
+    .security-incidents-page .si-event-count { grid-column: 1; grid-row: 4; }
+    .security-incidents-page .si-investigate { grid-column: 2; grid-row: 4; }
+}
+@media (max-width: 480px) {
+    .security-incidents-page .si-panel-heading { flex-wrap: wrap; }
+    .security-incidents-page .si-privacy-label { margin-left: 42px; }
+    .security-incidents-page .si-filter-form { grid-template-columns: minmax(0, 1fr); }
+    .security-incidents-page .si-filter-actions { justify-content: flex-start; }
+    .security-incidents-page .si-incident-row { padding: 14px 12px; }
+    .security-incidents-page .si-timestamps { grid-template-columns: minmax(0, 1fr); }
+    .security-incidents-page .si-investigate { min-height: 44px; }
+}

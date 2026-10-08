@@ -1,185 +1,167 @@
+{% macro icon(name) -%}<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#{{ name }}"></use></svg>{%- endmacro %}
+{% macro channels(items, registered=false) -%}<div class="ad-channels">{% for channel in items %}<span class="ad-channel" data-channel="{{ channel.channel if registered else channel }}">{{ (channel.channel if registered else channel)|title }}</span>{% else %}<span class="ad-muted">Not reported</span>{% endfor %}</div>{%- endmacro %}
+{% macro heartbeat(value) -%}{% if value %}<time datetime="{{ value }}">{{ value|replace('T', ' ')|replace('+00:00', ' UTC') }}</time>{% else %}Not reported{% endif %}{%- endmacro %}
+{% macro runtime() -%}<span class="integration-state state-{{ integration.runtime_state|lower }}" data-runtime-state="{{ integration.runtime_state }}">{{ integration.runtime_state|replace('_', ' ')|title }}</span>{%- endmacro %}
+{% macro guard_pipeline() -%}
+<ol class="ad-guard-list" aria-label="Reported guard stages">
+{% for stage, description in [('input', 'Prompt inspection and injection defense'), ('context', 'Retrieved-content inspection and isolation'), ('output', 'Response filtering and data loss prevention')] %}
+    <li class="ad-guard-row" data-guard-stage="{{ stage }}" data-verified="{{ 'true' if stage in integration.guard_stages else 'false' }}">
+        <span class="ad-stage-number" aria-hidden="true">0{{ loop.index }}</span>
+        <div><h3>{{ stage|title }} Firewall</h3><p>{{ description }}</p></div>
+        <span class="ad-stage-state {{ 'is-verified' if stage in integration.guard_stages else 'is-unreported' }}">{{ 'VERIFIED' if stage in integration.guard_stages else 'NOT REPORTED' }}</span>
+    </li>
+{% endfor %}
+</ol>
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ application.name }} | LLMGuard</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    {% include "components/llmguard_favicon.html" %}
+    {% for sheet in ['product.css', 'portal.css', 'console.css', 'application_detail.css'] %}<link rel="stylesheet" href="{{ url_for('static', path=sheet) }}?v={{ asset_version }}">{% endfor %}
 </head>
-<body class="product-body portal-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
-    {% include "components/product_nav.html" %}
-    <main class="product-page">
-      <div class="portal-shell">
-        {% include "components/admin_sidebar.html" %}
-        <div class="portal-main">
-            <header class="page-header">
-                <div>
-                    <span class="am-section-label">APPLICATION REGISTRY / {{ application.environment|upper }}</span>
-                    <h1 class="am-gradient-title">{{ application.name }}</h1>
-                    <p>{{ application.organization.name }} · <code>{{ application.application_id }}</code></p>
-                </div>
-                <span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span>
-            </header>
-
-            <section class="workspace-card application-summary-card">
-                <div class="section-heading">
-                    <div><span class="section-kicker">Registration</span><h2>Application identity</h2></div>
-                    <a class="secondary-button dashboard-text-link" href="/admin/applications">Back to registry</a>
-                </div>
-                <dl class="application-details">
-                    <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
-                    <div><dt>Organization</dt><dd>{{ application.organization.name }}</dd></div>
-                    <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
-                    <div><dt>Status</dt><dd>{{ application.status|replace("_", " ")|title }}</dd></div>
-                </dl>
-                <div class="application-channel-section">
-                    <span class="section-kicker">Registered channels</span>
-                    <div class="application-channel-list">
-                        {% for channel in application.channels %}
-                        <span class="application-channel {{ 'disabled' if not channel.enabled else '' }}">{{ channel.channel }}</span>
+<body class="product-body portal-body console-body application-detail-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page">
+        <div class="portal-shell console-shell">
+            {% include "components/admin_sidebar.html" %}
+            <div class="portal-main console-main application-detail-main">
+                <a class="ad-back-link" href="/admin/applications">{{ icon('arrow') }}Applications</a>
+                <header class="ad-identity console-panel">
+                    <div class="ad-identity-top">
+                        <span class="ad-app-icon">{{ icon('shield') }}</span>
+                        <div class="ad-identity-copy"><span class="ad-kicker">Application detail</span><h1>{{ application.name }}</h1><p>{{ application.organization.name }}</p></div>
+                        <div class="ad-runtime"><span class="ad-label">Runtime state</span>{{ runtime() }}</div>
+                    </div>
+                    <dl class="ad-identity-meta">
+                        <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
+                        <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
+                        <div><dt>Channels</dt><dd>{{ channels(application.channels|selectattr('enabled'), true) }}</dd></div>
+                        <div><dt>Connection</dt><dd><span class="ad-connection state-{{ integration.connection_state|lower }}">{{ integration.connection_state|replace('_', ' ')|title }}</span></dd></div>
+                        <div><dt>Protection</dt><dd>{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</dd></div>
+                        <div><dt>Last heartbeat</dt><dd>{{ heartbeat(integration.last_heartbeat_at) }}</dd></div>
+                    </dl>
+                </header>
+                <div class="application-tabs" data-application-tabs data-initial-tab="{{ 'credentials' if created_credential else 'overview' }}">
+                    <nav class="section-tabs ad-tab-dock" aria-label="Application details" role="tablist">
+                        {% for name, symbol in [('overview', 'monitor'), ('integration', 'tool'), ('protection', 'shield'), ('credentials', 'lock')] %}
+                        <a id="tab-{{ name }}" href="#{{ name }}" role="tab" aria-controls="{{ name }}" data-application-tab="{{ name }}">{{ icon(symbol) }}{{ name|title }}</a>
                         {% endfor %}
-                    </div>
-                </div>
-            </section>
-
-            <section class="workspace-card integration-health-card">
-                <div class="section-heading">
-                    <div><span class="section-kicker">Connectivity</span><h2>Integration health</h2></div>
-                    <span class="integration-state state-{{ integration.connection_state|lower }}">{{ integration.connection_state|replace("_", " ")|title }}</span>
-                </div>
-                <dl class="application-details">
-                    <div><dt>Last heartbeat</dt><dd>{{ integration.last_heartbeat_at or "No valid heartbeat" }}</dd></div>
-                    <div><dt>Environment</dt><dd>{{ integration.heartbeat_environment|title if integration.heartbeat_environment else application.environment|title }}</dd></div>
-                    <div><dt>Application version</dt><dd>{{ integration.application_version or "Not reported" }}</dd></div>
-                    <div><dt>Integration version</dt><dd>{{ integration.integration_version or "Not reported" }}</dd></div>
-                </dl>
-                <div class="application-channel-section">
-                    <span class="section-kicker">Heartbeat-reported channels</span>
-                    {% if integration.reported_channels %}
-                    <div class="application-channel-list">
-                        {% for channel in integration.reported_channels %}
-                        <span class="application-channel">{{ channel }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="integration-empty-value">No channels have been reported by a valid heartbeat.</p>
-                    {% endif %}
-                </div>
-            </section>
-
-            <section class="workspace-card protection-control-card {{ 'is-bypassed' if not integration.protection.protection_enabled else '' }}">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-kicker">Protection policy</span>
-                        <h2>LLMGuard protection</h2>
-                        <p>This server-side control applies to authenticated input, context, and output inspection. University authorization remains active in either state.</p>
-                    </div>
-                    <span class="protection-state {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}">
-                        {{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}
-                    </span>
-                </div>
-                <dl class="application-details">
-                    <div><dt>Runtime state</dt><dd><span class="integration-state state-{{ integration.runtime_state|lower }}">{{ integration.runtime_state|replace("_", " ")|title }}</span></dd></div>
-                    <div><dt>Guard path</dt><dd>{{ 'Input, context, and output verified' if integration.guard_path_available else 'Not fully verified' }}</dd></div>
-                    <div><dt>Last changed</dt><dd>{{ integration.protection.updated_at }}</dd></div>
-                    <div><dt>Changed by</dt><dd>{{ integration.protection.updated_by }}</dd></div>
-                </dl>
-                <form class="protection-control-form" data-protection-control data-application-id="{{ application.application_id }}" data-next-enabled="{{ 'false' if integration.protection.protection_enabled else 'true' }}">
-                    {% if integration.protection.protection_enabled %}
-                    <label for="protection-reason">Reason for disabling <span aria-hidden="true">*</span></label>
-                    <textarea id="protection-reason" name="reason" maxlength="500" required placeholder="Document why detector enforcement must be bypassed."></textarea>
-                    <button class="secondary-button protection-disable-button" type="submit">Disable protection</button>
-                    {% else %}
-                    <label for="protection-reason">Reason for enabling</label>
-                    <textarea id="protection-reason" name="reason" maxlength="500" placeholder="Optional operational note."></textarea>
-                    <button class="primary-button" type="submit">Enable protection</button>
-                    {% endif %}
-                    <p class="form-message" data-protection-message aria-live="polite"></p>
-                </form>
-            </section>
-
-            <section class="workspace-card protection-audit-card">
-                <div class="section-heading">
-                    <div><span class="section-kicker">Audit</span><h2>Protection changes</h2></div>
-                </div>
-                <div class="responsive-table">
-                    <table>
-                        <thead><tr><th>Timestamp</th><th>Old state</th><th>New state</th><th>Actor</th><th>Reason</th></tr></thead>
-                        <tbody>
-                            {% for event in protection_audit %}
-                            <tr>
-                                <td>{{ event.timestamp }}</td>
-                                <td>{{ 'Enabled' if event.old_state else 'Disabled' }}</td>
-                                <td>{{ 'Enabled' if event.new_state else 'Disabled' }}</td>
-                                <td>{{ event.actor }}</td>
-                                <td>{{ event.reason }}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="5" class="empty-message">No protection changes have been recorded.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            {% if created_credential %}
-            <section class="one-time-secret-card" aria-labelledby="one-time-secret-title">
-                <div>
-                    <span class="section-kicker">One-time secret</span>
-                    <h2 id="one-time-secret-title">Copy this credential secret now</h2>
-                    <p>LLMGuard stores only its hash. This plaintext value will not be shown again.</p>
-                </div>
-                <dl class="one-time-secret-values">
-                    <div><dt>Key ID</dt><dd><code>{{ created_credential.credential.key_id }}</code></dd></div>
-                    <div><dt>Secret</dt><dd><code>{{ created_credential.secret }}</code></dd></div>
-                </dl>
-            </section>
-            {% endif %}
-
-            <section class="workspace-card credential-management-card">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-kicker">Backend authentication</span>
-                        <h2>API credentials</h2>
-                        <p>Credential metadata is retained here. Plaintext secrets are never stored or listed.</p>
-                    </div>
-                    <form method="post" action="/admin/applications/{{ application.application_id }}/credentials">
-                        <button class="primary-button" type="submit">Create credential</button>
-                    </form>
-                </div>
-                <div class="responsive-table">
-                    <table class="credential-table">
-                        <thead>
-                            <tr><th>Key ID</th><th>Status</th><th>Created</th><th>Expires</th><th>Last used</th><th>Action</th></tr>
-                        </thead>
-                        <tbody>
-                            {% for credential in credentials %}
-                            <tr>
-                                <td><code>{{ credential.key_id }}</code></td>
-                                <td><span class="credential-status status-{{ credential.effective_status|lower }}">{{ credential.effective_status|title }}</span></td>
-                                <td>{{ credential.created_at }}</td>
-                                <td>{{ credential.expires_at or "No expiry" }}</td>
-                                <td>{{ credential.last_used_at or "Never" }}</td>
-                                <td>
-                                    {% if credential.status == "ACTIVE" %}
-                                    <form method="post" action="/admin/applications/{{ application.application_id }}/credentials/{{ credential.key_id }}/revoke">
-                                        <button class="secondary-button credential-revoke-button" type="submit">Revoke</button>
-                                    </form>
+                    </nav>
+                    <section id="overview" class="application-tab-panel ad-tab-panel" data-application-panel="overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+                        <dl class="ad-summary">
+                            <div><dt>Protection state</dt><dd><span class="protection-state {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}">{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</span></dd></div>
+                            <div><dt>Connection</dt><dd>{{ integration.connection_state|replace('_', ' ')|title }}</dd></div>
+                            <div><dt>Heartbeat</dt><dd>{{ heartbeat(integration.last_heartbeat_at) }}</dd></div>
+                            <div><dt>Environment</dt><dd>{{ application.environment|title }}</dd></div>
+                            <div><dt>Channels</dt><dd>{{ channels(application.channels|selectattr('enabled'), true) }}</dd></div>
+                        </dl>
+                        <div class="ad-two-columns">
+                            <article class="ad-panel console-panel">
+                                <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('shield') }}</span><div><h2>LLM Guardrail Pipeline</h2><p>Recorded verification of the three core guard stages</p></div></div>
+                                {{ guard_pipeline() }}
+                                <p class="ad-panel-note">Verification reflects recorded stage success, independently of connection and protection state.</p>
+                            </article>
+                            <article class="ad-panel console-panel">
+                                <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('lock') }}</span><div><h2>Authorization Boundary</h2><p>University RBAC enforced by protected application</p></div></div>
+                                <div class="ad-boundary"><strong>{{ application.name }}</strong><p>Student and employee roles are managed by the University application.</p></div>
+                                <div class="ad-boundary-channels"><span class="ad-label">Registered channels</span>{{ channels(application.channels, true) }}</div>
+                                <a class="ad-text-link" href="/admin/soc/events?application_id={{ application.application_id|urlencode }}">View application events {{ icon('arrow') }}</a>
+                            </article>
+                        </div>
+                    </section>
+                    <section id="integration" class="application-tab-panel ad-tab-panel" data-application-panel="integration" role="tabpanel" aria-labelledby="tab-integration" tabindex="0">
+                        <article class="ad-panel console-panel">
+                            <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('tool') }}</span><div><h2>Application Integration</h2><p>Registration and the latest reported heartbeat</p></div><span class="integration-state state-{{ integration.connection_state|lower }}">{{ integration.connection_state|replace('_', ' ')|title }}</span></div>
+                            <dl class="ad-metadata">
+                                <div><dt>Application ID</dt><dd><code>{{ application.application_id }}</code></dd></div>
+                                <div><dt>Environment</dt><dd>{{ integration.heartbeat_environment|title if integration.heartbeat_environment else application.environment|title }}</dd></div>
+                                <div><dt>Connection state</dt><dd>{{ integration.connection_state|replace('_', ' ')|title }}</dd></div>
+                                <div><dt>Runtime state</dt><dd>{{ runtime() }}</dd></div>
+                                <div><dt>Last heartbeat</dt><dd>{{ heartbeat(integration.last_heartbeat_at) }}</dd></div>
+                                <div><dt>Application version</dt><dd><code>{{ integration.application_version or 'Not reported' }}</code></dd></div>
+                                <div><dt>Integration version</dt><dd><code>{{ integration.integration_version or 'Not reported' }}</code></dd></div>
+                                <div><dt>Registered channels</dt><dd>{{ channels(application.channels, true) }}</dd></div>
+                                <div><dt>Reported channels</dt><dd>{{ channels(integration.reported_channels) }}</dd></div>
+                            </dl>
+                        </article>
+                        <article class="ad-panel console-panel">
+                            <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('rag') }}</span><div><h2>Integration Flow</h2><p>Application request path</p></div></div>
+                            <ol class="ad-flow" aria-label="Integration architecture">
+                                <li>{{ icon('monitor') }}<div><strong>Protected Application</strong><span>{{ application.name }}</span></div></li>
+                                <li>{{ icon('shield') }}<div><strong>LLMGuard</strong><span>Guard integration</span></div></li>
+                                <li>{{ icon('rag') }}<div><strong>Security Pipeline</strong><span>Input · Context · Output</span></div></li>
+                                <li>{{ icon('chip') }}<div><strong>Local Model</strong><span>Application model runtime</span></div></li>
+                            </ol>
+                        </article>
+                    </section>
+                    <section id="protection" class="application-tab-panel ad-tab-panel" data-application-panel="protection" role="tabpanel" aria-labelledby="tab-protection" tabindex="0">
+                        <div class="ad-two-columns">
+                            <article class="ad-panel console-panel">
+                                <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('shield') }}</span><div><h2>Protection State</h2><p>Application enforcement and reported guard path</p></div></div>
+                                <dl class="ad-metadata ad-metadata-two">
+                                    <div><dt>Protection</dt><dd><span class="protection-state {{ 'enabled' if integration.protection.protection_enabled else 'disabled' }}">{{ 'Enabled' if integration.protection.protection_enabled else 'Disabled' }}</span></dd></div>
+                                    <div><dt>Runtime state</dt><dd>{{ runtime() }}</dd></div>
+                                    <div><dt>Connection</dt><dd>{{ integration.connection_state|replace('_', ' ')|title }}</dd></div>
+                                    <div><dt>Last changed</dt><dd>{{ heartbeat(integration.protection.updated_at) }}</dd></div>
+                                    <div><dt>Changed by</dt><dd>{{ integration.protection.updated_by }}</dd></div>
+                                </dl>
+                                {{ guard_pipeline() }}
+                            </article>
+                            <article class="ad-panel console-panel ad-control {{ 'is-bypassed' if not integration.protection.protection_enabled else '' }}">
+                                <div class="ad-panel-heading"><span class="ad-panel-icon ad-primary-icon">{{ icon('lock') }}</span><div><h2>Protection Control</h2><p>Super Admin operational control</p></div></div>
+                                <p class="ad-control-note">{{ 'Disabling protection bypasses application guard enforcement. An operational reason is required and recorded in the audit history.' if integration.protection.protection_enabled else 'Protection is disabled for this application. Enable protection to restore guard enforcement.' }}</p>
+                                <form class="protection-control-form compact-form" data-protection-control data-application-id="{{ application.application_id }}" data-next-enabled="{{ 'false' if integration.protection.protection_enabled else 'true' }}">
+                                    {% if integration.protection.protection_enabled %}
+                                    <label for="protection-reason">Reason for disabling</label>
+                                    <textarea id="protection-reason" name="reason" maxlength="500" required placeholder="Required operational reason"></textarea>
+                                    <button class="secondary-button protection-disable-button" type="submit">Disable protection</button>
                                     {% else %}
-                                    <span class="credential-revoked-at">{{ credential.revoked_at or "Revoked" }}</span>
+                                    <label for="protection-reason">Reason for enabling</label>
+                                    <textarea id="protection-reason" name="reason" maxlength="500" placeholder="Optional operational note"></textarea>
+                                    <button class="primary-button" type="submit">Enable protection</button>
                                     {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="6" class="empty-message">No credentials have been created for this application.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    <p class="form-message" data-protection-message aria-live="polite"></p>
+                                </form>
+                            </article>
+                        </div>
+                        <article class="ad-panel console-panel">
+                            <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('audit') }}</span><div><h2>Protection Audit</h2><p>{{ protection_audit|length }} recorded {{ 'change' if protection_audit|length == 1 else 'changes' }}</p></div></div>
+                            <div class="ad-audit-list">
+                                {% for event in protection_audit %}
+                                <article class="ad-audit-row"><div><span class="ad-label">Time</span>{{ heartbeat(event.timestamp) }}</div><div><span class="ad-label">Action</span><strong>{{ 'Enabled' if event.old_state else 'Disabled' }} → {{ 'Enabled' if event.new_state else 'Disabled' }}</strong></div><div><span class="ad-label">Actor</span><span>{{ event.actor }}</span></div><div><span class="ad-label">Reason</span><span>{{ event.reason }}</span></div></article>
+                                {% else %}<div class="ad-empty-state">{{ icon('audit') }}<strong>No protection changes recorded</strong><p>Protection changes will appear here with their actor and operational reason.</p></div>{% endfor %}
+                            </div>
+                        </article>
+                    </section>
+                    <section id="credentials" class="application-tab-panel ad-tab-panel" data-application-panel="credentials" role="tabpanel" aria-labelledby="tab-credentials" tabindex="0">
+                        <article class="ad-panel console-panel">
+                            <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('lock') }}</span><div><h2>API Credentials</h2><p>Application-scoped credentials</p></div><form method="post" action="/admin/applications/{{ application.application_id }}/credentials"><button class="primary-button" type="submit">Create credential</button></form></div>
+                            {% if created_credential %}
+                            <section class="one-time-secret-card ad-secret" aria-labelledby="one-time-secret-title">
+                                <div class="ad-panel-heading"><span class="ad-panel-icon">{{ icon('lock') }}</span><div><span class="ad-kicker">One-time secret</span><h3 id="one-time-secret-title">New API Secret</h3></div></div>
+                                <p>Copy/store this secret now. It will not be shown again.</p>
+                                <dl class="ad-secret-values"><div><dt>Key ID</dt><dd><code>{{ created_credential.credential.key_id }}</code></dd></div><div><dt>Secret</dt><dd><code data-one-time-secret>{{ created_credential.secret }}</code></dd></div></dl>
+                                <p class="ad-muted">Only its hash is stored.</p>
+                            </section>
+                            {% endif %}
+                            <div class="ad-credential-list">
+                                {% for credential in credentials %}
+                                <article class="ad-credential-row" data-credential-id="{{ credential.key_id }}">
+                                    <div class="ad-credential-key"><span class="ad-label">Key ID</span><code>{{ credential.key_id }}</code></div>
+                                    <div><span class="ad-label">Status</span><span class="credential-status status-{{ credential.effective_status|lower }}">{{ credential.effective_status|title }}</span></div>
+                                    <div><span class="ad-label">Created</span>{{ heartbeat(credential.created_at) }}</div>
+                                    <div><span class="ad-label">Last used</span><span>{{ heartbeat(credential.last_used_at) }}</span></div>
+                                    <div class="ad-credential-action">{% if credential.status == 'ACTIVE' %}<form method="post" action="/admin/applications/{{ application.application_id }}/credentials/{{ credential.key_id }}/revoke"><button class="secondary-button credential-revoke-button" type="submit">Revoke</button></form>{% else %}<span class="ad-muted">Revoked{% if credential.revoked_at %}<br>{{ heartbeat(credential.revoked_at) }}{% endif %}</span>{% endif %}</div>
+                                </article>
+                                {% else %}<div class="ad-empty-state">{{ icon('lock') }}<strong>No API credentials yet</strong><p>Create a credential to authenticate this application's integration.</p></div>{% endfor %}
+                            </div>
+                        </article>
+                    </section>
                 </div>
-            </section>
+            </div>
         </div>
-      </div>
     </main>
     <script src="{{ url_for('static', path='product.js') }}?v={{ asset_version }}" defer></script>
 </body>

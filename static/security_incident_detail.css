@@ -1,0 +1,121 @@
+/* Incident Detail only. Reuse the approved console tokens and sprite. */
+.security-incident-detail-page { min-width: 0; display: grid; gap: 18px; align-content: start; }
+.security-incident-detail-page :is(h2, h3, p, dl, dd, ol) { margin: 0; }
+.security-incident-detail-page svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.security-incident-detail-page .sid-back-link { display: inline-flex; align-items: center; justify-self: start; gap: 7px; color: var(--cs-blue-2); font-size: 11px; text-decoration: none; min-height: 32px; }
+.security-incident-detail-page .sid-back-link svg { width: 14px; height: 14px; transform: rotate(180deg); }
+.security-incident-detail-page .sid-back-link:hover { color: var(--cs-text); }
+.security-incident-detail-page .sid-page-header { margin: 0; padding: 0; }
+.security-incident-detail-page .sid-page-header > div { min-width: 0; }
+.security-incident-detail-page .sid-page-header .sid-incident-title { color: var(--cs-text-2); font-size: 14px; font-weight: 550; overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-header-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.security-incident-detail-page .sid-badge { max-width: 100%; display: inline-flex; align-items: center; justify-content: center; justify-self: start; padding: 4px 8px; border: 1px solid var(--cs-line); border-radius: 6px; color: var(--cs-text-2); background: var(--cs-panel-3); font: 600 10px/1.5 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incident-detail-page :is(.sid-severity-critical, .sid-severity-high) { color: var(--cs-red); }
+.security-incident-detail-page :is(.sid-severity-critical, .sid-severity-high).sid-badge { background: var(--cs-red-soft); }
+.security-incident-detail-page .sid-severity-medium { color: var(--cs-amber); }
+.security-incident-detail-page .sid-severity-medium.sid-badge { background: var(--cs-amber-soft); }
+.security-incident-detail-page .sid-severity-low { color: var(--cs-blue-2); }
+.security-incident-detail-page .sid-severity-low.sid-badge { background: var(--cs-blue-soft); }
+.security-incident-detail-page .sid-status-open { color: var(--cs-red); background: var(--cs-red-soft); }
+.security-incident-detail-page .sid-status-acknowledged { color: var(--cs-blue-2); background: var(--cs-blue-soft); }
+.security-incident-detail-page .sid-status-resolved { color: var(--cs-green); background: var(--cs-green-soft); }
+.security-incident-detail-page .sid-notice { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1px solid var(--cs-line); border-radius: 8px; color: var(--cs-green); background: var(--cs-green-soft); font-size: 12px; overflow-wrap: anywhere; }
+.security-incident-detail-page .console-panel { min-width: 0; padding: 20px; background: var(--cs-panel); box-shadow: var(--cs-shadow); }
+.security-incident-detail-page .sid-summary-panel { border-left: 3px solid var(--cs-blue-2); }
+.security-incident-detail-page :is(.sid-accent-critical, .sid-accent-high) { border-left-color: var(--cs-red); }
+.security-incident-detail-page .sid-accent-medium { border-left-color: var(--cs-amber); }
+.security-incident-detail-page .sid-panel-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.security-incident-detail-page .sid-panel-heading > div { min-width: 0; flex: 1; }
+.security-incident-detail-page .sid-heading-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--cs-blue-2); background: var(--cs-panel-3); flex: 0 0 auto; }
+.security-incident-detail-page h2 { color: var(--cs-text); font-size: 15px; font-weight: 650; line-height: 1.4; letter-spacing: -.02em; }
+.security-incident-detail-page .sid-panel-heading p { color: var(--cs-muted); font-size: 11px; line-height: 1.5; margin-top: 3px; }
+.security-incident-detail-page :is(.sid-privacy-label, .sid-shown-count) { display: inline-flex; align-items: center; gap: 6px; color: var(--cs-muted); font-size: 10px; }
+.security-incident-detail-page .sid-privacy-label svg { width: 13px; height: 13px; color: var(--cs-blue-2); }
+.security-incident-detail-page .sid-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 20px; }
+.security-incident-detail-page :is(.sid-summary-grid, .sid-identifier-grid) > div { min-width: 0; display: grid; align-content: start; gap: 6px; }
+.security-incident-detail-page dt { color: var(--cs-muted); font-size: 10px; }
+.security-incident-detail-page dd { min-width: 0; color: var(--cs-text); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.security-incident-detail-page code { min-width: 0; max-width: 100%; display: block; color: var(--cs-faint); font: 10px/1.6 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-summary-grid code { margin-top: 3px; }
+.security-incident-detail-page time { display: block; min-width: 0; color: var(--cs-text-2); font: 10px/1.6 var(--cs-font-code); white-space: normal; overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-lifecycle-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--cs-line); }
+.security-incident-detail-page .sid-workflow-label { color: var(--cs-muted); font-size: 11px; }
+.security-incident-detail-page .sid-lifecycle-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.security-incident-detail-page .sid-lifecycle-actions form { margin: 0; }
+.security-incident-detail-page .sid-lifecycle-actions button { min-height: 38px; padding: 9px 16px; border-radius: 8px; font-size: 12px; }
+.security-incident-detail-page .sid-lifecycle-actions .sid-acknowledge { color: var(--cs-text); border: 1px solid var(--cs-line-strong); background: var(--cs-panel-3); }
+.security-incident-detail-page .sid-lifecycle-actions .sid-acknowledge:hover { background: var(--cs-surface-highest); }
+.security-incident-detail-page .sid-lifecycle-actions .sid-resolve { color: var(--cs-page); border: 1px solid transparent; background: var(--cs-green); box-shadow: none; }
+.security-incident-detail-page .sid-lifecycle-actions .sid-resolve:hover { background: #6ffbbe; }
+.security-incident-detail-page .sid-resolved-state { display: inline-flex; align-items: center; gap: 8px; color: var(--cs-green); font-size: 12px; }
+.security-incident-detail-page .sid-investigation-grid { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.security-incident-detail-page .sid-event-list { min-width: 0; display: grid; gap: 8px; }
+.security-incident-detail-page .sid-event-row { min-width: 0; display: grid; grid-template-columns: 32px minmax(0, 1fr) 144px 155px 96px; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--cs-line); border-radius: 8px; background: var(--cs-panel-2); transition: background-color .15s ease; }
+.security-incident-detail-page .sid-event-row:hover { background: var(--cs-panel-3); }
+.security-incident-detail-page .sid-event-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: var(--cs-blue-2); background: var(--cs-panel-3); }
+.security-incident-detail-page .sid-event-main { min-width: 0; display: grid; gap: 5px; }
+.security-incident-detail-page h3 { color: var(--cs-text); font-size: 12px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-event-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--cs-muted); font-size: 10px; line-height: 1.5; }
+.security-incident-detail-page .sid-event-meta > span { min-width: 0; overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-channel { color: var(--cs-blue-2); }
+.security-incident-detail-page :is(.sid-event-type, .sid-policy-code) { font-size: 9px; }
+.security-incident-detail-page .sid-event-decision { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; }
+.security-incident-detail-page .sid-event-decision .sid-classification { flex-basis: 100%; }
+.security-incident-detail-page .sid-classification { max-width: 100%; font: 600 9px/1.5 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-event-severity { font: 500 9px/1.5 var(--cs-font-code); }
+.security-incident-detail-page .sid-event-decision .sid-badge { font-size: 9px; }
+.security-incident-detail-page .sid-risk { color: var(--cs-muted); font: 10px/1.5 var(--cs-font-code); }
+.security-incident-detail-page :is(.sid-classification-malicious, .sid-classification-error) { color: var(--cs-red); }
+.security-incident-detail-page :is(.sid-classification-suspicious, .sid-classification-session_risk, .sid-classification-bypassed) { color: var(--cs-amber); }
+.security-incident-detail-page .sid-classification-safe { color: var(--cs-green); }
+.security-incident-detail-page :is(.sid-event-icon.sid-classification-malicious, .sid-event-icon.sid-classification-error) { background: var(--cs-red-soft); }
+.security-incident-detail-page :is(.sid-action-block, .sid-action-reject, .sid-action-fail_closed) { color: var(--cs-red); background: var(--cs-red-soft); }
+.security-incident-detail-page :is(.sid-action-quarantine, .sid-action-sanitize) { color: var(--cs-blue-2); background: var(--cs-blue-soft); }
+.security-incident-detail-page :is(.sid-action-session_restrict, .sid-action-bypass) { color: var(--cs-amber); background: var(--cs-amber-soft); }
+.security-incident-detail-page .sid-action-allow { color: var(--cs-green); background: var(--cs-green-soft); }
+.security-incident-detail-page .sid-trace-link { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 36px; padding: 8px; border: 1px solid var(--cs-line-strong); border-radius: 6px; color: var(--cs-text); background: var(--cs-panel-3); font-size: 10px; text-decoration: none; }
+.security-incident-detail-page .sid-trace-link svg { width: 13px; height: 13px; }
+.security-incident-detail-page .sid-trace-link:hover { color: var(--cs-on-primary); background: var(--cs-blue); }
+.security-incident-detail-page .sid-event-identifiers { grid-column: 2 / -1; min-width: 0; padding-top: 8px; border-top: 1px solid var(--cs-line); }
+.security-incident-detail-page .sid-event-identifiers summary { width: fit-content; max-width: 100%; color: var(--cs-blue-2); font-size: 10px; cursor: pointer; }
+.security-incident-detail-page .sid-identifier-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 12px; }
+.security-incident-detail-page .sid-audit-list { list-style: none; padding: 0; display: grid; gap: 16px; }
+.security-incident-detail-page .sid-audit-entry { min-width: 0; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
+.security-incident-detail-page .sid-audit-icon { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; }
+.security-incident-detail-page .sid-audit-icon svg { width: 14px; height: 14px; }
+.security-incident-detail-page .sid-audit-entry > div { min-width: 0; display: grid; gap: 6px; padding-bottom: 16px; border-bottom: 1px solid var(--cs-line); }
+.security-incident-detail-page .sid-audit-entry:last-child > div { padding-bottom: 0; border-bottom: 0; }
+.security-incident-detail-page .sid-audit-entry strong { color: var(--cs-text); font: 600 10px/1.6 var(--cs-font-code); overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-audit-entry small { color: var(--cs-muted); font-size: 11px; overflow-wrap: anywhere; }
+.security-incident-detail-page .sid-empty-state { display: grid; justify-items: center; gap: 10px; padding: 32px 14px; border-radius: 8px; text-align: center; background: var(--cs-panel-2); }
+.security-incident-detail-page .sid-empty-state svg { width: 26px; height: 26px; color: var(--cs-blue-2); }
+.security-incident-detail-page .sid-empty-state h3 { font-size: 13px; }
+.security-incident-detail-page .sid-empty-state p { color: var(--cs-muted); font-size: 11px; line-height: 1.6; }
+.security-incident-detail-page :is(a, button, summary):focus-visible { outline: 2px solid var(--cs-blue-2); outline-offset: 3px; }
+@media (max-width: 1180px) {
+    .security-incident-detail-page .sid-investigation-grid { grid-template-columns: minmax(0, 1fr); }
+    .security-incident-detail-page .sid-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .security-incident-detail-page .console-panel { padding: 16px; }
+    .security-incident-detail-page .sid-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .security-incident-detail-page .sid-event-row { grid-template-columns: 32px minmax(0, 1fr) 96px; }
+    .security-incident-detail-page .sid-event-icon { grid-column: 1; grid-row: 1; align-self: start; }
+    .security-incident-detail-page .sid-event-main { grid-column: 2 / -1; grid-row: 1; }
+    .security-incident-detail-page .sid-event-decision { grid-column: 2 / -1; grid-row: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .security-incident-detail-page .sid-event-time { grid-column: 2 / -1; grid-row: 3; }
+    .security-incident-detail-page .sid-trace-link { grid-column: 2 / -1; grid-row: 4; justify-self: start; }
+    .security-incident-detail-page .sid-event-identifiers { grid-column: 1 / -1; grid-row: 5; }
+}
+@media (max-width: 480px) {
+    .security-incident-detail-page .sid-page-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .security-incident-detail-page .sid-panel-heading { flex-wrap: wrap; }
+    .security-incident-detail-page .sid-panel-heading > div { flex: 1 1 calc(100% - 42px); }
+    .security-incident-detail-page :is(.sid-privacy-label, .sid-shown-count) { margin-left: 42px; }
+    .security-incident-detail-page :is(.sid-summary-grid, .sid-identifier-grid) { grid-template-columns: minmax(0, 1fr); }
+    .security-incident-detail-page .sid-lifecycle-controls { align-items: flex-start; flex-direction: column; }
+    .security-incident-detail-page .sid-lifecycle-actions button { min-height: 44px; padding: 10px 14px; }
+    .security-incident-detail-page .sid-event-row { grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 12px 10px; }
+    .security-incident-detail-page .sid-event-icon { width: 28px; height: 28px; }
+    .security-incident-detail-page .sid-trace-link { min-height: 44px; }
+}

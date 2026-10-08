@@ -1,0 +1,119 @@
+.evaluation-benchmark-page { --eb-muted: #8fa2bc; --eb-cyan: #7bd0ff; --eb-green: #4edea3; min-width: 0; }
+.evaluation-benchmark-page .eb-header { gap: 18px; align-items: center; margin-bottom: 24px; }
+.evaluation-benchmark-page .eb-scope-pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #294665; background: #10263b; color: #9acfed; border-radius: 7px; padding: 9px 12px; font-size: 11px; white-space: nowrap; }
+.evaluation-benchmark-page svg { width: 18px; height: 18px; flex: none; }
+.evaluation-benchmark-page .eb-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.evaluation-benchmark-page .eb-summary article { min-width: 0; padding: 20px; border: 1px solid #263952; border-radius: 11px; background: linear-gradient(135deg, #15243a, #101c2d); }
+.evaluation-benchmark-page .eb-summary article > span { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #9fb0c7; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.evaluation-benchmark-page .eb-summary svg { color: #709bc8; }
+.evaluation-benchmark-page .eb-summary strong { display: block; margin: 15px 0 7px; color: var(--eb-cyan); font-size: 30px; font-weight: 700; letter-spacing: -.04em; }
+.evaluation-benchmark-page .eb-summary small { color: var(--eb-muted); font-size: 11px; }
+.evaluation-benchmark-page .eb-report-card strong { color: #c9daf2; font-size: 19px; margin-top: 19px; letter-spacing: -.025em; }
+.evaluation-benchmark-page .eb-main-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; gap: 18px; }
+.evaluation-benchmark-page .eb-column { min-width: 0; display: grid; gap: 18px; }
+.evaluation-benchmark-page .eb-panel { min-width: 0; overflow: hidden; background: linear-gradient(145deg, #121f32, #101b2c); border: 1px solid #283950; border-radius: 11px; }
+.evaluation-benchmark-page .eb-panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 20px; border-bottom: 1px solid #24354c; }
+.evaluation-benchmark-page .eb-panel-heading svg { color: #699bd0; }
+.evaluation-benchmark-page h2 { margin: 5px 0 0; font-size: 16px; letter-spacing: -.025em; color: #e0eafa; }
+.evaluation-benchmark-page .eb-kicker { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #86a5ca; }
+.evaluation-benchmark-page .eb-mini-label { color: var(--eb-muted); font-size: 10px; max-width: 160px; line-height: 1.6; text-align: right; }
+.evaluation-benchmark-page .eb-performance-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 24px; padding: 24px; }
+.evaluation-benchmark-page .eb-accuracy { display: grid; justify-items: center; }
+.evaluation-benchmark-page .eb-ring { width: 112px; height: 112px; border-radius: 50%; background: conic-gradient(#3b91ff var(--eb-progress), #253a55 0); padding: 7px; display: grid; place-items: center; position: relative; box-shadow: 0 0 25px #287fe21a; }
+.evaluation-benchmark-page .eb-ring::before { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: #111e30; }
+.evaluation-benchmark-page .eb-ring svg { position: relative; width: 36px; height: 36px; color: #76b7f9; }
+.evaluation-benchmark-page .eb-accuracy strong { margin: 14px 0 4px; font-size: 30px; color: #e5efff; letter-spacing: -.035em; }
+.evaluation-benchmark-page .eb-accuracy > span { font-size: 11px; color: var(--eb-muted); }
+.evaluation-benchmark-page dl { margin: 0; }
+.evaluation-benchmark-page .eb-quality-metrics { display: grid; gap: 18px; }
+.evaluation-benchmark-page .eb-quality-metrics > div { padding-bottom: 12px; border-bottom: 1px solid #293c56; }
+.evaluation-benchmark-page dt { color: var(--eb-muted); font-size: 11px; }
+.evaluation-benchmark-page dd { margin: 6px 0 0; color: #cce2ff; font-size: 20px; font-weight: 650; }
+.evaluation-benchmark-page .eb-panel-note { margin: 0; padding: 14px 20px; color: #859dbb; background: #0c1727; border-top: 1px solid #22344c; font-size: 11px; line-height: 1.7; }
+.evaluation-benchmark-page .eb-panel-note a { color: #9fcbff; }
+.evaluation-benchmark-page .eb-outcomes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px; }
+.evaluation-benchmark-page .eb-outcomes article { padding: 16px; border: 1px solid #2c4157; border-radius: 8px; background: #122337; min-width: 0; }
+.evaluation-benchmark-page .eb-outcomes span { font-size: 11px; color: #b5c4d9; }
+.evaluation-benchmark-page .eb-outcomes strong { display: block; font-size: 25px; letter-spacing: -.035em; margin: 10px 0 7px; }
+.evaluation-benchmark-page .eb-good strong { color: var(--eb-green); }
+.evaluation-benchmark-page .eb-caution strong { color: #e5b454; }
+.evaluation-benchmark-page .eb-outcomes small { display: block; font-size: 10px; color: #8199b7; line-height: 1.65; }
+.evaluation-benchmark-page .eb-sanitized { display: flex; gap: 12px; align-items: flex-start; margin: 0 16px 16px; padding: 14px; border: 1px solid #3b4b5f; border-radius: 8px; background: #15283b; }
+.evaluation-benchmark-page .eb-sanitized svg { color: #6cbadd; margin-top: 2px; }
+.evaluation-benchmark-page .eb-sanitized strong { font-size: 11px; color: #b9d9f3; }
+.evaluation-benchmark-page .eb-sanitized p { margin: 6px 0 0; color: #93adc8; font-size: 11px; line-height: 1.75; }
+.evaluation-benchmark-page .eb-confusion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #29415a; }
+.evaluation-benchmark-page .eb-confusion > div { background: #14283b; padding: 18px 20px; }
+.evaluation-benchmark-page .eb-confusion dd { color: #7ccaf1; font: 22px/1.4 'JetBrains Mono', monospace; }
+.evaluation-benchmark-page .eb-comparison { padding: 0 20px; }
+.evaluation-benchmark-page :is(.eb-comparison-labels, .eb-comparison-row) { display: grid; grid-template-columns: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px 0; align-items: center; }
+.evaluation-benchmark-page .eb-comparison-labels { color: #8ba3c2; font-size: 11px; border-bottom: 1px solid #31425b; }
+.evaluation-benchmark-page .eb-comparison-row { color: #aebdd2; font-size: 12px; border-bottom: 1px solid #23364e; }
+.evaluation-benchmark-page .eb-comparison-row:last-child { border: 0; }
+.evaluation-benchmark-page .eb-comparison-row strong { font: 14px/1.5 'JetBrains Mono', monospace; color: #d4e3f7; }
+.evaluation-benchmark-page .eb-comparison-row strong:nth-child(2) { color: var(--eb-green); }
+.evaluation-benchmark-page .eb-coverage { display: grid; gap: 13px; padding: 20px; }
+.evaluation-benchmark-page .eb-coverage > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px 14px; min-width: 0; }
+.evaluation-benchmark-page .eb-coverage span { color: #b0c2dc; font-size: 11px; line-height: 1.6; }
+.evaluation-benchmark-page .eb-coverage strong { color: #8ccbee; font: 11px/1.6 'JetBrains Mono', monospace; white-space: nowrap; }
+.evaluation-benchmark-page .eb-coverage-track { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: #213650; overflow: hidden; }
+.evaluation-benchmark-page .eb-coverage-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2d79dd, #68c5f3); }
+.evaluation-benchmark-page .eb-latency { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px; }
+.evaluation-benchmark-page .eb-latency dd { font-size: 22px; }
+.evaluation-benchmark-page .eb-latency small { font-size: 12px; color: #83a0c5; font-weight: 400; }
+.evaluation-benchmark-page .eb-reproducibility { margin-top: 22px; }
+.evaluation-benchmark-page .eb-reproduce-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px; }
+.evaluation-benchmark-page .eb-command { min-width: 0; border: 1px solid #273950; border-radius: 8px; background: #071221; padding: 18px; }
+.evaluation-benchmark-page .eb-command > span { display: block; color: #7796bc; font: 10px/1.5 'JetBrains Mono', monospace; }
+.evaluation-benchmark-page .eb-command code { display: block; margin-top: 12px; font: 12px/1.9 'JetBrains Mono', monospace; color: #89d0ed; white-space: pre-wrap; overflow-wrap: anywhere; }
+.evaluation-benchmark-page .eb-command p { color: #728eb0; font-size: 10px; line-height: 1.6; margin: 14px 0 0; }
+.evaluation-benchmark-page .eb-provenance { display: grid; gap: 16px; min-width: 0; }
+.evaluation-benchmark-page .eb-provenance dd { font: 10px/1.8 'JetBrains Mono', monospace; color: #a4bcd9; overflow-wrap: anywhere; }
+.evaluation-benchmark-page .eb-modes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 20px 20px; }
+.evaluation-benchmark-page .eb-modes > span:first-child { width: 100%; color: #91a9c8; font-size: 11px; margin-bottom: 4px; }
+.evaluation-benchmark-page .eb-mode { display: grid; gap: 5px; border: 1px solid #29435f; border-radius: 6px; padding: 8px 10px; color: #adcee9; background: #13263b; font-size: 11px; min-width: 0; }
+.evaluation-benchmark-page .eb-mode code { color: #7396b9; font: 9px/1.6 'JetBrains Mono', monospace; overflow-wrap: anywhere; }
+.evaluation-benchmark-page .eb-research-note { display: flex; align-items: flex-start; gap: 10px; padding: 18px 2px 0; color: #849cbb; }
+.evaluation-benchmark-page .eb-research-note svg { margin-top: 2px; color: #74a5cb; }
+.evaluation-benchmark-page .eb-research-note p { margin: 0; font-size: 11px; line-height: 1.8; }
+.evaluation-benchmark-page .eb-unavailable { padding: 36px 24px; text-align: center; }
+.evaluation-benchmark-page .eb-unavailable > svg { width: 32px; height: 32px; color: #88b8ec; margin-bottom: 12px; }
+.evaluation-benchmark-page .eb-unavailable > p { color: #8fa4c1; font-size: 12px; line-height: 1.8; }
+.evaluation-benchmark-page .eb-unavailable .eb-command { text-align: left; max-width: 540px; margin: 20px auto 0; }
+@media (max-width: 1100px) {
+    .evaluation-benchmark-page .eb-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .evaluation-benchmark-page .eb-main-grid { grid-template-columns: minmax(0, 1fr); }
+    .evaluation-benchmark-page .eb-column { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    .evaluation-benchmark-page .eb-column > section:nth-child(2) { grid-row: span 2; }
+    .evaluation-benchmark-page .eb-performance-body { gap: 16px; padding: 20px; }
+}
+@media (max-width: 760px) {
+    .evaluation-benchmark-page .eb-header { flex-direction: column; align-items: flex-start; }
+    .evaluation-benchmark-page .eb-column { grid-template-columns: minmax(0, 1fr); }
+    .evaluation-benchmark-page .eb-reproduce-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+    .evaluation-benchmark-page .eb-summary { gap: 10px; }
+    .evaluation-benchmark-page .eb-summary article { padding: 14px; }
+    .evaluation-benchmark-page .eb-summary article > span { font-size: 9px; }
+    .evaluation-benchmark-page .eb-summary article svg { display: none; }
+    .evaluation-benchmark-page .eb-summary strong { font-size: 25px; }
+    .evaluation-benchmark-page .eb-report-card strong { font-size: 16px; }
+    .evaluation-benchmark-page .eb-summary small { font-size: 10px; line-height: 1.6; display: block; }
+    .evaluation-benchmark-page .eb-panel-heading { padding: 18px 14px; align-items: flex-start; }
+    .evaluation-benchmark-page .eb-mini-label { max-width: 85px; font-size: 9px; }
+    .evaluation-benchmark-page h2 { font-size: 15px; }
+    .evaluation-benchmark-page .eb-outcomes { padding: 10px; gap: 8px; }
+    .evaluation-benchmark-page .eb-outcomes article { padding: 12px; }
+    .evaluation-benchmark-page .eb-outcomes span { font-size: 10px; line-height: 1.6; display: block; }
+    .evaluation-benchmark-page .eb-outcomes strong { font-size: 23px; }
+    .evaluation-benchmark-page .eb-comparison { padding: 0 14px; }
+    .evaluation-benchmark-page .eb-comparison-row { font-size: 10px; }
+    .evaluation-benchmark-page .eb-comparison-row strong { font-size: 12px; }
+    .evaluation-benchmark-page .eb-latency { padding: 18px 14px; gap: 10px; }
+    .evaluation-benchmark-page .eb-latency dd { font-size: 20px; }
+    .evaluation-benchmark-page .eb-reproduce-grid { padding: 14px; }
+    .evaluation-benchmark-page .eb-command { padding: 14px; }
+    .evaluation-benchmark-page .eb-command code { font-size: 10px; }
+    .evaluation-benchmark-page .eb-modes { padding: 0 14px 16px; }
+}

@@ -1,23 +1,56 @@
 {% extends "soc_base.html" %}
+{% block soc_page_styles %}
+<link rel="stylesheet" href="/static/security_quarantine.css?v={{ asset_version }}-quarantine-2">
+{% endblock %}
 {% block soc_content %}
-<header class="page-header security-header">
-    <div><span class="am-section-label">[SOC] QUARANTINE</span><h1 class="am-gradient-title">Quarantine Metadata</h1><p>Safe identifiers for quarantined context or ingestion events. Raw quarantined content is never copied into this view.</p></div>
-    <div class="soc-window-card"><svg class="am-feature-icon" aria-hidden="true"><use href="/static/llmguard-icons.svg#lock"></use></svg><div><strong>{{ quarantine_records|length }} records shown</strong><small>Metadata only</small></div></div>
-</header>
+<div class="security-quarantine-page">
+    <header class="console-page-header sq-header">
+        <div><span class="console-eyebrow">Security</span><h1>Quarantine</h1><p>Review security evidence isolated by LLMGuard policy decisions.</p></div>
+        <span class="sq-count">{{ quarantine_records|length }} {{ 'record' if quarantine_records|length == 1 else 'records' }} shown</span>
+    </header>
 
-<form class="soc-compact-filter" method="get" action="/admin/soc/quarantine">
-    <label for="quarantine-application">Application</label><select id="quarantine-application" name="application_id"><option value="">All registered applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select><button class="secondary-button" type="submit">Apply scope</button>
-</form>
+    <section class="console-panel sq-panel" aria-labelledby="quarantine-heading">
+        <div class="sq-panel-heading">
+            <div><span class="panel-kicker">Investigation</span><h2 id="quarantine-heading">Quarantined evidence</h2></div>
+            <span class="sq-privacy"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#lock"></use></svg>Metadata only</span>
+        </div>
+        <form class="sq-filter" method="get" action="/admin/soc/quarantine">
+            <label for="quarantine-application">Application<select id="quarantine-application" name="application_id"><option value="">All Applications</option>{% for application in applications %}<option value="{{ application.application_id }}" {{ 'selected' if selected_application_id == application.application_id else '' }}>{{ application.name }}</option>{% endfor %}</select></label>
+            <button class="primary-button" type="submit">Apply filter</button>
+            {% if selected_application_id %}<a class="sq-clear" href="/admin/soc/quarantine">Clear filter</a>{% endif %}
+        </form>
 
-<section class="workspace-card event-workspace soc-table-card">
-    <div class="responsive-table security-table"><table>
-        <thead><tr><th>Time</th><th>Application</th><th>Request</th><th>Source ID</th><th>Chunk ID</th><th>Incident</th></tr></thead>
-        <tbody>{% for row in quarantine_records %}<tr>
-            <td>{{ row.created_at }}</td><td><strong>{{ row.application_name }}</strong><small>{{ row.application_id }}</small></td>
-            <td>{% if row.request_id %}<a class="soc-text-link" href="/admin/soc/trace?application_id={{ row.application_id|urlencode }}&amp;request_id={{ row.request_id|urlencode }}">{{ row.request_id }}</a>{% else %}<span class="soc-muted">Not available</span>{% endif %}</td>
-            <td>{{ row.source_id or 'Not recorded' }}</td><td>{{ row.chunk_id or 'Not recorded' }}</td>
-            <td>{% if row.incident_id %}<a class="soc-text-link" href="/admin/soc/incidents/{{ row.incident_id|urlencode }}">{{ row.incident_id }}</a>{% else %}<span class="soc-muted">No incident linked</span>{% endif %}</td>
-        </tr>{% else %}<tr><td colspan="6" class="empty-message">No quarantine events have been recorded.</td></tr>{% endfor %}</tbody>
-    </table></div>
-</section>
+        <div class="sq-records">
+            {% for row in quarantine_records %}
+            <article class="sq-record" data-quarantine-event="{{ row.event_id }}">
+                <div class="sq-record-heading">
+                    <span class="sq-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg></span>
+                    <div class="sq-record-title"><h3>Quarantine record</h3><p>{{ row.application_name }}</p></div>
+                    <div class="sq-record-time"><span>Recorded</span><time datetime="{{ row.created_at }}">{{ row.created_at }}</time></div>
+                    {% if row.request_id or row.incident_id %}
+                    <div class="sq-actions">
+                        {% if row.request_id %}<a class="sq-trace" href="/admin/soc/trace?application_id={{ row.application_id|urlencode }}&amp;request_id={{ row.request_id|urlencode }}">View Trace<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#arrow"></use></svg></a>{% endif %}
+                        {% if row.incident_id %}<a class="sq-incident" href="/admin/soc/incidents/{{ row.incident_id|urlencode }}">View Incident</a>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <details class="sq-identifiers">
+                    <summary>Safe identifiers<svg aria-hidden="true"><use href="/static/llmguard-icons.svg#chevron-down"></use></svg></summary>
+                    <dl>
+                        <div><dt>Event ID</dt><dd>{{ row.event_id }}</dd></div>
+                        <div><dt>Application ID</dt><dd>{{ row.application_id }}</dd></div>
+                        {% if row.request_id %}<div><dt>Request ID</dt><dd>{{ row.request_id }}</dd></div>{% endif %}
+                        {% if row.source_id %}<div><dt>Source ID</dt><dd>{{ row.source_id }}</dd></div>{% endif %}
+                        {% if row.chunk_id %}<div><dt>Chunk ID</dt><dd>{{ row.chunk_id }}</dd></div>{% endif %}
+                        {% if row.incident_id %}<div><dt>Incident ID</dt><dd>{{ row.incident_id }}</dd></div>{% endif %}
+                    </dl>
+                </details>
+            </article>
+            {% else %}
+            <div class="sq-empty"><span class="sq-icon" aria-hidden="true"><svg><use href="/static/llmguard-icons.svg#lock"></use></svg></span><h3>No quarantined records</h3><p>No quarantine evidence matches the selected application.</p></div>
+            {% endfor %}
+        </div>
+        <footer class="sq-footer"><svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>Safe references support investigation. Protected content remains private.</footer>
+    </section>
+</div>
 {% endblock %}

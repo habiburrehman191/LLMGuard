@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.config import get_settings
-from app.auth import get_current_user
+from app.auth import decode_access_token, get_current_user
 from app.db import fetch_dashboard_metrics, fetch_recent_logs
 from app.models import User, UserRole
 
@@ -16,42 +14,27 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-ASSET_VERSION = "25"
+ASSET_VERSION = "27"
 
 
-def _safe_spline_scene_url(raw_url: str) -> str:
-    if not raw_url:
-        return ""
-    parsed = urlparse(raw_url)
-    hostname = (parsed.hostname or "").lower()
-    if parsed.scheme != "https" or not (
-        hostname == "spline.design" or hostname.endswith(".spline.design")
-    ):
-        return ""
-    return raw_url
-
-
-@router.get("/", response_class=HTMLResponse)
-def landing(request: Request) -> HTMLResponse:
-    settings = get_settings()
-    return templates.TemplateResponse(
-        request=request,
-        name="landing.html",
-        context={
-            "page_title": "LLMGuard | AI Firewall Platform",
-            "asset_version": ASSET_VERSION,
-            "firewall_active": settings.firewall_active,
-            "redteam_enabled": settings.redteam_mode or settings.app_env == "local_redteam",
-            "spline_scene_url": _safe_spline_scene_url(settings.spline_scene_url),
-        },
-    )
+@router.get("/", response_class=RedirectResponse)
+def landing(request: Request) -> RedirectResponse:
+    token = request.cookies.get("llmguard_token")
+    if token:
+        try:
+            decode_access_token(token)
+        except (HTTPException, ValueError, TypeError):
+            pass
+        else:
+            return RedirectResponse(url="/admin/dashboard", status_code=307)
+    return RedirectResponse(url="/login", status_code=307)
 
 
 @router.get("/favicon.ico", include_in_schema=False)
 def favicon() -> FileResponse:
     return FileResponse(
-        BASE_DIR / "static" / "favicon.svg",
-        media_type="image/svg+xml",
+        BASE_DIR / "static" / "branding" / "llmguard-mark-32.png",
+        media_type="image/png",
     )
 
 

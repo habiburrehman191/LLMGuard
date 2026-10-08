@@ -1,45 +1,45 @@
-<aside class="portal-sidebar am-glass-card admin-sidebar" aria-label="LLMGuard navigation">
-    <div class="sidebar-navigation">
-        <section class="sidebar-group">
-            <span class="sidebar-group-label">Overview</span>
-            <nav aria-label="Overview">
-                <a href="/admin/dashboard">LLMGuard Overview</a>
-            </nav>
-        </section>
-        <section class="sidebar-group">
-            <span class="sidebar-group-label">SOC</span>
-            <nav aria-label="Security operations">
-                <a href="/admin/security-dashboard">Security Overview</a>
-                <a href="/admin/soc/events">Live Events</a>
-                <a href="/admin/soc/incidents">Incidents</a>
-                <a href="/admin/soc/trace">Request Trace</a>
-                <a href="/admin/audit">Logs &amp; Request History</a>
-            </nav>
-        </section>
-        <section class="sidebar-group">
-            <span class="sidebar-group-label">Protection</span>
-            <nav aria-label="Protection">
-                <a href="/admin/documents">Document Security</a>
-                <a href="/admin/soc/quarantine">Quarantine Metadata</a>
-            </nav>
-        </section>
-        <section class="sidebar-group">
-            <span class="sidebar-group-label">Applications</span>
-            <nav aria-label="Applications">
-                <a href="/admin/applications">Protected Applications</a>
-            </nav>
-        </section>
-        <section class="sidebar-group">
-            <span class="sidebar-group-label">Evaluation</span>
-            <nav aria-label="Evaluation">
-                <a href="/admin/redteam">Red Team</a>
-                <a href="/admin/compare">Detector Comparison</a>
-            </nav>
-        </section>
+<header class="console-header" aria-label="LLMGuard console header">
+    <a class="console-brand" href="/admin/dashboard" aria-label="LLMGuard dashboard">
+        <span class="console-brand-mark">
+            <img src="/static/branding/llmguard-mark-light-64.png" alt="">
+        </span>
+        <strong>LLMGuard</strong>
+    </a>
+
+    <nav id="console-primary-navigation" class="console-primary-navigation" aria-label="Primary navigation" data-console-nav>
+        <a href="/admin/dashboard" data-console-section="dashboard" title="Dashboard" aria-label="Dashboard">
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#monitor"></use></svg>
+            <span class="console-nav-label">Dashboard</span>
+        </a>
+        <a href="/admin/applications" data-console-section="applications" title="Applications" aria-label="Applications">
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#database"></use></svg>
+            <span class="console-nav-label">Applications</span>
+        </a>
+        <a href="/admin/soc/events" data-console-section="security" title="Security" aria-label="Security">
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
+            <span class="console-nav-label">Security</span>
+        </a>
+        <a href="/admin/evaluation" data-console-section="evaluation" title="Evaluation" aria-label="Evaluation">
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#compare"></use></svg>
+            <span class="console-nav-label">Evaluation</span>
+        </a>
+    </nav>
+
+    <div class="console-header-actions">
+        <div class="console-user-menu">
+            <button class="console-user-trigger" type="button" aria-label="Account for {{ user.username }}" aria-expanded="false" aria-controls="console-user-dropdown" data-user-menu-toggle>
+                <span class="console-operator-avatar" aria-hidden="true">{{ user.username[:1]|upper }}</span>
+                <span class="console-user-copy"><strong>{{ user.username }}</strong><small>{{ user.role.value|replace('_', ' ')|title }}</small></span>
+                <svg class="console-user-chevron" aria-hidden="true"><use href="/static/llmguard-icons.svg#chevron-down"></use></svg>
+            </button>
+            <div id="console-user-dropdown" class="console-user-dropdown" data-user-menu hidden>
+                <div class="console-account-summary"><strong>{{ user.username }}</strong><small>{{ user.role.value|replace('_', ' ')|title }}</small></div>
+                <button type="button" data-logout>Sign out</button>
+            </div>
+        </div>
+        <span class="console-secure-pill {{ 'is-secure' if firewall_active else 'is-bypassed' }}">
+            <svg aria-hidden="true"><use href="/static/llmguard-icons.svg#shield"></use></svg>
+            {{ 'Secure' if firewall_active else 'Bypassed' }}
+        </span>
     </div>
-    <div class="boundary-lock">
-        <svg class="am-inline-icon"><use href="/static/llmguard-icons.svg#lock"></use></svg>
-        <strong>Restricted boundary</strong>
-        <small><code>restricted_secret</code> is never released to Qwen.</small>
-    </div>
-</aside>
+</header>

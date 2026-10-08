@@ -1,0 +1,5 @@
+<nav class="section-tabs" aria-label="Evaluation views">
+    <a class="{{ 'active' if active_evaluation_page == 'benchmark' else '' }}" href="/admin/evaluation">Benchmark</a>
+    <a class="{{ 'active' if active_evaluation_page == 'comparison' else '' }}" href="/admin/compare">Detector Comparison</a>
+    <a class="{{ 'active' if active_evaluation_page == 'redteam' else '' }}" href="/admin/redteam">Red Team</a>
+</nav>

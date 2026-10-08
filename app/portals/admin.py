@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi import HTTPException, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
@@ -18,6 +19,8 @@ from app.application_credentials import (
 )
 from app.application_registry import get_application, list_applications
 from app.auth import get_current_user
+from app.benchmark_presentation import load_benchmark_presentation
+from app.comparison_presentation import load_comparison_presentation
 from app.config import get_settings
 from app.database import get_db
 from app.db import fetch_dashboard_metrics
@@ -51,8 +54,15 @@ from app.protection_control import list_protection_audit, set_protection_enabled
 from app.rag.ingestion import InMemoryUpload, ingest_uploaded_file
 from app.rag.retriever import chunk_row_to_metadata
 from app.rag.vector_store import build_index
+from app.security_events import get_security_overview
 
 router = APIRouter(prefix="/admin", tags=["super-admin-portal"])
+EVALUATION_DATASET = (
+    Path(__file__).resolve().parents[2]
+    / "evaluation"
+    / "datasets"
+    / "security_cases.jsonl"
+)
 
 
 def _admin_ui_context(user: User) -> dict[str, object]:
@@ -89,16 +99,35 @@ class ProtectionUpdateRequest(BaseModel):
 @router.get("/dashboard", response_class=HTMLResponse)
 def admin_dashboard(
     request: Request,
+    application_id: str | None = Query(default=None, max_length=160),
     user: User = Depends(get_current_user),
 ) -> HTMLResponse:
     require_portal(user, PortalScope.admin)
     metrics = fetch_dashboard_metrics(limit=8)
     application_integrations = integration_statuses_for(list_applications())
+    selected_integration = next(
+        (
+            integration
+            for integration in application_integrations
+            if integration.application.application_id == application_id
+        ),
+        application_integrations[0] if application_integrations else None,
+    )
+    selected_application_id = (
+        selected_integration.application.application_id
+        if selected_integration is not None
+        else None
+    )
+    security_overview = get_security_overview(
+        application_id=selected_application_id,
+        recent_limit=6,
+    )
     context = {
         **_admin_ui_context(user),
         "metrics": metrics,
-        "recent_security_events": metrics["recent_logs"],
+        "security_overview": security_overview,
         "application_integrations": application_integrations,
+        "selected_integration": selected_integration,
     }
     return templates.TemplateResponse(
         request=request,
@@ -230,7 +259,29 @@ def compare_page(
     return templates.TemplateResponse(
         request=request,
         name="compare.html",
-        context=_admin_ui_context(user),
+        context={**_admin_ui_context(user),
+                 "comparison_report": load_comparison_presentation(EVALUATION_DATASET)},
+    )
+
+
+@router.get("/evaluation", response_class=HTMLResponse)
+def evaluation_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+) -> HTMLResponse:
+    require_portal(user, PortalScope.admin)
+    case_count = 0
+    if EVALUATION_DATASET.exists():
+        with EVALUATION_DATASET.open("r", encoding="utf-8") as dataset:
+            case_count = sum(1 for line in dataset if line.strip())
+    return templates.TemplateResponse(
+        request=request,
+        name="evaluation.html",
+        context={
+            **_admin_ui_context(user),
+            "benchmark_case_count": case_count,
+            "benchmark_report": load_benchmark_presentation(EVALUATION_DATASET),
+        },
     )
 
 

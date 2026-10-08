@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Manager | LLMGuard</title>
+    {% include "components/llmguard_favicon.html" %}
     <link rel="stylesheet" href="{{ url_for('static', path='product.css') }}?v={{ asset_version }}">
     <link rel="stylesheet" href="{{ url_for('static', path='portal.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='security_dashboard.css') }}?v={{ asset_version }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='console.css') }}?v={{ asset_version }}">
 </head>
-<body class="product-body am-tech-shell llmg-shell llmg-cyber-bg" data-portal-scope="{{ portal_scope }}">
-    {% include "components/product_nav.html" %}
-    <main class="product-page"><div class="portal-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main">
+<body class="product-body console-body" data-portal-scope="{{ portal_scope }}">
+    <main class="console-page"><div class="portal-shell console-shell">{% include "components/admin_sidebar.html" %}<div class="portal-main console-main">
+        {% set active_soc_page = 'documents' %}{% include "components/soc_subnav.html" %}
         <header class="page-header"><div><span class="am-section-label">[03] DOCUMENT SECURITY</span><h1 class="am-gradient-title">Controlled Document Manager</h1><p>Manage controlled synthetic documents, classifications, application scopes, chunks, and the FAISS index.</p></div>{% include "components/security_badges.html" %}</header>
         <section class="document-layout">
             <article class="workspace-card upload-manager">
