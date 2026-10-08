@@ -74,6 +74,8 @@ class ProductFrontendTests(unittest.TestCase):
             "/static/branding/llmguard-mark.png",
             "/static/branding/llmguard-mark-64.png",
             "/static/branding/llmguard-mark-32.png",
+            "/static/branding/llmguard-mark-light.png",
+            "/static/branding/llmguard-mark-light-64.png",
             "/static/branding/llmguard-wordmark-dark.png",
             "/favicon.ico",
         ):

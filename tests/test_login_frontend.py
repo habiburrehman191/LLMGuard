@@ -62,7 +62,7 @@ class LoginPresentationTests(unittest.TestCase):
         self.assertFalse(any(tag in {"nav", "header"} for tag, _ in self.elements))
         brand_images = [attrs for tag, attrs in self.elements if tag == "img"]
         self.assertEqual(brand_images, [{
-            "src": "/static/branding/llmguard-mark.png",
+            "src": "/static/branding/llmguard-mark-light.png",
             "alt": "",
         }])
 

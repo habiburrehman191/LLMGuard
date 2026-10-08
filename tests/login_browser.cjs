@@ -102,7 +102,7 @@ async function main() {
             assert.deepEqual(layout.fields.map(field=>field.height),[46,46]);
             assert.deepEqual(layout.fields.map(field=>field.paddingLeft),['44px','44px']);
             assert.ok(layout.fields.every(field=>field.centerDelta<=0.5),JSON.stringify(layout));
-            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark.png');
+            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark-light.png');
             assert.ok(layout.brandNaturalWidth>0);
             assert.equal(layout.favicon,'/static/branding/llmguard-mark-32.png');
             assert.ok(layout.bodyFont.includes('Plus Jakarta Sans'));

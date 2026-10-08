@@ -1604,7 +1604,7 @@ summary { color: var(--cyan); font-size: 0.94rem; font-weight: 800; cursor: poin
     height: 32px;
     display: block;
     object-fit: contain;
-    filter: drop-shadow(0 0 8px rgba(34, 211, 238, .28));
+    filter: drop-shadow(0 0 8px rgba(34, 211, 238, .36));
 }
 
 .product-nav nav {

@@ -55,7 +55,7 @@ class ConsoleShellTests(unittest.TestCase):
         }, routes)
         brand_images = [attrs for tag, attrs in elements if tag == "img"]
         self.assertEqual(brand_images, [{
-            "src": "/static/branding/llmguard-mark-64.png",
+            "src": "/static/branding/llmguard-mark-light-64.png",
             "alt": "",
         }])
         self.assertNotIn("/static/university/images/logo.png", self.render_shell())

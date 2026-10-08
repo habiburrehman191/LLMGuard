@@ -119,7 +119,7 @@ async function main() {
             assert.ok(layout.gaugeCenterDelta<=0.5,JSON.stringify(layout));
             assert.equal(layout.gaugeTextAlign,'center');
             assert.ok(layout.gaugeLines.every((line,index,lines)=>index===0 || lines[index-1].bottom<=line.top),JSON.stringify(layout));
-            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark-64.png');
+            assert.equal(layout.brandSrc,'/static/branding/llmguard-mark-light-64.png');
             assert.ok(layout.brandNaturalWidth>0);
             assert.equal(layout.favicon,'/static/branding/llmguard-mark-32.png');
             assert.equal(new Set(layout.sheets).size,3);
