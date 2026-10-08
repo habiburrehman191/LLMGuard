@@ -8,6 +8,7 @@ from unittest.mock import patch
 from xml.etree import ElementTree
 
 from app.benchmark_presentation import FINAL_REPORT, MODE_LABELS, RATE_LABELS, load_benchmark_presentation
+from evaluation.artifact_hashing import canonical_text_sha256, canonical_text_sha256_bytes
 from evaluation.dataset import DEFAULT_DATASET_PATH, load_evaluation_cases
 from evaluation.harness import MODE_ORDER
 from evaluation.run import build_parser
@@ -56,7 +57,7 @@ class EvaluationBenchmarkFrontendTests(unittest.TestCase):
         self.assertEqual(metadata['run_seeds'], b['seeds'])
         self.assertEqual(list(MODE_ORDER), [m['id'] for m in b['modes']])
         self.assertEqual(list(MODE_ORDER), list(MODE_LABELS))
-        self.assertEqual(hashlib.sha256(DEFAULT_DATASET_PATH.read_bytes()).hexdigest(), b['dataset_sha256'])
+        self.assertEqual(canonical_text_sha256(DEFAULT_DATASET_PATH), b['dataset_sha256'])
 
     def test_all_protected_metrics_use_artifact_values_and_percentage_units(self):
         response = self.page()
@@ -117,7 +118,9 @@ class EvaluationBenchmarkFrontendTests(unittest.TestCase):
         source = self.report()
         for key in ('mean_latency_ms', 'median_latency_ms'):
             self.assertEqual(f'{source["metrics"]["full_protected_pipeline"][key]:.3f}', b['latency'][key])
-        order = hashlib.sha256('\n'.join(c.case_id for c in load_evaluation_cases()).encode()).hexdigest()
+        order = canonical_text_sha256_bytes(
+            '\n'.join(c.case_id for c in load_evaluation_cases()).encode()
+        )
         self.assertEqual(order, b['case_order_sha256'])
         self.assertIn(b['dataset_sha256'], response.text)
         self.assertIn(order, response.text)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from datetime import datetime, timezone
-import hashlib
 import json
 import platform
 from pathlib import Path
@@ -12,6 +11,11 @@ from time import perf_counter
 from typing import Callable, Iterable, Mapping
 
 from app.config import get_settings
+from evaluation.artifact_hashing import (
+    binary_sha256,
+    canonical_text_sha256,
+    canonical_text_sha256_bytes,
+)
 from evaluation.dataset import (
     DEFAULT_DATASET_PATH,
     category_counts,
@@ -125,9 +129,9 @@ def run_benchmark(
     )
     results: list[CaseResult] = []
     per_run: list[dict[str, object]] = []
-    case_order_sha256 = hashlib.sha256(
+    case_order_sha256 = canonical_text_sha256_bytes(
         "\n".join(case.case_id for case in cases).encode("utf-8")
-    ).hexdigest()
+    )
     for offset in range(run_count):
         run_index = offset + 1
         run_seed = seed + offset
@@ -396,14 +400,14 @@ def _metadata(
         "python_version": platform.python_version(),
         "platform": platform.system(),
         "dataset_name": dataset_path.name,
-        "dataset_sha256": _sha256(dataset_path),
+        "dataset_sha256": canonical_text_sha256(dataset_path),
         "dataset_case_count": len(cases),
         "category_counts": category_counts(cases),
         "synthetic_data": True,
         "configuration": thresholds,
-        "configuration_sha256": hashlib.sha256(threshold_bytes).hexdigest(),
+        "configuration_sha256": canonical_text_sha256_bytes(threshold_bytes),
         "classifier_artifact_sha256": (
-            _sha256(settings.ml_model_path)
+            binary_sha256(settings.ml_model_path)
             if settings.ml_model_path.is_file()
             else None
         ),
@@ -444,14 +448,6 @@ def _comparison(metrics: Mapping[str, dict[str, object]]) -> dict[str, object] |
     }
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def _detector_source_hashes(base_dir: Path) -> dict[str, str]:
     relative_paths = {
         "rules": Path("app/firewall.py"),
@@ -463,6 +459,6 @@ def _detector_source_hashes(base_dir: Path) -> dict[str, str]:
         "output_guard": Path("app/output_guard.py"),
     }
     return {
-        name: _sha256(base_dir / relative_path)
+        name: canonical_text_sha256(base_dir / relative_path)
         for name, relative_path in relative_paths.items()
     }

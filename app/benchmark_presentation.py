@@ -4,10 +4,11 @@ This adapter never runs evaluation, recalculates benchmark metrics, or writes
 reports. Paths are repository-controlled and are not supplied by HTTP requests.
 """
 from collections import Counter
-import hashlib
 import json
 import math
 from pathlib import Path
+
+from evaluation.artifact_hashing import canonical_text_sha256_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 FINAL_REPORT = ROOT / 'reports/evaluation/final/benchmark.json'
@@ -50,8 +51,8 @@ def load_benchmark_presentation(dataset_path: Path, *, report_path: Path = FINAL
         metadata = report['metadata']
         if report['schema_version'] != 'phase14b-v1' or metadata['synthetic_data'] is not True:
             return unavailable
-        order_hash = hashlib.sha256('\n'.join(sorted(row['case_id'] for row in dataset)).encode('utf-8')).hexdigest()
-        if (metadata['dataset_sha256'] != hashlib.sha256(raw_dataset).hexdigest()
+        order_hash = canonical_text_sha256_bytes('\n'.join(sorted(row['case_id'] for row in dataset)).encode('utf-8'))
+        if (metadata['dataset_sha256'] != canonical_text_sha256_bytes(raw_dataset)
                 or metadata['dataset_case_count'] != len(dataset)
                 or metadata['case_order_sha256'] != order_hash):
             return {'available': False, 'reason': 'The stored final report does not match the current dataset.'}
